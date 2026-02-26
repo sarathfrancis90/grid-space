@@ -133,7 +133,7 @@
     "category": "grid",
     "name": "Insert row above/below",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-018",
@@ -141,7 +141,7 @@
     "category": "grid",
     "name": "Insert column left/right",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-019",
@@ -149,7 +149,7 @@
     "category": "grid",
     "name": "Delete selected rows",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-020",
@@ -157,7 +157,7 @@
     "category": "grid",
     "name": "Delete selected columns",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-021",
@@ -165,7 +165,7 @@
     "category": "grid",
     "name": "Resize column by dragging header border",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-022",
@@ -173,7 +173,7 @@
     "category": "grid",
     "name": "Resize row by dragging header border",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-023",
@@ -181,7 +181,7 @@
     "category": "grid",
     "name": "Double-click column border auto-fits width",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-024",
@@ -189,7 +189,7 @@
     "category": "grid",
     "name": "Hide selected rows",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-025",
@@ -197,7 +197,7 @@
     "category": "grid",
     "name": "Unhide rows",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-026",
@@ -205,7 +205,7 @@
     "category": "grid",
     "name": "Hide selected columns",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-027",
@@ -213,7 +213,7 @@
     "category": "grid",
     "name": "Unhide columns",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-028",
@@ -221,7 +221,7 @@
     "category": "grid",
     "name": "Freeze rows (View > Freeze)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-029",
@@ -229,7 +229,7 @@
     "category": "grid",
     "name": "Freeze columns",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-030",
@@ -237,7 +237,7 @@
     "category": "grid",
     "name": "Copy cells (Ctrl+C)",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-031",
@@ -245,7 +245,7 @@
     "category": "grid",
     "name": "Paste cells (Ctrl+V)",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-032",
@@ -253,7 +253,7 @@
     "category": "grid",
     "name": "Cut cells (Ctrl+X)",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-033",
@@ -261,7 +261,7 @@
     "category": "grid",
     "name": "Delete/Backspace clears selected cells",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-034",
@@ -269,7 +269,7 @@
     "category": "grid",
     "name": "Paste special \u2014 values only",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-035",
@@ -277,7 +277,7 @@
     "category": "grid",
     "name": "Paste special \u2014 format only",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-036",
@@ -285,7 +285,7 @@
     "category": "grid",
     "name": "Paste special \u2014 transpose",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-037",
@@ -293,7 +293,7 @@
     "category": "grid",
     "name": "Ctrl+Home goes to A1",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-038",
@@ -301,7 +301,7 @@
     "category": "grid",
     "name": "Ctrl+End goes to last cell with data",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-039",
@@ -309,7 +309,7 @@
     "category": "grid",
     "name": "Page Up/Down scrolls one viewport",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-040",
@@ -317,7 +317,7 @@
     "category": "grid",
     "name": "Ctrl+Arrow jumps to edge of data region",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S1-041",
@@ -325,7 +325,7 @@
     "category": "grid",
     "name": "Drag fill handle extends series",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-001",

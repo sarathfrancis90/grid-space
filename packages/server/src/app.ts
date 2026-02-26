@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import path from "path";
 import { env } from "./config/env";
 import { requestLogger } from "./middleware/logging.middleware";
@@ -27,9 +28,10 @@ app.use(
   }),
 );
 
-// 3. Body parsing
+// 3. Body parsing + cookies
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(cookieParser());
 
 // 4. Request logging
 app.use(requestLogger);

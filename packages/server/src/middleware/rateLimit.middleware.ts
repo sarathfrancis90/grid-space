@@ -1,9 +1,11 @@
 import rateLimit from "express-rate-limit";
 
-/** Global rate limit: 100 requests per minute */
+const isTest = process.env.NODE_ENV === "test";
+
+/** Global rate limit: 100 requests per minute (disabled in test) */
 export const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
-  limit: 100,
+  limit: isTest ? 10000 : 100,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: {
@@ -12,10 +14,10 @@ export const globalLimiter = rateLimit({
   },
 });
 
-/** Auth endpoints: 5 requests per minute */
+/** Auth endpoints: 5 requests per minute (disabled in test) */
 export const authLimiter = rateLimit({
   windowMs: 60 * 1000,
-  limit: 5,
+  limit: isTest ? 10000 : 5,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: {
@@ -27,10 +29,10 @@ export const authLimiter = rateLimit({
   },
 });
 
-/** Write endpoints: 30 requests per minute */
+/** Write endpoints: 30 requests per minute (disabled in test) */
 export const writeLimiter = rateLimit({
   windowMs: 60 * 1000,
-  limit: 30,
+  limit: isTest ? 10000 : 30,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: {

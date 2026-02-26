@@ -15,6 +15,8 @@ interface GridState {
   frozenCols: number;
   columnWidths: Map<number, number>;
   rowHeights: Map<number, number>;
+  hiddenRows: Set<number>;
+  hiddenCols: Set<number>;
   totalRows: number;
   totalCols: number;
   rowHeaderWidth: number;
@@ -31,6 +33,18 @@ interface GridState {
   getRowY: (row: number) => number;
   getColAtX: (x: number) => number;
   getRowAtY: (y: number) => number;
+  setFrozenRows: (count: number) => void;
+  setFrozenCols: (count: number) => void;
+  hideRows: (rows: number[]) => void;
+  unhideRows: (rows: number[]) => void;
+  hideCols: (cols: number[]) => void;
+  unhideCols: (cols: number[]) => void;
+  setTotalRows: (count: number) => void;
+  setTotalCols: (count: number) => void;
+  insertRowHeights: (atRow: number, count: number) => void;
+  deleteRowHeights: (rows: number[]) => void;
+  insertColWidths: (atCol: number, count: number) => void;
+  deleteColWidths: (cols: number[]) => void;
 }
 
 export const useGridStore = create<GridState>()(
@@ -43,6 +57,8 @@ export const useGridStore = create<GridState>()(
     frozenCols: 0,
     columnWidths: new Map<number, number>(),
     rowHeights: new Map<number, number>(),
+    hiddenRows: new Set<number>(),
+    hiddenCols: new Set<number>(),
     totalRows: 1000,
     totalCols: 26,
     rowHeaderWidth: ROW_HEADER_WIDTH,
@@ -120,6 +136,124 @@ export const useGridStore = create<GridState>()(
         if (accum > y) return r;
       }
       return state.totalRows - 1;
+    },
+
+    setFrozenRows: (count: number) => {
+      set((state) => {
+        state.frozenRows = count;
+      });
+    },
+
+    setFrozenCols: (count: number) => {
+      set((state) => {
+        state.frozenCols = count;
+      });
+    },
+
+    hideRows: (rows: number[]) => {
+      set((state) => {
+        for (const r of rows) {
+          state.hiddenRows.add(r);
+        }
+      });
+    },
+
+    unhideRows: (rows: number[]) => {
+      set((state) => {
+        for (const r of rows) {
+          state.hiddenRows.delete(r);
+        }
+      });
+    },
+
+    hideCols: (cols: number[]) => {
+      set((state) => {
+        for (const c of cols) {
+          state.hiddenCols.add(c);
+        }
+      });
+    },
+
+    unhideCols: (cols: number[]) => {
+      set((state) => {
+        for (const c of cols) {
+          state.hiddenCols.delete(c);
+        }
+      });
+    },
+
+    setTotalRows: (count: number) => {
+      set((state) => {
+        state.totalRows = count;
+      });
+    },
+
+    setTotalCols: (count: number) => {
+      set((state) => {
+        state.totalCols = count;
+      });
+    },
+
+    insertRowHeights: (atRow: number, count: number) => {
+      set((state) => {
+        const newMap = new Map<number, number>();
+        for (const [r, h] of state.rowHeights) {
+          if (r >= atRow) {
+            newMap.set(r + count, h);
+          } else {
+            newMap.set(r, h);
+          }
+        }
+        state.rowHeights = newMap;
+      });
+    },
+
+    deleteRowHeights: (rows: number[]) => {
+      set((state) => {
+        const sorted = [...rows].sort((a, b) => a - b);
+        const rowSet = new Set(sorted);
+        const newMap = new Map<number, number>();
+        for (const [r, h] of state.rowHeights) {
+          if (rowSet.has(r)) continue;
+          let offset = 0;
+          for (const dr of sorted) {
+            if (dr < r) offset++;
+          }
+          newMap.set(r - offset, h);
+        }
+        state.rowHeights = newMap;
+      });
+    },
+
+    insertColWidths: (atCol: number, count: number) => {
+      set((state) => {
+        const newMap = new Map<number, number>();
+        for (const [c, w] of state.columnWidths) {
+          if (c >= atCol) {
+            newMap.set(c + count, w);
+          } else {
+            newMap.set(c, w);
+          }
+        }
+        state.columnWidths = newMap;
+      });
+    },
+
+    deleteColWidths: (cols: number[]) => {
+      set((state) => {
+        const sorted = [...cols].sort((a, b) => a - b);
+        const colSet = new Set(sorted);
+        const newMap = new Map<number, number>();
+        for (const [c, w] of state.columnWidths) {
+          if (colSet.has(c)) continue;
+          let offset = 0;
+          for (const dc of sorted) {
+            if (dc < c) offset++;
+          }
+          newMap.set(c - offset, w);
+        }
+        state.columnWidths = newMap;
+      });
     },
   })),
 );
