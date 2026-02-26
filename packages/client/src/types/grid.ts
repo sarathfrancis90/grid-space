@@ -107,3 +107,96 @@ export interface ColumnFilter {
   condition?: FilterCondition;
   filterByColor?: string;
 }
+
+// Data Validation
+export type ValidationRuleType =
+  | "number-range"
+  | "text-length"
+  | "date-range"
+  | "dropdown-list"
+  | "checkbox"
+  | "custom-formula";
+
+export interface ValidationRule {
+  type: ValidationRuleType;
+  min?: number;
+  max?: number;
+  minDate?: string;
+  maxDate?: string;
+  listValues?: string[];
+  formula?: string;
+  allowBlank?: boolean;
+  errorMessage?: string;
+}
+
+// Named Ranges
+export interface NamedRange {
+  name: string;
+  sheetId: string;
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+}
+
+// Pivot Tables
+export type PivotAggregation = "SUM" | "COUNT" | "AVERAGE" | "MIN" | "MAX";
+
+export interface PivotFieldConfig {
+  col: number;
+  label: string;
+}
+
+export interface PivotValueConfig {
+  col: number;
+  label: string;
+  aggregation: PivotAggregation;
+}
+
+export interface PivotFilterConfig {
+  col: number;
+  allowedValues: Set<string>;
+}
+
+export interface PivotConfig {
+  id: string;
+  sourceSheetId: string;
+  sourceRange: SelectionRange;
+  rowFields: PivotFieldConfig[];
+  colFields: PivotFieldConfig[];
+  valueFields: PivotValueConfig[];
+  filters: PivotFilterConfig[];
+  targetSheetId: string;
+  targetCell: CellPosition;
+}
+
+// Row/Column Grouping
+export interface GroupRange {
+  start: number;
+  end: number;
+  collapsed: boolean;
+}
+
+// Protected Ranges
+export interface ProtectedRange {
+  id: string;
+  sheetId: string;
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+  description?: string;
+}
+
+// Slicer
+export interface SlicerConfig {
+  id: string;
+  sheetId: string;
+  targetCol: number;
+  title: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  selectedValues: Set<string>;
+}

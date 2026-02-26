@@ -42,6 +42,7 @@ model Spreadsheet {
   shareLink      String?   @unique @map("share_link")
   shareLinkRole  String?   @map("share_link_role")
   isPublished    Boolean   @default(false) @map("is_published")
+  publishedUrl   String?   @unique @map("published_url")
 
   isStarred      Boolean   @default(false) @map("is_starred")
   isTemplate     Boolean   @default(false) @map("is_template")
