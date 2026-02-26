@@ -13,6 +13,10 @@ import sharingRoutes, {
   publicShareRouter,
   publicPublishedRouter,
 } from "./sharing.routes";
+import versionRoutes from "./version.routes";
+import commentRoutes from "./comment.routes";
+import notificationRoutes from "./notification.routes";
+import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
 
 const router = Router();
 
@@ -54,5 +58,20 @@ router.use("/share", publicShareRouter);
 
 // Public access — published spreadsheets (no auth required)
 router.use("/published", publicPublishedRouter);
+
+// Version history
+router.use("/spreadsheets/:id/versions", versionRoutes);
+
+// Comments (nested under spreadsheets)
+router.use("/spreadsheets/:id/comments", commentRoutes);
+
+// Save as template (nested under spreadsheets)
+router.use("/spreadsheets/:id/save-as-template", saveAsTemplateRouter);
+
+// Notifications
+router.use("/notifications", notificationRoutes);
+
+// Templates
+router.use("/templates", templateRoutes);
 
 export default router;

@@ -1,14 +1,21 @@
+import http from "http";
 import { app } from "./app";
 import { env } from "./config/env";
 import logger from "./utils/logger";
 import { connectRedis, disconnectRedis } from "./config/redis";
 import prisma from "./models/prisma";
+import { createSocketServer } from "./websocket/socketServer";
 
 async function start(): Promise<void> {
   // Connect to Redis (optional — continues without it)
   await connectRedis();
 
-  const server = app.listen(env.PORT, () => {
+  const server = http.createServer(app);
+
+  // Initialize WebSocket server (Socket.io)
+  createSocketServer(server);
+
+  server.listen(env.PORT, () => {
     logger.info(
       { port: env.PORT, env: env.NODE_ENV },
       "GridSpace server running",

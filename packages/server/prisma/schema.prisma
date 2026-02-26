@@ -22,6 +22,12 @@ model User {
   ownedSpreadsheets  Spreadsheet[]       @relation("OwnedSpreadsheets")
   access             SpreadsheetAccess[]
   versions           Version[]
+  apiKeys            ApiKey[]
+  webhooks           Webhook[]
+  comments           Comment[]
+  commentReplies     CommentReply[]
+  notifications      Notification[]
+  notificationPrefs  NotificationPreference[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -51,6 +57,9 @@ model Spreadsheet {
   sheets         Sheet[]
   access         SpreadsheetAccess[]
   versions       Version[]
+  webhooks       Webhook[]
+  comments       Comment[]
+  notifications  Notification[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -128,4 +137,144 @@ model Version {
 
   @@index([spreadsheetId, createdAt])
   @@map("versions")
+}
+
+// ─── API KEY ──────────────────────────────────────────────
+model ApiKey {
+  id             String      @id @default(cuid())
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name           String
+  keyHash        String      @map("key_hash")
+  prefix         String
+  lastUsedAt     DateTime?   @map("last_used_at")
+  expiresAt      DateTime?   @map("expires_at")
+  rateLimit      Int         @default(60) @map("rate_limit")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@index([keyHash])
+  @@index([userId])
+  @@map("api_keys")
+}
+
+// ─── WEBHOOK ──────────────────────────────────────────────
+model Webhook {
+  id             String      @id @default(cuid())
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  spreadsheetId  String      @map("spreadsheet_id")
+  spreadsheet    Spreadsheet @relation(fields: [spreadsheetId], references: [id], onDelete: Cascade)
+
+  url            String
+  secret         String
+  events         String[]    @default(["spreadsheet.updated"])
+  isActive       Boolean     @default(true) @map("is_active")
+  lastTriggeredAt DateTime?  @map("last_triggered_at")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@index([spreadsheetId])
+  @@index([userId])
+  @@map("webhooks")
+}
+
+// ─── COMMENT ─────────────────────────────────────────────
+model Comment {
+  id             String      @id @default(cuid())
+
+  spreadsheetId  String      @map("spreadsheet_id")
+  spreadsheet    Spreadsheet @relation(fields: [spreadsheetId], references: [id], onDelete: Cascade)
+
+  authorId       String      @map("author_id")
+  author         User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  sheetId        String      @map("sheet_id")
+  cellKey        String      @map("cell_key")
+  text           String
+  resolved       Boolean     @default(false)
+  mentions       String[]    @default([])
+
+  replies        CommentReply[]
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@index([spreadsheetId])
+  @@index([spreadsheetId, sheetId])
+  @@index([authorId])
+  @@map("comments")
+}
+
+// ─── COMMENT REPLY ───────────────────────────────────────
+model CommentReply {
+  id             String      @id @default(cuid())
+
+  commentId      String      @map("comment_id")
+  comment        Comment     @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  authorId       String      @map("author_id")
+  author         User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  text           String
+  mentions       String[]    @default([])
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@index([commentId])
+  @@index([authorId])
+  @@map("comment_replies")
+}
+
+// ─── NOTIFICATION ────────────────────────────────────────
+model Notification {
+  id             String      @id @default(cuid())
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type           String      @default("general")
+  title          String
+  message        String
+  read           Boolean     @default(false)
+
+  spreadsheetId  String?     @map("spreadsheet_id")
+  spreadsheet    Spreadsheet? @relation(fields: [spreadsheetId], references: [id], onDelete: SetNull)
+
+  cellRef        String?     @map("cell_ref")
+  fromUserId     String?     @map("from_user_id")
+  fromUserName   String?     @map("from_user_name")
+  fromUserEmail  String?     @map("from_user_email")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// ─── NOTIFICATION PREFERENCE ─────────────────────────────
+model NotificationPreference {
+  id             String      @id @default(cuid())
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  spreadsheetId  String?     @map("spreadsheet_id")
+
+  emailSharing   Boolean     @default(false) @map("email_sharing")
+  emailComments  Boolean     @default(false) @map("email_comments")
+  emailMentions  Boolean     @default(false) @map("email_mentions")
+  inAppSharing   Boolean     @default(true) @map("in_app_sharing")
+  inAppComments  Boolean     @default(true) @map("in_app_comments")
+  inAppMentions  Boolean     @default(true) @map("in_app_mentions")
+
+  @@unique([userId, spreadsheetId])
+  @@index([userId])
+  @@map("notification_preferences")
 }

@@ -11,6 +11,7 @@ import { useClipboardStore } from "../stores/clipboardStore";
 import { useCellStore } from "../stores/cellStore";
 import { useSpreadsheetStore } from "../stores/spreadsheetStore";
 import { useFindReplaceStore } from "../stores/findReplaceStore";
+import { useVersionStore } from "../stores/versionStore";
 import { getCellKey } from "../utils/coordinates";
 
 export interface ShortcutHandlers {
@@ -273,6 +274,19 @@ export function useKeyboardShortcuts(handlers?: ShortcutHandlers): void {
             return;
           }
         }
+      }
+
+      // --- Ctrl+Alt+Shift+H — open version history (S13-012) ---
+      if (ctrl && alt && shift && (key === "H" || key === "h")) {
+        e.preventDefault();
+        const versionState = useVersionStore.getState();
+        if (versionState.isOpen) {
+          versionState.close();
+        } else {
+          const spreadsheetId = useSpreadsheetStore.getState().id;
+          versionState.open(spreadsheetId);
+        }
+        return;
       }
     },
     [handlers],

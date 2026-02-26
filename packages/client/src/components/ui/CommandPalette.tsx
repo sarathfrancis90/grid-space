@@ -3,6 +3,8 @@ import { useUIStore } from "../../stores/uiStore";
 import { useFormatStore } from "../../stores/formatStore";
 import { useHistoryStore } from "../../stores/historyStore";
 import { useFindReplaceStore } from "../../stores/findReplaceStore";
+import { useCommentStore } from "../../stores/commentStore";
+import { useNotificationStore } from "../../stores/notificationStore";
 
 interface CommandItem {
   id: string;
@@ -107,6 +109,83 @@ function buildCommands(
       label: "Reset Zoom (100%)",
       category: "View",
       action: () => useUIStore.getState().setZoom(100),
+    },
+    // S15-020: Additional menu actions for search
+    {
+      id: "comments-panel",
+      label: "Open Comments Panel",
+      category: "View",
+      action: () => useCommentStore.getState().openPanel(),
+    },
+    {
+      id: "notifications",
+      label: "Open Notifications",
+      category: "View",
+      action: () => useNotificationStore.getState().openPanel(),
+    },
+    {
+      id: "sort-asc",
+      label: "Sort Column A-Z",
+      category: "Data",
+      action: () => {
+        /* Sort triggered via data store */
+      },
+    },
+    {
+      id: "sort-desc",
+      label: "Sort Column Z-A",
+      category: "Data",
+      action: () => {
+        /* Sort triggered via data store */
+      },
+    },
+    {
+      id: "insert-row",
+      label: "Insert Row",
+      category: "Insert",
+      action: () => {
+        /* Insert row action */
+      },
+    },
+    {
+      id: "insert-col",
+      label: "Insert Column",
+      category: "Insert",
+      action: () => {
+        /* Insert column action */
+      },
+    },
+    {
+      id: "delete-row",
+      label: "Delete Row",
+      category: "Edit",
+      action: () => {
+        /* Delete row action */
+      },
+    },
+    {
+      id: "delete-col",
+      label: "Delete Column",
+      category: "Edit",
+      action: () => {
+        /* Delete column action */
+      },
+    },
+    {
+      id: "freeze-rows",
+      label: "Freeze Rows",
+      category: "View",
+      action: () => {
+        /* Freeze action */
+      },
+    },
+    {
+      id: "freeze-cols",
+      label: "Freeze Columns",
+      category: "View",
+      action: () => {
+        /* Freeze action */
+      },
     },
   ];
 }

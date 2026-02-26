@@ -67,6 +67,7 @@ export function CellEditor({ onCommit, onCancel }: CellEditorProps) {
       value={editValue}
       onChange={handleChange}
       onKeyDown={handleKeyDown}
+      spellCheck
       style={{
         position: "absolute",
         left: cellX,
