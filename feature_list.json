@@ -461,7 +461,7 @@
     "category": "formula",
     "name": "VLOOKUP function",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-018",
@@ -469,7 +469,7 @@
     "category": "formula",
     "name": "HLOOKUP function",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-019",
@@ -477,7 +477,7 @@
     "category": "formula",
     "name": "INDEX, MATCH functions",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-020",
@@ -485,7 +485,7 @@
     "category": "formula",
     "name": "XLOOKUP function",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-021",
@@ -493,7 +493,7 @@
     "category": "formula",
     "name": "SUMIF, COUNTIF, AVERAGEIF",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-022",
@@ -501,7 +501,7 @@
     "category": "formula",
     "name": "SUMIFS, COUNTIFS, AVERAGEIFS",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-023",
@@ -509,7 +509,7 @@
     "category": "formula",
     "name": "CONCATENATE, LEFT, RIGHT, MID, LEN, TRIM",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-024",
@@ -517,7 +517,7 @@
     "category": "formula",
     "name": "UPPER, LOWER, PROPER, SUBSTITUTE, FIND, SEARCH",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-025",
@@ -525,7 +525,7 @@
     "category": "formula",
     "name": "TEXT, VALUE, REPT, EXACT, CLEAN, CHAR, CODE",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-026",
@@ -533,7 +533,7 @@
     "category": "formula",
     "name": "TODAY, NOW, DATE, YEAR, MONTH, DAY",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-027",
@@ -541,7 +541,7 @@
     "category": "formula",
     "name": "HOUR, MINUTE, SECOND, DATEDIF, EDATE, EOMONTH",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-028",
@@ -549,7 +549,7 @@
     "category": "formula",
     "name": "WEEKDAY, WEEKNUM, WORKDAY, NETWORKDAYS",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-029",
@@ -557,7 +557,7 @@
     "category": "formula",
     "name": "ROUND, ROUNDUP, ROUNDDOWN, ABS, SQRT, POWER, MOD",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-030",
@@ -565,7 +565,7 @@
     "category": "formula",
     "name": "CEILING, FLOOR, LOG, LOG10, EXP, PI, RAND, RANDBETWEEN",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-031",
@@ -573,7 +573,7 @@
     "category": "formula",
     "name": "STDEV, VAR, MEDIAN, MODE, PERCENTILE, QUARTILE, RANK",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-032",
@@ -581,7 +581,7 @@
     "category": "formula",
     "name": "LARGE, SMALL, CORREL, FORECAST",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-033",
@@ -589,7 +589,7 @@
     "category": "formula",
     "name": "PMT, FV, PV, NPV, IRR, RATE, NPER",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-034",
@@ -597,7 +597,7 @@
     "category": "formula",
     "name": "ISBLANK, ISERROR, ISNUMBER, ISTEXT, ISLOGICAL, TYPE",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-035",
@@ -605,7 +605,7 @@
     "category": "formula",
     "name": "OFFSET, INDIRECT, ROW, COLUMN, ROWS, COLUMNS, CHOOSE",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-036",
@@ -613,7 +613,7 @@
     "category": "formula",
     "name": "SORT, FILTER, UNIQUE array functions",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-037",
@@ -621,7 +621,7 @@
     "category": "formula",
     "name": "TRANSPOSE function",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-038",
@@ -629,7 +629,7 @@
     "category": "formula",
     "name": "SPARKLINE function (inline mini-charts)",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-039",
@@ -637,7 +637,7 @@
     "category": "formula",
     "name": "String concatenation with & operator",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-040",

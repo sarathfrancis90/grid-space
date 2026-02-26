@@ -173,25 +173,28 @@ function evaluateArg(
 }
 
 /**
- * Expand a range reference into a flat array of cell values.
+ * Expand a range reference into a 2D array of cell values (rows × cols).
+ * Aggregate functions flatten this via flattenArgs; lookup functions use 2D.
  */
 function expandRange(
   range: RangeReference,
   getCellValue: CellValueGetter,
-): FormulaValue[] {
+): FormulaValue[][] {
   const startCol = Math.min(range.start.col, range.end.col);
   const endCol = Math.max(range.start.col, range.end.col);
   const startRow = Math.min(range.start.row, range.end.row);
   const endRow = Math.max(range.start.row, range.end.row);
   const sheet = range.start.sheet;
 
-  const values: FormulaValue[] = [];
+  const rows: FormulaValue[][] = [];
   for (let row = startRow; row <= endRow; row++) {
+    const rowVals: FormulaValue[] = [];
     for (let col = startCol; col <= endCol; col++) {
-      values.push(getCellValue(sheet, col, row));
+      rowVals.push(getCellValue(sheet, col, row));
     }
+    rows.push(rowVals);
   }
-  return values;
+  return rows;
 }
 
 /**

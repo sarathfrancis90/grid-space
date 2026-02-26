@@ -1,16 +1,21 @@
 /**
  * Formula function registry.
- * Maps function names to their implementations.
- * Uses @formulajs/formulajs where possible, with wrappers.
+ * Merges core functions with all domain-specific function modules.
  */
 import type { FormulaValue, FormulaError } from "../../types/formula";
 import { isFormulaError } from "../../types/formula";
+import { mathFunctions } from "./functions/mathFunctions";
+import { textFunctions } from "./functions/textFunctions";
+import { dateFunctions } from "./functions/dateFunctions";
+import { lookupFunctions } from "./functions/lookupFunctions";
+import { conditionalFunctions } from "./functions/conditionalFunctions";
+import { statisticalFunctions } from "./functions/statisticalFunctions";
+import { financialFunctions } from "./functions/financialFunctions";
+import { infoFunctions } from "./functions/infoFunctions";
+import { arrayFunctions } from "./functions/arrayFunctions";
 
 type FormulaFunction = (...args: FormulaValue[]) => FormulaValue;
 
-/**
- * Flatten nested arrays and ranges into a flat array of values.
- */
 function flattenArgs(args: FormulaValue[]): FormulaValue[] {
   const result: FormulaValue[] = [];
   for (const arg of args) {
@@ -23,17 +28,11 @@ function flattenArgs(args: FormulaValue[]): FormulaValue[] {
   return result;
 }
 
-/**
- * Convert a value to a number. Returns null if not convertible.
- * Empty cells (null) → 0 in aggregate functions.
- */
 function toNumber(
   val: FormulaValue,
   treatNullAsZero: boolean = true,
 ): number | null {
-  if (val === null || val === "") {
-    return treatNullAsZero ? 0 : null;
-  }
+  if (val === null || val === "") return treatNullAsZero ? 0 : null;
   if (typeof val === "number") return val;
   if (typeof val === "boolean") return val ? 1 : 0;
   if (typeof val === "string") {
@@ -44,9 +43,6 @@ function toNumber(
   return null;
 }
 
-/**
- * Convert a value to boolean for logical functions.
- */
 function toBool(val: FormulaValue): boolean {
   if (typeof val === "boolean") return val;
   if (typeof val === "number") return val !== 0;
@@ -58,7 +54,7 @@ function toBool(val: FormulaValue): boolean {
   return false;
 }
 
-// --- Math/Statistical functions ---
+// --- Core aggregate/logical functions (Sprint 2 core) ---
 
 function fnSUM(...args: FormulaValue[]): FormulaValue {
   const flat = flattenArgs(args);
@@ -93,8 +89,7 @@ function fnCOUNT(...args: FormulaValue[]): FormulaValue {
   for (const val of flat) {
     if (typeof val === "number") count++;
     else if (typeof val === "string" && !isFormulaError(val) && val !== "") {
-      const n = Number(val);
-      if (!isNaN(n)) count++;
+      if (!isNaN(Number(val))) count++;
     }
   }
   return count;
@@ -148,12 +143,9 @@ function fnMAX(...args: FormulaValue[]): FormulaValue {
   return found ? max : 0;
 }
 
-// --- Logical functions ---
-
 function fnIF(...args: FormulaValue[]): FormulaValue {
   if (args.length < 2 || args.length > 3) return "#VALUE!" as FormulaError;
-  const condition = toBool(args[0]);
-  if (condition) return args[1];
+  if (toBool(args[0])) return args[1];
   return args.length >= 3 ? args[2] : false;
 }
 
@@ -169,16 +161,11 @@ function fnIFS(...args: FormulaValue[]): FormulaValue {
 function fnSWITCH(...args: FormulaValue[]): FormulaValue {
   if (args.length < 3) return "#VALUE!" as FormulaError;
   const expr = args[0];
-  // SWITCH(expr, val1, result1, val2, result2, ..., [default])
   const hasDefault = args.length % 2 === 0;
   const pairCount = hasDefault ? (args.length - 2) / 2 : (args.length - 1) / 2;
-
   for (let i = 0; i < pairCount; i++) {
-    const val = args[1 + i * 2];
-    const result = args[2 + i * 2];
-    if (compareValues(expr, val) === 0) return result;
+    if (compareValues(expr, args[1 + i * 2]) === 0) return args[2 + i * 2];
   }
-
   if (hasDefault) return args[args.length - 1];
   return "#N/A" as FormulaError;
 }
@@ -222,30 +209,24 @@ function fnXOR(...args: FormulaValue[]): FormulaValue {
 
 function fnIFERROR(...args: FormulaValue[]): FormulaValue {
   if (args.length !== 2) return "#VALUE!" as FormulaError;
-  const value = args[0];
-  if (isFormulaError(value)) return args[1];
-  return value;
+  return isFormulaError(args[0]) ? args[1] : args[0];
 }
 
 function fnIFNA(...args: FormulaValue[]): FormulaValue {
   if (args.length !== 2) return "#VALUE!" as FormulaError;
-  const value = args[0];
-  if (value === "#N/A") return args[1];
-  return value;
+  return args[0] === "#N/A" ? args[1] : args[0];
 }
 
-// --- Comparison helper ---
+/** SPARKLINE — returns a metadata marker; rendering is handled by the grid. */
+function fnSPARKLINE(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 1) return "#VALUE!" as FormulaError;
+  return `__SPARKLINE__${JSON.stringify(args)}`;
+}
 
 function compareValues(a: FormulaValue, b: FormulaValue): number {
-  // null/empty treated as 0 for numeric, "" for string
   const na = toNumber(a, false);
   const nb = toNumber(b, false);
-
-  if (na !== null && nb !== null) {
-    return na - nb;
-  }
-
-  // String comparison (case-insensitive per Google Sheets behavior)
+  if (na !== null && nb !== null) return na - nb;
   const sa = String(a ?? "").toLowerCase();
   const sb = String(b ?? "").toLowerCase();
   if (sa < sb) return -1;
@@ -253,9 +234,10 @@ function compareValues(a: FormulaValue, b: FormulaValue): number {
   return 0;
 }
 
-// --- Function registry ---
+// --- Merged registry ---
 
 const FUNCTION_REGISTRY: Record<string, FormulaFunction> = {
+  // Core (Sprint 2 core)
   SUM: fnSUM,
   AVERAGE: fnAVERAGE,
   COUNT: fnCOUNT,
@@ -272,26 +254,27 @@ const FUNCTION_REGISTRY: Record<string, FormulaFunction> = {
   XOR: fnXOR,
   IFERROR: fnIFERROR,
   IFNA: fnIFNA,
+  SPARKLINE: fnSPARKLINE,
+  // Domain modules
+  ...mathFunctions,
+  ...textFunctions,
+  ...dateFunctions,
+  ...lookupFunctions,
+  ...conditionalFunctions,
+  ...statisticalFunctions,
+  ...financialFunctions,
+  ...infoFunctions,
+  ...arrayFunctions,
 };
 
-/**
- * Look up a function by name. Case-insensitive.
- * Returns null if the function is not registered.
- */
 export function getFunction(name: string): FormulaFunction | null {
   return FUNCTION_REGISTRY[name.toUpperCase()] ?? null;
 }
 
-/**
- * Check if a function name is registered.
- */
 export function hasFunction(name: string): boolean {
   return name.toUpperCase() in FUNCTION_REGISTRY;
 }
 
-/**
- * Get all registered function names.
- */
 export function getFunctionNames(): string[] {
   return Object.keys(FUNCTION_REGISTRY);
 }
