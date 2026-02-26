@@ -1285,7 +1285,7 @@
     "category": "file-ops",
     "name": "Undo (Ctrl+Z)",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-002",
@@ -1293,7 +1293,7 @@
     "category": "file-ops",
     "name": "Redo (Ctrl+Y / Ctrl+Shift+Z)",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-003",
@@ -1301,7 +1301,7 @@
     "category": "file-ops",
     "name": "Undo/redo stack holds 100 entries",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-004",
@@ -1309,7 +1309,7 @@
     "category": "file-ops",
     "name": "CSV import via file picker",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-005",
@@ -1317,7 +1317,7 @@
     "category": "file-ops",
     "name": "CSV export/download",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-006",
@@ -1325,7 +1325,7 @@
     "category": "file-ops",
     "name": "XLSX import (SheetJS)",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-007",
@@ -1333,7 +1333,7 @@
     "category": "file-ops",
     "name": "XLSX export/download",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-008",
@@ -1341,7 +1341,7 @@
     "category": "file-ops",
     "name": "TSV export",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-009",
@@ -1349,7 +1349,7 @@
     "category": "file-ops",
     "name": "PDF export",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-010",
@@ -1357,7 +1357,7 @@
     "category": "file-ops",
     "name": "JSON export",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-011",
@@ -1365,7 +1365,7 @@
     "category": "file-ops",
     "name": "Drag-and-drop file import",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-012",
@@ -1373,7 +1373,7 @@
     "category": "file-ops",
     "name": "Autosave to localStorage (30s debounce)",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-013",
@@ -1381,7 +1381,7 @@
     "category": "file-ops",
     "name": "Restore from localStorage on page load",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-014",
@@ -1389,7 +1389,7 @@
     "category": "file-ops",
     "name": "XLSX import preserves formulas",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-015",
@@ -1397,7 +1397,7 @@
     "category": "file-ops",
     "name": "XLSX import preserves formatting",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-016",
@@ -1405,7 +1405,7 @@
     "category": "file-ops",
     "name": "XLSX import preserves multiple sheets",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-017",
@@ -1413,7 +1413,7 @@
     "category": "file-ops",
     "name": "CSV import auto-detects delimiter",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S5-018",
@@ -1421,7 +1421,7 @@
     "category": "file-ops",
     "name": "Export selected range only",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-001",
