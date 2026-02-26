@@ -68,19 +68,16 @@ describe("API response envelope", () => {
   });
 });
 
-describe("Spreadsheet routes (skeleton)", () => {
-  it("GET /api/spreadsheets returns empty array", async () => {
+describe("Spreadsheet routes (auth required)", () => {
+  it("GET /api/spreadsheets returns 401 without auth", async () => {
     const res = await request(app).get("/api/spreadsheets");
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data).toEqual([]);
+    expect(res.status).toBe(401);
   });
 
-  it("POST /api/spreadsheets returns 201", async () => {
+  it("POST /api/spreadsheets returns 401 without auth", async () => {
     const res = await request(app)
       .post("/api/spreadsheets")
       .send({ title: "Test" });
-    expect(res.status).toBe(201);
-    expect(res.body.success).toBe(true);
+    expect(res.status).toBe(401);
   });
 });
