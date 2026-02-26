@@ -61,12 +61,16 @@ export default function SpreadsheetEditorPage() {
   const [isRenaming, setIsRenaming] = useState(false);
   const [titleInput, setTitleInput] = useState("");
   const loadedRef = useRef(false);
+  // Store navigate in a ref to avoid it destabilizing the useEffect dependency array.
+  // React Router v7's useNavigate() may return a new reference on each render.
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
 
   useEffect(() => {
     if (id && !loadedRef.current) {
       loadedRef.current = true;
       fetchSpreadsheet(id).catch(() => {
-        navigate("/not-found", { replace: true });
+        navigateRef.current("/not-found", { replace: true });
       });
     }
 
@@ -74,7 +78,7 @@ export default function SpreadsheetEditorPage() {
       clearCurrent();
       loadedRef.current = false;
     };
-  }, [id, fetchSpreadsheet, clearCurrent, navigate]);
+  }, [id, fetchSpreadsheet, clearCurrent]);
 
   const handleRename = useCallback(async () => {
     if (id && titleInput.trim() && titleInput !== currentSpreadsheet?.title) {
