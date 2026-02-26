@@ -20,7 +20,7 @@ const app = express();
 // 0. Trust proxy — required behind Cloud Run / load balancers
 // Enables correct client IP detection for rate limiting and secure cookies
 if (env.NODE_ENV === "production") {
-  app.set("trust proxy", true);
+  app.set("trust proxy", 1);
 }
 
 // 1. Security headers
