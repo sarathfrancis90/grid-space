@@ -37,6 +37,15 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
     }
   }, [isDialogOpen, spreadsheetId, fetchCollaborators, fetchShareLink]);
 
+  useEffect(() => {
+    if (!isDialogOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeDialog();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isDialogOpen, closeDialog]);
+
   const handleAdd = useCallback(async () => {
     if (!email.trim()) return;
     try {

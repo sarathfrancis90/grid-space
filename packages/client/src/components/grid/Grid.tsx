@@ -5,8 +5,11 @@ import { useCellStore } from "../../stores/cellStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useClipboardStore } from "../../stores/clipboardStore";
 import { useFormatStore } from "../../stores/formatStore";
+import { useFormulaStore } from "../../stores/formulaStore";
 import { useFindReplaceStore } from "../../stores/findReplaceStore";
 import { colToLetter } from "../../utils/coordinates";
+import { cellId, parseCellId } from "../formula/cellUtils";
+import type { CellValueGetter } from "../../types/formula";
 import { generateFillValues } from "../../utils/fillHandle";
 import { CellEditor } from "./CellEditor";
 import { ContextMenu } from "./ContextMenu";
@@ -595,17 +598,85 @@ export function Grid() {
       const ui = useUIStore.getState();
       if (!ui.editingCell) return;
       const activeSheetId = getActiveSheetId();
+      const { row, col } = ui.editingCell;
+      const cellStore = useCellStore.getState();
+      const existing = cellStore.getCell(activeSheetId, row, col);
+
+      // Build a cell value resolver for the formula engine
+      const buildGetCellValue = (): CellValueGetter => {
+        return (sheet, refCol, refRow) => {
+          const sid = sheet ?? activeSheetId;
+          const cell = useCellStore.getState().getCell(sid, refRow, refCol);
+          if (!cell) return null;
+          if (typeof cell.value === "number" || typeof cell.value === "boolean")
+            return cell.value;
+          if (cell.value === null || cell.value === "") return null;
+          const num = Number(cell.value);
+          if (!isNaN(num)) return num;
+          return cell.value;
+        };
+      };
 
       if (value !== "") {
-        useCellStore
-          .getState()
-          .setCell(activeSheetId, ui.editingCell.row, ui.editingCell.col, {
-            value,
+        const formulaState = useFormulaStore.getState();
+        const key = cellId(undefined, col, row);
+
+        if (value.startsWith("=")) {
+          // Formula: evaluate and store computed result
+          const getCellValue = buildGetCellValue();
+          const isValid = formulaState.updateDependencies(key, value);
+          const result = isValid
+            ? formulaState.evaluateFormula(value, getCellValue, key)
+            : "#REF!";
+
+          cellStore.setCell(activeSheetId, row, col, {
+            ...existing,
+            value: result,
+            formula: value,
           });
+        } else {
+          // Plain value: clear formula, store value
+          cellStore.setCell(activeSheetId, row, col, {
+            ...existing,
+            value,
+            formula: undefined,
+          });
+          // Remove stale dependencies if this cell previously had a formula
+          if (existing?.formula) {
+            formulaState.updateDependencies(key, "");
+          }
+        }
+
+        // Recalculate any cells that depend on this cell
+        const getCellValue = buildGetCellValue();
+        const getFormula = (cellKey: string) => {
+          try {
+            const parsed = parseCellId(cellKey);
+            const sid = parsed.sheet ?? activeSheetId;
+            return useCellStore.getState().getCell(sid, parsed.row, parsed.col)
+              ?.formula;
+          } catch {
+            return undefined;
+          }
+        };
+        const updates = formulaState.recalculate(key, getFormula, getCellValue);
+        for (const [depKey, depValue] of updates) {
+          try {
+            const parsed = parseCellId(depKey);
+            const sid = parsed.sheet ?? activeSheetId;
+            const depCell = useCellStore
+              .getState()
+              .getCell(sid, parsed.row, parsed.col);
+            useCellStore.getState().setCell(sid, parsed.row, parsed.col, {
+              ...depCell,
+              value: depValue,
+            });
+          } catch {
+            // Skip invalid cell keys
+          }
+        }
       } else {
-        useCellStore
-          .getState()
-          .deleteCell(activeSheetId, ui.editingCell.row, ui.editingCell.col);
+        cellStore.deleteCell(activeSheetId, row, col);
       }
 
       const gs = useGridStore.getState();
