@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Grid } from "./components/grid";
+import { Toolbar } from "./components/toolbar";
 import LoginPage from "./components/auth/LoginPage";
 import RegisterPage from "./components/auth/RegisterPage";
 import ForgotPasswordPage from "./components/auth/ForgotPasswordPage";
@@ -38,9 +39,14 @@ export function App() {
                   width: "100vw",
                   height: "100vh",
                   overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column",
                 }}
               >
-                <Grid />
+                <Toolbar />
+                <div style={{ flex: 1, overflow: "hidden" }}>
+                  <Grid />
+                </div>
               </div>
             </ProtectedRoute>
           }

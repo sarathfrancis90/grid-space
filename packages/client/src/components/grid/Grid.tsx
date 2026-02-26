@@ -4,11 +4,13 @@ import { useUIStore } from "../../stores/uiStore";
 import { useCellStore } from "../../stores/cellStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useClipboardStore } from "../../stores/clipboardStore";
+import { useFormatStore } from "../../stores/formatStore";
 import { colToLetter } from "../../utils/coordinates";
 import { generateFillValues } from "../../utils/fillHandle";
 import { CellEditor } from "./CellEditor";
 import { ContextMenu } from "./ContextMenu";
 import type { CellData, CellPosition } from "../../types/grid";
+import { formatCellValue } from "../../utils/numberFormat";
 
 const GRID_LINE_COLOR = "#e2e2e2";
 const HEADER_BG = "#f8f9fa";
@@ -272,14 +274,49 @@ export function Grid() {
         }
 
         if (cellData?.value != null && cellData.value !== "") {
-          ctx.font = CELL_FONT;
-          ctx.fillStyle = cellData.format?.textColor ?? "#000000";
-          ctx.textBaseline = "middle";
-          ctx.textAlign = "left";
+          const fmt = cellData.format;
+          // Build font string from format properties
+          const fontParts: string[] = [];
+          if (fmt?.italic) fontParts.push("italic");
+          if (fmt?.bold) fontParts.push("bold");
+          const fontSize = fmt?.fontSize ?? 13;
+          const fontFamily = fmt?.fontFamily ?? "Arial, sans-serif";
+          fontParts.push(`${fontSize}px`);
+          fontParts.push(fontFamily);
+          ctx.font = fontParts.join(" ");
 
-          const displayValue = String(cellData.value);
-          const textX = Math.round(cellX + 4);
-          const textY = Math.round(cellY + cellH / 2);
+          ctx.fillStyle = fmt?.textColor ?? "#000000";
+
+          // Vertical alignment
+          const vAlign = fmt?.verticalAlign ?? "middle";
+          ctx.textBaseline =
+            vAlign === "top"
+              ? "top"
+              : vAlign === "bottom"
+                ? "bottom"
+                : "middle";
+
+          // Horizontal alignment
+          const hAlign = fmt?.horizontalAlign ?? "left";
+          ctx.textAlign = hAlign;
+
+          const displayValue = formatCellValue(
+            cellData.value,
+            fmt?.numberFormat,
+          );
+          const pad = 4;
+          const textX =
+            hAlign === "center"
+              ? Math.round(cellX + cellW / 2)
+              : hAlign === "right"
+                ? Math.round(cellX + cellW - pad)
+                : Math.round(cellX + pad);
+          const textY =
+            vAlign === "top"
+              ? Math.round(cellY + pad)
+              : vAlign === "bottom"
+                ? Math.round(cellY + cellH - pad)
+                : Math.round(cellY + cellH / 2);
 
           ctx.save();
           ctx.beginPath();
@@ -291,6 +328,48 @@ export function Grid() {
           );
           ctx.clip();
           ctx.fillText(displayValue, textX, textY);
+
+          // Underline
+          if (fmt?.underline) {
+            const metrics = ctx.measureText(displayValue);
+            const lineY = textY + 2;
+            const lineStartX =
+              hAlign === "center"
+                ? textX - metrics.width / 2
+                : hAlign === "right"
+                  ? textX - metrics.width
+                  : textX;
+            ctx.beginPath();
+            ctx.strokeStyle = fmt.textColor ?? "#000000";
+            ctx.lineWidth = 1;
+            ctx.moveTo(lineStartX, lineY);
+            ctx.lineTo(lineStartX + metrics.width, lineY);
+            ctx.stroke();
+          }
+
+          // Strikethrough
+          if (fmt?.strikethrough) {
+            const metrics = ctx.measureText(displayValue);
+            const lineY =
+              vAlign === "top"
+                ? textY + fontSize / 2
+                : vAlign === "bottom"
+                  ? textY - fontSize / 2
+                  : textY;
+            const lineStartX =
+              hAlign === "center"
+                ? textX - metrics.width / 2
+                : hAlign === "right"
+                  ? textX - metrics.width
+                  : textX;
+            ctx.beginPath();
+            ctx.strokeStyle = fmt.textColor ?? "#000000";
+            ctx.lineWidth = 1;
+            ctx.moveTo(lineStartX, lineY);
+            ctx.lineTo(lineStartX + metrics.width, lineY);
+            ctx.stroke();
+          }
+
           ctx.restore();
         }
       }
@@ -1137,6 +1216,27 @@ export function Grid() {
 
       const { row, col } = ui.selectedCell;
       const activeSheetId = getActiveSheetId();
+
+      // Ctrl+B → toggle bold
+      if ((e.ctrlKey || e.metaKey) && e.key === "b") {
+        e.preventDefault();
+        useFormatStore.getState().toggleFormatOnSelection("bold");
+        return;
+      }
+
+      // Ctrl+I → toggle italic
+      if ((e.ctrlKey || e.metaKey) && e.key === "i") {
+        e.preventDefault();
+        useFormatStore.getState().toggleFormatOnSelection("italic");
+        return;
+      }
+
+      // Ctrl+U → toggle underline
+      if ((e.ctrlKey || e.metaKey) && e.key === "u") {
+        e.preventDefault();
+        useFormatStore.getState().toggleFormatOnSelection("underline");
+        return;
+      }
 
       // Ctrl+A → select all
       if ((e.ctrlKey || e.metaKey) && e.key === "a") {
