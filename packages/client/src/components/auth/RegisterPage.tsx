@@ -27,9 +27,7 @@ export default function RegisterPage() {
         <div className="mb-6 text-center">
           <div className="mb-3 flex items-center justify-center gap-2">
             <GridSpaceLogo size={36} />
-            <span className="text-2xl font-bold text-emerald-600">
-              GridSpace
-            </span>
+            <span className="text-2xl font-bold text-[#1a73e8]">GridSpace</span>
           </div>
           <h1
             className="text-xl font-semibold text-gray-900"
@@ -66,7 +64,7 @@ export default function RegisterPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               data-testid="register-name"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]"
               placeholder="Your name"
             />
           </div>
@@ -85,7 +83,7 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               data-testid="register-email"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]"
               placeholder="you@example.com"
             />
           </div>
@@ -105,7 +103,7 @@ export default function RegisterPage() {
               required
               minLength={8}
               data-testid="register-password"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]"
               placeholder="Min 8 characters"
             />
           </div>
@@ -114,7 +112,7 @@ export default function RegisterPage() {
             type="submit"
             disabled={isLoading}
             data-testid="register-submit"
-            className="w-full rounded-md bg-emerald-600 px-4 py-2 text-white font-medium transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50"
+            className="w-full rounded-md bg-[#1a73e8] px-4 py-2 text-white font-medium transition-colors hover:bg-[#1765cc] focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:ring-offset-2 disabled:opacity-50"
           >
             {isLoading ? "Creating account..." : "Create account"}
           </button>
@@ -185,7 +183,7 @@ export default function RegisterPage() {
           Already have an account?{" "}
           <Link
             to="/login"
-            className="text-emerald-600 hover:text-emerald-700"
+            className="text-[#1a73e8] hover:text-[#1765cc]"
             data-testid="register-login-link"
           >
             Sign in

@@ -226,7 +226,7 @@ export function Toolbar() {
       {/* Undo / Redo */}
       <button
         data-testid="undo-button"
-        className="h-6 w-6 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
         onClick={undo}
         title="Undo (Ctrl+Z)"
         type="button"
@@ -248,7 +248,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="redo-button"
-        className="h-6 w-6 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
         onClick={redo}
         title="Redo (Ctrl+Y)"
         type="button"
@@ -272,7 +272,7 @@ export function Toolbar() {
       {/* Paint format */}
       <button
         data-testid="paint-format-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
           paintFormatMode !== "off" ? "bg-blue-100" : ""
         }`}
         onClick={handlePaintFormat}
@@ -329,7 +329,7 @@ export function Toolbar() {
       {/* Bold / Italic / Underline / Strikethrough */}
       <button
         data-testid="bold-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm text-xs font-bold hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs font-bold hover:bg-gray-100 ${
           currentFormat?.bold ? "bg-gray-200" : ""
         }`}
         onClick={handleBold}
@@ -340,7 +340,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="italic-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm text-xs italic hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs italic hover:bg-gray-100 ${
           currentFormat?.italic ? "bg-gray-200" : ""
         }`}
         onClick={handleItalic}
@@ -351,7 +351,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="underline-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm text-xs underline hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs underline hover:bg-gray-100 ${
           currentFormat?.underline ? "bg-gray-200" : ""
         }`}
         onClick={handleUnderline}
@@ -362,7 +362,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="strikethrough-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm text-xs line-through hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs line-through hover:bg-gray-100 ${
           currentFormat?.strikethrough ? "bg-gray-200" : ""
         }`}
         onClick={handleStrikethrough}
@@ -394,7 +394,7 @@ export function Toolbar() {
       <div ref={bordersRef} className="relative inline-block">
         <button
           data-testid="borders-button"
-          className="h-6 w-6 flex items-center justify-center rounded-sm hover:bg-gray-100"
+          className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
           onClick={() => setBordersOpen(!bordersOpen)}
           title="Borders"
           type="button"
@@ -442,7 +442,7 @@ export function Toolbar() {
       {/* Merge cells */}
       <button
         data-testid="merge-cells-button"
-        className="h-6 w-6 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
         onClick={mergeSelection}
         title="Merge cells"
         type="button"
@@ -465,7 +465,7 @@ export function Toolbar() {
       {/* Horizontal alignment — distinct SVG icons */}
       <button
         data-testid="align-left-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
           currentFormat?.horizontalAlign === "left" ? "bg-gray-200" : ""
         }`}
         onClick={() => handleHAlign("left")}
@@ -488,7 +488,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="align-center-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
           currentFormat?.horizontalAlign === "center" ? "bg-gray-200" : ""
         }`}
         onClick={() => handleHAlign("center")}
@@ -511,7 +511,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="align-right-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
           currentFormat?.horizontalAlign === "right" ? "bg-gray-200" : ""
         }`}
         onClick={() => handleHAlign("right")}
@@ -538,7 +538,7 @@ export function Toolbar() {
       {/* Vertical alignment */}
       <button
         data-testid="valign-top-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
           currentFormat?.verticalAlign === "top" ? "bg-gray-200" : ""
         }`}
         onClick={() => handleVAlign("top")}
@@ -560,7 +560,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="valign-middle-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
           currentFormat?.verticalAlign === "middle" ? "bg-gray-200" : ""
         }`}
         onClick={() => handleVAlign("middle")}
@@ -582,7 +582,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="valign-bottom-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
           currentFormat?.verticalAlign === "bottom" ? "bg-gray-200" : ""
         }`}
         onClick={() => handleVAlign("bottom")}
@@ -608,7 +608,7 @@ export function Toolbar() {
       {/* Word wrap */}
       <button
         data-testid="word-wrap-button"
-        className={`h-6 w-6 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
+        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
           currentFormat?.wrapText === "wrap" ? "bg-gray-200" : ""
         }`}
         onClick={handleWrapText}
@@ -635,7 +635,7 @@ export function Toolbar() {
       {/* Increase / Decrease decimal */}
       <button
         data-testid="decrease-decimal-button"
-        className="h-6 w-6 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100"
+        className="h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100"
         onClick={handleDecreaseDecimal}
         title="Decrease decimal places"
         type="button"
@@ -654,7 +654,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="increase-decimal-button"
-        className="h-6 w-6 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100"
+        className="h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100"
         onClick={handleIncreaseDecimal}
         title="Increase decimal places"
         type="button"
@@ -701,7 +701,7 @@ export function Toolbar() {
       {/* Clear formatting */}
       <button
         data-testid="clear-formatting-button"
-        className="h-6 w-6 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
         onClick={clearFormatting}
         title="Clear formatting"
         type="button"

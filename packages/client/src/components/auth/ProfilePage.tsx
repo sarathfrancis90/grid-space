@@ -115,7 +115,7 @@ export default function ProfilePage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 data-testid="profile-name-input"
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]"
               />
             </div>
 
@@ -123,7 +123,7 @@ export default function ProfilePage() {
               type="submit"
               disabled={isSaving}
               data-testid="profile-save"
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="rounded-lg bg-[#1a73e8] px-4 py-2 text-white font-medium hover:bg-[#1765cc] disabled:opacity-50"
             >
               {isSaving ? "Saving..." : "Save changes"}
             </button>
@@ -160,7 +160,7 @@ export default function ProfilePage() {
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
                 data-testid="profile-current-password"
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]"
               />
             </div>
 
@@ -179,7 +179,7 @@ export default function ProfilePage() {
                 required
                 minLength={8}
                 data-testid="profile-new-password"
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]"
               />
             </div>
 
@@ -187,7 +187,7 @@ export default function ProfilePage() {
               type="submit"
               disabled={isChangingPassword}
               data-testid="profile-change-password"
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="rounded-lg bg-[#1a73e8] px-4 py-2 text-white font-medium hover:bg-[#1765cc] disabled:opacity-50"
             >
               {isChangingPassword ? "Changing..." : "Change password"}
             </button>

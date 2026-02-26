@@ -41,7 +41,7 @@ function TemplateCard({
   return (
     <button
       onClick={() => onUse(template.id)}
-      className="flex flex-col items-center gap-2 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-emerald-400 hover:shadow-md cursor-pointer text-center"
+      className="flex flex-col items-center gap-2 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-[#1a73e8] hover:shadow-md cursor-pointer text-center"
       data-testid={`template-card-${template.id}`}
       type="button"
     >

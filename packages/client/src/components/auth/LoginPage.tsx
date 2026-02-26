@@ -26,9 +26,7 @@ export default function LoginPage() {
         <div className="mb-6 text-center">
           <div className="mb-3 flex items-center justify-center gap-2">
             <GridSpaceLogo size={36} />
-            <span className="text-2xl font-bold text-emerald-600">
-              GridSpace
-            </span>
+            <span className="text-2xl font-bold text-[#1a73e8]">GridSpace</span>
           </div>
           <h1
             className="text-xl font-semibold text-gray-900"
@@ -66,7 +64,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               data-testid="login-email"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]"
               placeholder="you@example.com"
             />
           </div>
@@ -86,7 +84,7 @@ export default function LoginPage() {
               required
               minLength={8}
               data-testid="login-password"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]"
               placeholder="Min 8 characters"
             />
           </div>
@@ -95,7 +93,7 @@ export default function LoginPage() {
             type="submit"
             disabled={isLoading}
             data-testid="login-submit"
-            className="w-full rounded-md bg-emerald-600 px-4 py-2 text-white font-medium transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50"
+            className="w-full rounded-md bg-[#1a73e8] px-4 py-2 text-white font-medium transition-colors hover:bg-[#1765cc] focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:ring-offset-2 disabled:opacity-50"
           >
             {isLoading ? "Signing in..." : "Sign in"}
           </button>
@@ -165,7 +163,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center text-sm text-gray-500">
           <Link
             to="/forgot-password"
-            className="text-emerald-600 hover:text-emerald-700"
+            className="text-[#1a73e8] hover:text-[#1765cc]"
             data-testid="login-forgot-link"
           >
             Forgot password?
@@ -173,7 +171,7 @@ export default function LoginPage() {
           <span className="mx-2">&middot;</span>
           <Link
             to="/register"
-            className="text-emerald-600 hover:text-emerald-700"
+            className="text-[#1a73e8] hover:text-[#1765cc]"
             data-testid="login-register-link"
           >
             Create account
