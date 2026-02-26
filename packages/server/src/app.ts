@@ -15,6 +15,12 @@ import publicApiRouter from "./routes/publicApi.routes";
 
 const app = express();
 
+// 0. Trust proxy — required behind Cloud Run / load balancers
+// Enables correct client IP detection for rate limiting and secure cookies
+if (env.NODE_ENV === "production") {
+  app.set("trust proxy", true);
+}
+
 // 1. Security headers
 app.use(
   helmet({
