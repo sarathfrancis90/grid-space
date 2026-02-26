@@ -88,5 +88,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 # Use dumb-init to handle PID 1 signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Run migrations then start server
-CMD ["sh", "-c", "npx prisma migrate deploy --schema=packages/server/prisma/schema.prisma && node packages/server/dist/server.js"]
+# Run migrations (non-fatal) then start server
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=packages/server/prisma/schema.prisma || echo 'Migration skipped'; node packages/server/dist/server.js"]
