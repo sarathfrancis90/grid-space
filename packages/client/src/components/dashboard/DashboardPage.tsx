@@ -204,7 +204,7 @@ export default function DashboardPage() {
         <div className="mb-6 flex items-center gap-4">
           <button
             onClick={handleCreate}
-            className="inline-flex items-center gap-2 rounded-full bg-[#1a73e8] px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#1765cc] hover:shadow-lg active:scale-[0.98]"
+            className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-[#1a73e8] px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#1765cc] hover:shadow-lg active:scale-[0.98]"
             data-testid="create-spreadsheet-btn"
           >
             <svg

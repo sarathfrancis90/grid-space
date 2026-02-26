@@ -107,8 +107,6 @@ export default function ForgotPasswordPage() {
           </>
         )}
       </div>
-
-      <p className="mt-6 text-xs text-gray-400">Powered by GridSpace</p>
     </div>
   );
 }

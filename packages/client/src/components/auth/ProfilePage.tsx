@@ -1,7 +1,9 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import { api } from "../../services/api";
+import { GridSpaceLogo } from "../ui/GridSpaceLogo";
 
 interface UserProfile {
   id: string;
@@ -13,6 +15,7 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const { user, setUser, logout } = useAuthStore();
   const [name, setName] = useState(user?.name || "");
   const [isSaving, setIsSaving] = useState(false);
@@ -65,8 +68,34 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-2xl">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="border-b border-gray-200 bg-white shadow-sm">
+        <div className="mx-auto flex max-w-2xl items-center gap-3 px-6 py-4">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-2 rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 12H5" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+          </button>
+          <GridSpaceLogo size={28} />
+          <span className="text-lg font-semibold text-gray-900">GridSpace</span>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-2xl px-6 py-8">
         <h1
           className="mb-8 text-2xl font-bold text-gray-900"
           data-testid="profile-title"

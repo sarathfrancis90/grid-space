@@ -55,9 +55,8 @@ export function Grid() {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
-  const gridState = useGridStore.getState;
-  const uiState = useUIStore.getState;
-  const cellState = useCellStore.getState;
+  // Use stable references to getState — do NOT assign .getState to a variable
+  // as it creates new references each render, causing infinite useCallback/useEffect loops
 
   const setScroll = useGridStore((s) => s.setScroll);
   const setViewportSize = useGridStore((s) => s.setViewportSize);
@@ -73,7 +72,7 @@ export function Grid() {
 
   // Compute total scrollable dimensions
   const computeScrollDimensions = useCallback(() => {
-    const gs = gridState();
+    const gs = useGridStore.getState();
     let totalWidth = 0;
     for (let c = 0; c < gs.totalCols; c++) {
       if (gs.hiddenCols.has(c)) continue;
@@ -88,12 +87,12 @@ export function Grid() {
       width: totalWidth + gs.rowHeaderWidth,
       height: totalHeight + gs.colHeaderHeight,
     };
-  }, [gridState]);
+  }, []);
 
   // Screen coords → grid coords
   const screenToGrid = useCallback(
     (screenX: number, screenY: number): CellPosition | null => {
-      const gs = gridState();
+      const gs = useGridStore.getState();
       const x = screenX - gs.rowHeaderWidth + gs.scrollLeft;
       const y = screenY - gs.colHeaderHeight + gs.scrollTop;
       if (x < 0 || y < 0) return null;
@@ -101,13 +100,13 @@ export function Grid() {
       const row = gs.getRowAtY(y);
       return { row, col };
     },
-    [gridState],
+    [],
   );
 
   // Check if mouse is near a column resize border
   const getResizeCol = useCallback(
     (screenX: number, screenY: number): number => {
-      const gs = gridState();
+      const gs = useGridStore.getState();
       if (screenY > gs.colHeaderHeight) return -1;
       let x = gs.rowHeaderWidth;
       for (let c = 0; c < gs.totalCols; c++) {
@@ -120,13 +119,13 @@ export function Grid() {
       }
       return -1;
     },
-    [gridState],
+    [],
   );
 
   // Check if mouse is near a row resize border
   const getResizeRow = useCallback(
     (screenX: number, screenY: number): number => {
-      const gs = gridState();
+      const gs = useGridStore.getState();
       if (screenX > gs.rowHeaderWidth) return -1;
       let y = gs.colHeaderHeight;
       for (let r = 0; r < gs.totalRows; r++) {
@@ -139,15 +138,15 @@ export function Grid() {
       }
       return -1;
     },
-    [gridState],
+    [],
   );
 
   // Check if mouse is on fill handle
   const isOnFillHandle = useCallback(
     (screenX: number, screenY: number): boolean => {
-      const ui = uiState();
+      const ui = useUIStore.getState();
       if (ui.selections.length === 0 || ui.isEditing) return false;
-      const gs = gridState();
+      const gs = useGridStore.getState();
       const sel = ui.selections[ui.selections.length - 1];
       const maxRow = Math.max(sel.start.row, sel.end.row);
       const maxCol = Math.max(sel.start.col, sel.end.col);
@@ -168,7 +167,7 @@ export function Grid() {
         Math.abs(screenY - handleY) < FILL_HANDLE_SIZE
       );
     },
-    [uiState, gridState],
+    [],
   );
 
   // Canvas draw function
@@ -179,9 +178,9 @@ export function Grid() {
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
-    const gs = gridState();
-    const ui = uiState();
-    const cs = cellState();
+    const gs = useGridStore.getState();
+    const ui = useUIStore.getState();
+    const cs = useCellStore.getState();
     const activeSheetId = getActiveSheetId();
     const sheetCells = cs.cells.get(activeSheetId);
 
@@ -544,7 +543,7 @@ export function Grid() {
     ctx.fillRect(0, 0, rhw, chh);
     ctx.strokeStyle = HEADER_BORDER;
     ctx.strokeRect(0, 0, rhw, chh);
-  }, [gridState, uiState, cellState, getActiveSheetId]);
+  }, [getActiveSheetId]);
 
   const scheduleRedraw = useCallback(() => {
     cancelAnimationFrame(rafIdRef.current);
@@ -591,7 +590,7 @@ export function Grid() {
   // Edit commit handler
   const handleCommitEdit = useCallback(
     (value: string, direction: "down" | "right" | "none") => {
-      const ui = uiState();
+      const ui = useUIStore.getState();
       if (!ui.editingCell) return;
       const activeSheetId = getActiveSheetId();
 
@@ -607,7 +606,7 @@ export function Grid() {
           .deleteCell(activeSheetId, ui.editingCell.row, ui.editingCell.col);
       }
 
-      const gs = gridState();
+      const gs = useGridStore.getState();
       const nextPos = { ...ui.editingCell };
 
       if (direction === "down") {
@@ -619,7 +618,7 @@ export function Grid() {
       commitEdit();
       setSelectedCell(nextPos);
     },
-    [uiState, gridState, commitEdit, setSelectedCell, getActiveSheetId],
+    [commitEdit, setSelectedCell, getActiveSheetId],
   );
 
   const handleCancelEdit = useCallback(() => {
@@ -629,7 +628,7 @@ export function Grid() {
   // Clipboard helpers
   const performCopy = useCallback(
     (mode: "copy" | "cut") => {
-      const ui = uiState();
+      const ui = useUIStore.getState();
       if (ui.selections.length === 0) return;
       const sel = ui.selections[ui.selections.length - 1];
       const minRow = Math.min(sel.start.row, sel.end.row);
@@ -637,25 +636,21 @@ export function Grid() {
       const minCol = Math.min(sel.start.col, sel.end.col);
       const maxCol = Math.max(sel.start.col, sel.end.col);
       const activeSheetId = getActiveSheetId();
-      const copied = cellState().getCellsInRangeWithKeys(
-        activeSheetId,
-        minRow,
-        minCol,
-        maxRow,
-        maxCol,
-      );
+      const copied = useCellStore
+        .getState()
+        .getCellsInRangeWithKeys(activeSheetId, minRow, minCol, maxRow, maxCol);
       if (mode === "copy") {
         useClipboardStore.getState().copy(copied, sel);
       } else {
         useClipboardStore.getState().cut(copied, sel);
       }
     },
-    [uiState, cellState, getActiveSheetId],
+    [getActiveSheetId],
   );
 
   const performPaste = useCallback(
     (pasteMode?: "values" | "format" | "transpose") => {
-      const ui = uiState();
+      const ui = useUIStore.getState();
       if (!ui.selectedCell) return;
       const activeSheetId = getActiveSheetId();
       const clipboard = useClipboardStore.getState();
@@ -706,13 +701,13 @@ export function Grid() {
         useClipboardStore.getState().clear();
       }
     },
-    [uiState, getActiveSheetId],
+    [getActiveSheetId],
   );
 
   // Row/Col operations
   const insertRowAt = useCallback(
     (row: number, position: "above" | "below") => {
-      const gs = gridState();
+      const gs = useGridStore.getState();
       const activeSheetId = getActiveSheetId();
       const insertAt = position === "above" ? row : row + 1;
       useCellStore
@@ -721,12 +716,12 @@ export function Grid() {
       useGridStore.getState().insertRowHeights(insertAt, 1);
       useGridStore.getState().setTotalRows(gs.totalRows + 1);
     },
-    [gridState, getActiveSheetId],
+    [getActiveSheetId],
   );
 
   const insertColAt = useCallback(
     (col: number, position: "left" | "right") => {
-      const gs = gridState();
+      const gs = useGridStore.getState();
       const activeSheetId = getActiveSheetId();
       const insertAt = position === "left" ? col : col + 1;
       useCellStore
@@ -735,12 +730,12 @@ export function Grid() {
       useGridStore.getState().insertColWidths(insertAt, 1);
       useGridStore.getState().setTotalCols(gs.totalCols + 1);
     },
-    [gridState, getActiveSheetId],
+    [getActiveSheetId],
   );
 
   const deleteRowsAt = useCallback(
     (rows: number[]) => {
-      const gs = gridState();
+      const gs = useGridStore.getState();
       const activeSheetId = getActiveSheetId();
       useCellStore.getState().deleteRows(activeSheetId, rows, gs.totalRows);
       useGridStore.getState().deleteRowHeights(rows);
@@ -748,12 +743,12 @@ export function Grid() {
         .getState()
         .setTotalRows(Math.max(1, gs.totalRows - rows.length));
     },
-    [gridState, getActiveSheetId],
+    [getActiveSheetId],
   );
 
   const deleteColsAt = useCallback(
     (cols: number[]) => {
-      const gs = gridState();
+      const gs = useGridStore.getState();
       const activeSheetId = getActiveSheetId();
       useCellStore.getState().deleteCols(activeSheetId, cols, gs.totalCols);
       useGridStore.getState().deleteColWidths(cols);
@@ -761,15 +756,15 @@ export function Grid() {
         .getState()
         .setTotalCols(Math.max(1, gs.totalCols - cols.length));
     },
-    [gridState, getActiveSheetId],
+    [getActiveSheetId],
   );
 
   // Auto-fit column width
   const autoFitColumn = useCallback(
     (col: number) => {
-      const gs = gridState();
+      const gs = useGridStore.getState();
       const activeSheetId = getActiveSheetId();
-      const cs = cellState();
+      const cs = useCellStore.getState();
       const sheetCells = cs.cells.get(activeSheetId);
       if (!sheetCells) return;
 
@@ -788,7 +783,7 @@ export function Grid() {
       }
       useGridStore.getState().setColumnWidth(col, Math.min(maxWidth, 400));
     },
-    [gridState, cellState, getActiveSheetId],
+    [getActiveSheetId],
   );
 
   // Fill handle execution
@@ -797,7 +792,7 @@ export function Grid() {
     const end = fillHandleEndRef.current;
     if (!start || !end) return;
 
-    const ui = uiState();
+    const ui = useUIStore.getState();
     if (ui.selections.length === 0) return;
     const sel = ui.selections[ui.selections.length - 1];
     const minRow = Math.min(sel.start.row, sel.end.row);
@@ -850,7 +845,7 @@ export function Grid() {
         },
       ]);
     }
-  }, [uiState, getActiveSheetId, setSelections]);
+  }, [getActiveSheetId, setSelections]);
 
   // Mouse handlers
   const handleMouseDown = useCallback(
@@ -860,7 +855,7 @@ export function Grid() {
       if (!rect) return;
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      const gs = gridState();
+      const gs = useGridStore.getState();
 
       // Check resize col
       const resizeCol = getResizeCol(x, y);
@@ -887,7 +882,7 @@ export function Grid() {
       // Check fill handle
       if (isOnFillHandle(x, y)) {
         dragModeRef.current = "fill-handle";
-        const ui = uiState();
+        const ui = useUIStore.getState();
         const sel = ui.selections[ui.selections.length - 1];
         fillHandleStartRef.current = {
           row: Math.max(sel.start.row, sel.end.row),
@@ -906,7 +901,7 @@ export function Grid() {
           end: { row, col: gs.totalCols - 1 },
         };
         if (e.ctrlKey || e.metaKey) {
-          const ui = uiState();
+          const ui = useUIStore.getState();
           setSelections([...ui.selections, range]);
         } else {
           setSelectedCell({ row, col: 0 });
@@ -924,7 +919,7 @@ export function Grid() {
           end: { row: gs.totalRows - 1, col },
         };
         if (e.ctrlKey || e.metaKey) {
-          const ui = uiState();
+          const ui = useUIStore.getState();
           setSelections([...ui.selections, range]);
         } else {
           setSelectedCell({ row: 0, col });
@@ -936,7 +931,7 @@ export function Grid() {
       const pos = screenToGrid(x, y);
       if (!pos) return;
 
-      const ui = uiState();
+      const ui = useUIStore.getState();
       if (ui.isEditing) {
         handleCommitEdit(ui.editValue, "none");
       }
@@ -956,8 +951,6 @@ export function Grid() {
       }
     },
     [
-      gridState,
-      uiState,
       screenToGrid,
       getResizeCol,
       getResizeRow,
@@ -1041,19 +1034,14 @@ export function Grid() {
       if (!pos) return;
 
       const activeSheetId = getActiveSheetId();
-      const cellData = cellState().getCell(activeSheetId, pos.row, pos.col);
+      const cellData = useCellStore
+        .getState()
+        .getCell(activeSheetId, pos.row, pos.col);
       const currentValue =
         cellData?.value != null ? String(cellData.value) : "";
       startEditing(pos, currentValue);
     },
-    [
-      screenToGrid,
-      cellState,
-      startEditing,
-      getResizeCol,
-      autoFitColumn,
-      getActiveSheetId,
-    ],
+    [screenToGrid, startEditing, getResizeCol, autoFitColumn, getActiveSheetId],
   );
 
   // Context menu
@@ -1064,7 +1052,7 @@ export function Grid() {
       if (!rect) return;
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      const gs = gridState();
+      const gs = useGridStore.getState();
 
       if (x < gs.rowHeaderWidth && y > gs.colHeaderHeight) {
         const gridY = y - gs.colHeaderHeight + gs.scrollTop;
@@ -1115,12 +1103,12 @@ export function Grid() {
         });
       }
     },
-    [gridState, screenToGrid, setSelectedCell, setSelections],
+    [screenToGrid, setSelectedCell, setSelections],
   );
 
   const getContextMenuItems = useCallback(() => {
     if (!contextMenu) return [];
-    const gs = gridState();
+    const gs = useGridStore.getState();
 
     if (contextMenu.target === "row") {
       const row = contextMenu.targetIndex;
@@ -1197,7 +1185,6 @@ export function Grid() {
     ];
   }, [
     contextMenu,
-    gridState,
     insertRowAt,
     insertColAt,
     deleteRowsAt,
@@ -1209,8 +1196,8 @@ export function Grid() {
   // Keyboard handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const ui = uiState();
-      const gs = gridState();
+      const ui = useUIStore.getState();
+      const gs = useGridStore.getState();
 
       if (ui.isEditing) return;
       if (!ui.selectedCell) return;
@@ -1335,7 +1322,7 @@ export function Grid() {
       if ((e.ctrlKey || e.metaKey) && e.key === "ArrowUp") {
         e.preventDefault();
         let newRow = row - 1;
-        const cs = cellState();
+        const cs = useCellStore.getState();
         const hasData = (r: number) => {
           const cell = cs.getCell(activeSheetId, r, col);
           return cell?.value != null && cell.value !== "";
@@ -1354,7 +1341,7 @@ export function Grid() {
       if ((e.ctrlKey || e.metaKey) && e.key === "ArrowDown") {
         e.preventDefault();
         let newRow = row + 1;
-        const cs = cellState();
+        const cs = useCellStore.getState();
         const hasData = (r: number) => {
           const cell = cs.getCell(activeSheetId, r, col);
           return cell?.value != null && cell.value !== "";
@@ -1373,7 +1360,7 @@ export function Grid() {
       if ((e.ctrlKey || e.metaKey) && e.key === "ArrowLeft") {
         e.preventDefault();
         let newCol = col - 1;
-        const cs = cellState();
+        const cs = useCellStore.getState();
         const hasData = (c: number) => {
           const cell = cs.getCell(activeSheetId, row, c);
           return cell?.value != null && cell.value !== "";
@@ -1392,7 +1379,7 @@ export function Grid() {
       if ((e.ctrlKey || e.metaKey) && e.key === "ArrowRight") {
         e.preventDefault();
         let newCol = col + 1;
-        const cs = cellState();
+        const cs = useCellStore.getState();
         const hasData = (c: number) => {
           const cell = cs.getCell(activeSheetId, row, c);
           return cell?.value != null && cell.value !== "";
@@ -1455,7 +1442,9 @@ export function Grid() {
       // F2 → edit mode
       if (e.key === "F2") {
         e.preventDefault();
-        const cellData = cellState().getCell(activeSheetId, row, col);
+        const cellData = useCellStore
+          .getState()
+          .getCell(activeSheetId, row, col);
         const currentValue =
           cellData?.value != null ? String(cellData.value) : "";
         startEditing({ row, col }, currentValue);
@@ -1496,9 +1485,6 @@ export function Grid() {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [
-    uiState,
-    gridState,
-    cellState,
     setSelectedCell,
     setSelections,
     startEditing,
