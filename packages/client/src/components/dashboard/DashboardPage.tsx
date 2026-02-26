@@ -14,30 +14,28 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
-  const {
-    spreadsheets,
-    isListLoading,
-    error,
-    filter,
-    search,
-    sortBy,
-    sortDir,
-    viewMode,
-    page,
-    totalPages,
-    fetchSpreadsheets,
-    createSpreadsheet,
-    deleteSpreadsheet,
-    duplicateSpreadsheet,
-    toggleStar,
-    updateSpreadsheet,
-    setFilter,
-    setSearch,
-    setSortBy,
-    toggleSortDir,
-    setViewMode,
-    setPage,
-  } = useCloudStore();
+  const spreadsheets = useCloudStore((s) => s.spreadsheets);
+  const isListLoading = useCloudStore((s) => s.isListLoading);
+  const error = useCloudStore((s) => s.error);
+  const filter = useCloudStore((s) => s.filter);
+  const search = useCloudStore((s) => s.search);
+  const sortBy = useCloudStore((s) => s.sortBy);
+  const sortDir = useCloudStore((s) => s.sortDir);
+  const viewMode = useCloudStore((s) => s.viewMode);
+  const page = useCloudStore((s) => s.page);
+  const totalPages = useCloudStore((s) => s.totalPages);
+  const fetchSpreadsheets = useCloudStore((s) => s.fetchSpreadsheets);
+  const createSpreadsheet = useCloudStore((s) => s.createSpreadsheet);
+  const deleteSpreadsheet = useCloudStore((s) => s.deleteSpreadsheet);
+  const duplicateSpreadsheet = useCloudStore((s) => s.duplicateSpreadsheet);
+  const toggleStar = useCloudStore((s) => s.toggleStar);
+  const updateSpreadsheet = useCloudStore((s) => s.updateSpreadsheet);
+  const setFilter = useCloudStore((s) => s.setFilter);
+  const setSearch = useCloudStore((s) => s.setSearch);
+  const setSortBy = useCloudStore((s) => s.setSortBy);
+  const toggleSortDir = useCloudStore((s) => s.toggleSortDir);
+  const setViewMode = useCloudStore((s) => s.setViewMode);
+  const setPage = useCloudStore((s) => s.setPage);
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [searchInput, setSearchInput] = useState(search);
