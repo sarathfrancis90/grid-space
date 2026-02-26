@@ -92,5 +92,11 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 # Use dumb-init to handle PID 1 signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Apply database schema: try migrate deploy first, fall back to db push
-CMD ["sh", "-c", "npx prisma migrate deploy --schema=packages/server/prisma/schema.prisma 2>&1 || npx prisma db push --schema=packages/server/prisma/schema.prisma --accept-data-loss 2>&1 || echo 'DB schema sync failed — check DATABASE_URL'; node packages/server/dist/server.js"]
+# Apply database schema with retry (VPC connector may not be ready on cold start)
+CMD ["sh", "-c", "\
+  for i in 1 2 3 4 5; do \
+    npx prisma migrate deploy --schema=packages/server/prisma/schema.prisma 2>&1 && break; \
+    echo \"Migration attempt $i failed, retrying in ${i}s...\"; \
+    sleep $i; \
+  done; \
+  node packages/server/dist/server.js"]
