@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState, useMemo } from "react";
 import { useGridStore } from "../../stores/gridStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useCellStore } from "../../stores/cellStore";
@@ -52,7 +52,8 @@ export function Grid() {
   const fillHandleStartRef = useRef<CellPosition | null>(null);
   const fillHandleEndRef = useRef<CellPosition | null>(null);
 
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
   // Use stable references to getState — do NOT assign .getState to a variable
@@ -565,14 +566,15 @@ export function Grid() {
     };
   }, [scheduleRedraw]);
 
-  // Observe container size
+  // Observe container size — use primitive state to avoid new-object re-renders
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        setContainerSize({ width, height });
+        setContainerWidth((prev) => (prev === width ? prev : width));
+        setContainerHeight((prev) => (prev === height ? prev : height));
         setViewportSize(width, height);
       }
     });
@@ -1494,7 +1496,9 @@ export function Grid() {
     getActiveSheetId,
   ]);
 
-  const scrollDims = computeScrollDimensions();
+  const scrollDims = useMemo(computeScrollDimensions, [
+    computeScrollDimensions,
+  ]);
 
   return (
     <div
@@ -1531,8 +1535,8 @@ export function Grid() {
           position: "absolute",
           top: 0,
           left: 0,
-          width: containerSize.width,
-          height: containerSize.height,
+          width: containerWidth,
+          height: containerHeight,
           overflow: "auto",
           cursor: "cell",
         }}

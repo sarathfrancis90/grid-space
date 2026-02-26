@@ -10,22 +10,20 @@ type RoleOption = "viewer" | "commenter" | "editor";
 
 export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
   const user = useAuthStore((s) => s.user);
-  const {
-    collaborators,
-    shareLink,
-    isLoading,
-    isDialogOpen,
-    error,
-    fetchCollaborators,
-    addCollaborator,
-    changeRole,
-    removeCollaborator,
-    fetchShareLink,
-    createShareLink,
-    disableShareLink,
-    closeDialog,
-    clearError,
-  } = useSharingStore();
+  const collaborators = useSharingStore((s) => s.collaborators);
+  const shareLink = useSharingStore((s) => s.shareLink);
+  const isLoading = useSharingStore((s) => s.isLoading);
+  const isDialogOpen = useSharingStore((s) => s.isDialogOpen);
+  const error = useSharingStore((s) => s.error);
+  const fetchCollaborators = useSharingStore((s) => s.fetchCollaborators);
+  const addCollaborator = useSharingStore((s) => s.addCollaborator);
+  const changeRole = useSharingStore((s) => s.changeRole);
+  const removeCollaborator = useSharingStore((s) => s.removeCollaborator);
+  const fetchShareLink = useSharingStore((s) => s.fetchShareLink);
+  const createShareLink = useSharingStore((s) => s.createShareLink);
+  const disableShareLink = useSharingStore((s) => s.disableShareLink);
+  const closeDialog = useSharingStore((s) => s.closeDialog);
+  const clearError = useSharingStore((s) => s.clearError);
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<RoleOption>("viewer");

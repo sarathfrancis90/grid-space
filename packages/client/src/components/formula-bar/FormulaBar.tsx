@@ -2,7 +2,7 @@
  * FormulaBar — name box + formula display + inline editing.
  * S7-001 to S7-005
  */
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { useUIStore } from "../../stores/uiStore";
 import { useCellStore } from "../../stores/cellStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
@@ -19,6 +19,12 @@ export function FormulaBar() {
   const setSelectedCell = useUIStore((s) => s.setSelectedCell);
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
 
+  // Subscribe to cell data reactively instead of using getState() during render
+  const cellData = useCellStore((s) => {
+    if (!selectedCell) return undefined;
+    return s.getCell(sheetId, selectedCell.row, selectedCell.col);
+  });
+
   const [nameBoxEditing, setNameBoxEditing] = useState(false);
   const [nameBoxValue, setNameBoxValue] = useState("");
   const nameBoxRef = useRef<HTMLInputElement>(null);
@@ -29,19 +35,13 @@ export function FormulaBar() {
     ? `${colToLetter(selectedCell.col)}${selectedCell.row + 1}`
     : "";
 
-  // Get current cell data
-  const cellData = selectedCell
-    ? useCellStore
-        .getState()
-        .getCell(sheetId, selectedCell.row, selectedCell.col)
-    : undefined;
-
   const displayValue = isEditing
     ? editValue
     : (cellData?.formula ?? String(cellData?.value ?? ""));
 
-  // Check for named range names for the name box
-  const namedRanges = useNamedRangeStore((s) => s.getAllRanges());
+  // Select raw ranges Map and derive array with useMemo to avoid new array every render
+  const ranges = useNamedRangeStore((s) => s.ranges);
+  const namedRanges = useMemo(() => Array.from(ranges.values()), [ranges]);
   const namedRangeName = selectedCell
     ? namedRanges.find(
         (r) =>

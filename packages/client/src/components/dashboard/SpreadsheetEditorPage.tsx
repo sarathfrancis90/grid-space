@@ -46,15 +46,13 @@ const VersionHistorySidebar = lazy(() =>
 export default function SpreadsheetEditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const {
-    currentSpreadsheet,
-    isLoading,
-    error,
-    fetchSpreadsheet,
-    updateSpreadsheet,
-    clearCurrent,
-    toggleStar,
-  } = useCloudStore();
+  const currentSpreadsheet = useCloudStore((s) => s.currentSpreadsheet);
+  const isLoading = useCloudStore((s) => s.isLoading);
+  const error = useCloudStore((s) => s.error);
+  const fetchSpreadsheet = useCloudStore((s) => s.fetchSpreadsheet);
+  const updateSpreadsheet = useCloudStore((s) => s.updateSpreadsheet);
+  const clearCurrent = useCloudStore((s) => s.clearCurrent);
+  const toggleStar = useCloudStore((s) => s.toggleStar);
 
   const showFormulaBar = useUIStore((s) => s.showFormulaBar);
   const user = useAuthStore((s) => s.user);
