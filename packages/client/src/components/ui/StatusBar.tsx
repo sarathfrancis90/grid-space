@@ -11,7 +11,7 @@ import { getCellKey } from "../../utils/coordinates";
 export function StatusBar() {
   const selections = useUIStore((s) => s.selections);
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
-  const cells = useCellStore((s) => s.cells);
+  const sheetCells = useCellStore((s) => s.cells.get(sheetId));
 
   const stats = useMemo(() => {
     if (selections.length === 0) {
@@ -23,8 +23,6 @@ export function StatusBar() {
     const maxRow = Math.max(sel.start.row, sel.end.row);
     const minCol = Math.min(sel.start.col, sel.end.col);
     const maxCol = Math.max(sel.start.col, sel.end.col);
-
-    const sheetCells = cells.get(sheetId);
     if (!sheetCells) {
       return { sum: 0, avg: 0, count: 0, min: 0, max: 0, numCount: 0 };
     }
@@ -58,7 +56,7 @@ export function StatusBar() {
       max: numCount > 0 ? max : 0,
       numCount,
     };
-  }, [selections, sheetId, cells]);
+  }, [selections, sheetId, sheetCells]);
 
   const isSingleCell =
     selections.length > 0 &&

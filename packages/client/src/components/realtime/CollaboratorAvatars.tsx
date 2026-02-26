@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useRealtimeStore } from "../../stores/realtimeStore";
 import type { PresenceUser } from "../../stores/realtimeStore";
 
@@ -52,14 +52,15 @@ export function CollaboratorAvatars(): React.ReactElement | null {
   }
 
   // Deduplicate by userId (show unique users, not tabs)
-  const uniqueUsers = new Map<string, PresenceUser>();
-  for (const user of connectedUsers) {
-    if (!uniqueUsers.has(user.userId)) {
-      uniqueUsers.set(user.userId, user);
+  const users = useMemo(() => {
+    const uniqueUsers = new Map<string, PresenceUser>();
+    for (const user of connectedUsers) {
+      if (!uniqueUsers.has(user.userId)) {
+        uniqueUsers.set(user.userId, user);
+      }
     }
-  }
-
-  const users = Array.from(uniqueUsers.values());
+    return Array.from(uniqueUsers.values());
+  }, [connectedUsers]);
   const maxDisplay = 5;
   const displayUsers = users.slice(0, maxDisplay);
   const overflow = users.length - maxDisplay;
