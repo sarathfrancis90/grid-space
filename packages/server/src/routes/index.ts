@@ -17,6 +17,8 @@ import versionRoutes from "./version.routes";
 import commentRoutes from "./comment.routes";
 import notificationRoutes from "./notification.routes";
 import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
+import apiKeyRoutes from "./apiKey.routes";
+import webhookRoutes from "./webhook.routes";
 
 const router = Router();
 
@@ -73,5 +75,11 @@ router.use("/notifications", notificationRoutes);
 
 // Templates
 router.use("/templates", templateRoutes);
+
+// API Key management
+router.use("/users/me/api-keys", apiKeyRoutes);
+
+// Webhook management
+router.use("/webhooks", webhookRoutes);
 
 export default router;

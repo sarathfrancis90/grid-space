@@ -1,35 +1,7 @@
-import pino from "pino";
+import { createLogger } from "../config/logger";
 import { env } from "../config/env";
 
-const isDev = env.NODE_ENV === "development";
+const logger = createLogger(env.NODE_ENV, env.LOG_LEVEL);
 
-export const logger = pino({
-  level: isDev ? "debug" : "info",
-  ...(isDev
-    ? {
-        transport: {
-          target: "pino/file",
-          options: { destination: 1 },
-        },
-      }
-    : {}),
-  formatters: {
-    level(label) {
-      return { level: label };
-    },
-  },
-  timestamp: pino.stdTimeFunctions.isoTime,
-  redact: {
-    paths: [
-      "req.headers.authorization",
-      "req.headers.cookie",
-      "password",
-      "passwordHash",
-      "token",
-      "refreshToken",
-    ],
-    censor: "[REDACTED]",
-  },
-});
-
+export { logger };
 export default logger;

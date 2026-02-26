@@ -9,7 +9,9 @@ import { globalLimiter } from "./middleware/rateLimit.middleware";
 import { sanitize } from "./middleware/sanitize.middleware";
 import { csrfProtection } from "./middleware/csrf.middleware";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
+import { monitoringMiddleware, requestMetrics } from "./middleware/monitoring";
 import apiRouter from "./routes/index";
+import publicApiRouter from "./routes/publicApi.routes";
 
 const app = express();
 
@@ -33,8 +35,9 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-// 4. Request logging
+// 4. Request logging + metrics
 app.use(requestLogger);
+app.use(requestMetrics);
 
 // 5. Rate limiting
 app.use(globalLimiter);
@@ -49,6 +52,9 @@ if (env.NODE_ENV === "production") {
 
 // 8. API routes
 app.use("/api", apiRouter);
+
+// 8b. Public API (API key auth, versioned)
+app.use("/api/v1", publicApiRouter);
 
 // Legacy health endpoint (kept for backward compatibility)
 app.get("/health", (_req, res) => {
@@ -88,7 +94,10 @@ if (env.NODE_ENV === "production") {
 // 10. Not found handler
 app.use(notFoundHandler);
 
-// 11. Global error handler (must be last)
+// 11. Monitoring middleware (captures errors with context before error handler)
+app.use(monitoringMiddleware);
+
+// 12. Global error handler (must be last)
 app.use(errorHandler);
 
 export { app };

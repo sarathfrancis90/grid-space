@@ -3221,7 +3221,7 @@
     "category": "api",
     "name": "REST API: CRUD spreadsheets (GET, POST, PUT, DELETE)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-002",
@@ -3229,7 +3229,7 @@
     "category": "api",
     "name": "REST API: CRUD sheets within spreadsheet",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-003",
@@ -3237,7 +3237,7 @@
     "category": "api",
     "name": "REST API: Read/write cell values and ranges",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-004",
@@ -3245,7 +3245,7 @@
     "category": "api",
     "name": "REST API: Batch update cells",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-005",
@@ -3253,7 +3253,7 @@
     "category": "api",
     "name": "REST API: Export spreadsheet as CSV/XLSX/PDF",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-006",
@@ -3261,7 +3261,7 @@
     "category": "api",
     "name": "API key authentication for programmatic access",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-007",
@@ -3269,7 +3269,7 @@
     "category": "api",
     "name": "API rate limiting (per-key)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-008",
@@ -3277,7 +3277,7 @@
     "category": "api",
     "name": "API documentation page (Swagger UI)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-009",
@@ -3285,7 +3285,7 @@
     "category": "api",
     "name": "Webhook support — notify URL on spreadsheet changes",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-010",
@@ -3293,7 +3293,7 @@
     "category": "integration",
     "name": "IMPORTDATA() function — fetch CSV from URL",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-011",
@@ -3301,7 +3301,7 @@
     "category": "integration",
     "name": "IMPORTRANGE() function — pull from another GridSpace spreadsheet",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-012",
@@ -3309,7 +3309,7 @@
     "category": "integration",
     "name": "IMAGE() function — display image from URL in cell",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-013",
@@ -3317,7 +3317,7 @@
     "category": "production",
     "name": "Docker multi-stage build for production",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-014",
@@ -3325,7 +3325,7 @@
     "category": "production",
     "name": "Nginx reverse proxy configuration",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-015",
@@ -3333,7 +3333,7 @@
     "category": "production",
     "name": "Environment-based configuration (dev/staging/prod)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-016",
@@ -3341,7 +3341,7 @@
     "category": "production",
     "name": "Database connection pooling",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-017",
@@ -3349,7 +3349,7 @@
     "category": "production",
     "name": "Application monitoring (error tracking)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-018",
@@ -3357,7 +3357,7 @@
     "category": "production",
     "name": "Structured logging (JSON format)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-019",
@@ -3365,7 +3365,7 @@
     "category": "production",
     "name": "Database backup strategy documentation",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-020",
@@ -3373,7 +3373,7 @@
     "category": "production",
     "name": "SSL/TLS configuration",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-021",
@@ -3381,7 +3381,7 @@
     "category": "production",
     "name": "CDN for static assets",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-022",
@@ -3389,7 +3389,7 @@
     "category": "production",
     "name": "Service worker for offline support (cache spreadsheet)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-023",
@@ -3397,7 +3397,7 @@
     "category": "production",
     "name": "Offline indicator in UI",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-024",
@@ -3405,7 +3405,7 @@
     "category": "production",
     "name": "Sync queue — offline edits sync when reconnected",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S16-025",
@@ -3413,6 +3413,6 @@
     "category": "production",
     "name": "Load test: 100 concurrent users, 50 spreadsheets",
     "priority": 2,
-    "passes": false
+    "passes": true
   }
 ]

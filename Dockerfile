@@ -27,7 +27,7 @@ COPY packages/server/src/types/ ./packages/server/src/types/
 ENV VITE_API_URL=""
 ENV VITE_WS_URL=""
 
-# Build Vite app
+# Build Vite app (outputs hashed filenames for cache-busting / CDN)
 RUN npm run build --workspace=packages/client
 
 # ---- Stage 3: Build the server ----
@@ -47,11 +47,11 @@ RUN npx prisma generate --schema=packages/server/prisma/schema.prisma
 # Compile TypeScript (prebuild script generates feature-count.json)
 RUN npm run build --workspace=packages/server
 
-# ---- Stage 4: Production image ----
+# ---- Stage 4: Production image (minimal) ----
 FROM node:20-alpine AS production
 WORKDIR /app
 
-# Install security updates
+# Install security updates + dumb-init for proper PID 1 handling
 RUN apk update && apk upgrade --no-cache && apk add --no-cache dumb-init
 
 # Copy root package files
@@ -78,7 +78,7 @@ RUN addgroup -g 1001 gridspace && \
     chown -R gridspace:gridspace /app
 USER gridspace
 
-# Cloud Run sets PORT env var
+# Cloud Run / container runtime sets PORT env var
 ENV NODE_ENV=production
 ENV PORT=8080
 

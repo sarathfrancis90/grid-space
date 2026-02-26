@@ -223,6 +223,43 @@ function fnSPARKLINE(...args: FormulaValue[]): FormulaValue {
   return `__SPARKLINE__${JSON.stringify(args)}`;
 }
 
+/**
+ * IMPORTDATA(url) — fetch CSV from URL and parse into cell range.
+ * Returns a metadata marker; actual fetch is handled by the grid/store layer.
+ */
+function fnIMPORTDATA(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 1) return "#VALUE!" as FormulaError;
+  const url = String(args[0] ?? "");
+  if (!url) return "#VALUE!" as FormulaError;
+  return `__IMPORTDATA__${url}`;
+}
+
+/**
+ * IMPORTRANGE(spreadsheetId, rangeString) — pull data from another spreadsheet.
+ * Returns a metadata marker; actual fetch is handled by the grid/store layer.
+ */
+function fnIMPORTRANGE(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 2) return "#VALUE!" as FormulaError;
+  const spreadsheetId = String(args[0] ?? "");
+  const rangeStr = String(args[1] ?? "");
+  if (!spreadsheetId || !rangeStr) return "#VALUE!" as FormulaError;
+  return `__IMPORTRANGE__${spreadsheetId}__${rangeStr}`;
+}
+
+/**
+ * IMAGE(url, [mode], [height], [width]) — display image from URL in cell.
+ * Returns a metadata marker; rendering is handled by the grid.
+ */
+function fnIMAGE(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 1) return "#VALUE!" as FormulaError;
+  const url = String(args[0] ?? "");
+  if (!url) return "#VALUE!" as FormulaError;
+  const mode = args.length >= 2 ? toNumber(args[1]) : 1;
+  const height = args.length >= 3 ? toNumber(args[2]) : null;
+  const width = args.length >= 4 ? toNumber(args[3]) : null;
+  return `__IMAGE__${JSON.stringify({ url, mode, height, width })}`;
+}
+
 function compareValues(a: FormulaValue, b: FormulaValue): number {
   const na = toNumber(a, false);
   const nb = toNumber(b, false);
@@ -255,6 +292,9 @@ const FUNCTION_REGISTRY: Record<string, FormulaFunction> = {
   IFERROR: fnIFERROR,
   IFNA: fnIFNA,
   SPARKLINE: fnSPARKLINE,
+  IMPORTDATA: fnIMPORTDATA,
+  IMPORTRANGE: fnIMPORTRANGE,
+  IMAGE: fnIMAGE,
   // Domain modules
   ...mathFunctions,
   ...textFunctions,
