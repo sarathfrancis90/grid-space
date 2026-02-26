@@ -11,6 +11,7 @@ import sharingRoutes, {
   transferRouter,
   publishRouter,
   publicShareRouter,
+  publicPublishedRouter,
 } from "./sharing.routes";
 
 const router = Router();
@@ -52,6 +53,6 @@ router.use("/spreadsheets/:id/publish", publishRouter);
 router.use("/share", publicShareRouter);
 
 // Public access — published spreadsheets (no auth required)
-router.use("/published", publicShareRouter);
+router.use("/published", publicPublishedRouter);
 
 export default router;

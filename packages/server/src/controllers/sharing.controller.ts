@@ -1,4 +1,4 @@
-import type { Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import type { AuthRequest } from "../types/index";
 import { apiSuccess } from "../utils/apiResponse";
 import { AppError } from "../utils/AppError";
@@ -173,7 +173,7 @@ export async function disableShareLink(
 
 /** GET /api/share/:token — access via share link */
 export async function accessViaShareLink(
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> {
@@ -250,7 +250,7 @@ export async function unpublishFromWeb(
 
 /** GET /api/published/:token — public read-only access */
 export async function accessPublished(
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> {

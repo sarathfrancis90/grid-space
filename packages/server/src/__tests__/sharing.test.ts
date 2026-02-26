@@ -130,8 +130,14 @@ describe("Sharing Routes", () => {
         access: [],
       });
 
-      // Find target user by email
+      // Auth middleware fires twice (spreadsheet router + sharing router),
+      // then addCollaborator looks up target user by email
       mockPrisma.user.findUnique
+        .mockResolvedValueOnce({
+          id: "user-1",
+          email: "test@example.com",
+          name: "Test",
+        })
         .mockResolvedValueOnce({
           id: "user-1",
           email: "test@example.com",

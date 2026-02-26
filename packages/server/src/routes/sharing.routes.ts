@@ -110,7 +110,10 @@ publishRouter.delete("/", writeLimiter, unpublishFromWeb);
 export const publicShareRouter = Router();
 
 // GET /api/share/:token — access via share link
-publicShareRouter.get("/:token", accessViaShareLink as never);
+publicShareRouter.get("/:token", accessViaShareLink);
+
+// Separate router for published spreadsheets
+export const publicPublishedRouter = Router();
 
 // GET /api/published/:token — public published spreadsheet
-publicShareRouter.get("/:token", accessPublished as never);
+publicPublishedRouter.get("/:token", accessPublished);
