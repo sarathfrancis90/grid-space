@@ -5,6 +5,7 @@ import { useCellStore } from "../../stores/cellStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useClipboardStore } from "../../stores/clipboardStore";
 import { useFormatStore } from "../../stores/formatStore";
+import { useFindReplaceStore } from "../../stores/findReplaceStore";
 import { colToLetter } from "../../utils/coordinates";
 import { generateFillValues } from "../../utils/fillHandle";
 import { CellEditor } from "./CellEditor";
@@ -1235,6 +1236,20 @@ export function Grid() {
       if ((e.ctrlKey || e.metaKey) && e.key === "u") {
         e.preventDefault();
         useFormatStore.getState().toggleFormatOnSelection("underline");
+        return;
+      }
+
+      // Ctrl+F → find
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        e.preventDefault();
+        useFindReplaceStore.getState().open(false);
+        return;
+      }
+
+      // Ctrl+H → find & replace
+      if ((e.ctrlKey || e.metaKey) && e.key === "h") {
+        e.preventDefault();
+        useFindReplaceStore.getState().open(true);
         return;
       }
 

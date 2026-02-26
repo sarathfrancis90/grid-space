@@ -28,6 +28,9 @@ interface SpreadsheetState {
   renameSheet: (sheetId: string, name: string) => void;
   setActiveSheet: (sheetId: string) => void;
   getActiveSheet: () => SheetData | undefined;
+  duplicateSheet: (sheetId: string) => void;
+  reorderSheet: (fromIndex: number, toIndex: number) => void;
+  setTabColor: (sheetId: string, color: string | undefined) => void;
 }
 
 export const useSpreadsheetStore = create<SpreadsheetState>()(
@@ -76,6 +79,43 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
     getActiveSheet: () => {
       const state = get();
       return state.sheets.find((s) => s.id === state.activeSheetId);
+    },
+
+    duplicateSheet: (sheetId: string) => {
+      set((state) => {
+        const source = state.sheets.find((s) => s.id === sheetId);
+        if (!source) return;
+        const newId = `sheet-${Date.now()}`;
+        const newSheet = createDefaultSheet(newId, `${source.name} (Copy)`);
+        newSheet.tabColor = source.tabColor;
+        newSheet.frozenRows = source.frozenRows;
+        newSheet.frozenCols = source.frozenCols;
+        const idx = state.sheets.findIndex((s) => s.id === sheetId);
+        state.sheets.splice(idx + 1, 0, newSheet);
+      });
+    },
+
+    reorderSheet: (fromIndex: number, toIndex: number) => {
+      set((state) => {
+        if (
+          fromIndex < 0 ||
+          fromIndex >= state.sheets.length ||
+          toIndex < 0 ||
+          toIndex >= state.sheets.length
+        )
+          return;
+        const [sheet] = state.sheets.splice(fromIndex, 1);
+        state.sheets.splice(toIndex, 0, sheet);
+      });
+    },
+
+    setTabColor: (sheetId: string, color: string | undefined) => {
+      set((state) => {
+        const sheet = state.sheets.find((s) => s.id === sheetId);
+        if (sheet) {
+          sheet.tabColor = color;
+        }
+      });
     },
   })),
 );
