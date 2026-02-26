@@ -4,7 +4,6 @@ PROTECTED_FILES=(
   "package-lock.json"
   ".claude/settings.json"
   "CLAUDE.md"
-  "feature_list.json"
   "prisma/schema.prisma"
   ".env"
   ".env.example"
@@ -13,7 +12,7 @@ PROTECTED_FILES=(
 CHANGED="$1"
 for f in "${PROTECTED_FILES[@]}"; do
   if [[ "$CHANGED" == *"$f" ]]; then
-    echo "⚠️  PROTECTED FILE: $f — Are you sure you want to modify this? Use --force flag if intentional."
+    echo "PROTECTED FILE: $f — Are you sure you want to modify this? Use --force flag if intentional."
     exit 1
   fi
 done

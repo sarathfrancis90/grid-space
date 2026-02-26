@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import path from "path";
 import { env } from "./config/env";
+import featureCount from "./generated/feature-count.json";
 
 const app = express();
 
@@ -39,12 +40,7 @@ app.get("/api/status", (_req, res) => {
   res.json({
     app: "GridSpace",
     version: "0.1.0",
-    features: {
-      total: 427,
-      completed: 0,
-      remaining: 427,
-      sprints: 16,
-    },
+    features: featureCount,
   });
 });
 

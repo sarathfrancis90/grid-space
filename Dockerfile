@@ -37,10 +37,14 @@ WORKDIR /app
 # Copy source
 COPY packages/server/ ./packages/server/
 
+# Copy feature list and generation script for build-time progress injection
+COPY feature_list.json ./feature_list.json
+COPY scripts/generate-feature-count.js ./scripts/generate-feature-count.js
+
 # Generate Prisma client
 RUN npx prisma generate --schema=packages/server/prisma/schema.prisma
 
-# Compile TypeScript
+# Compile TypeScript (prebuild script generates feature-count.json)
 RUN npm run build --workspace=packages/server
 
 # ---- Stage 4: Production image ----

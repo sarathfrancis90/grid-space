@@ -40,5 +40,8 @@ pgdata/
 *.log
 npm-debug.log*
 
+# Generated build artifacts
+packages/server/src/generated/
+
 # Misc
 claude-progress.txt
