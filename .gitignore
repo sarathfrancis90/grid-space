@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.npm
+
+# Build output
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Database
+packages/server/prisma/migrations/**/migration_lock.toml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+test-results/
+playwright-report/
+coverage/
+
+# Deployment
+.vercel
+.ralph_*
+
+# Docker
+pgdata/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Misc
+claude-progress.txt

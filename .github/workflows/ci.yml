@@ -1,0 +1,144 @@
+name: GridSpace CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_ENV: test
+  DATABASE_URL: postgresql://gridspace:gridspace_test@localhost:5432/gridspace_test
+  REDIS_URL: redis://localhost:6379
+  JWT_SECRET: ci-test-secret-key-32-chars-minimum
+  JWT_REFRESH_SECRET: ci-test-refresh-secret-key-32chars
+  JWT_EXPIRES_IN: 15m
+  JWT_REFRESH_EXPIRES_IN: 7d
+  CLIENT_URL: http://localhost:5173
+
+jobs:
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: TypeCheck Client
+        run: npx tsc --noEmit --project packages/client/tsconfig.json
+      - name: TypeCheck Server
+        run: npx tsc --noEmit --project packages/server/tsconfig.json
+      - name: Lint
+        run: npx eslint . --ext .ts,.tsx
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: gridspace
+          POSTGRES_PASSWORD: gridspace_test
+          POSTGRES_DB: gridspace_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Run Prisma Migrations
+        run: npx prisma migrate deploy --schema packages/server/prisma/schema.prisma
+      - name: Client Unit Tests
+        run: npx vitest run --project client
+      - name: Server Unit Tests
+        run: npx vitest run --project server
+
+  build:
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build Client
+        run: npm run build --workspace=packages/client
+      - name: Build Server
+        run: npm run build --workspace=packages/server
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: packages/client/dist/
+          retention-days: 1
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: [build, unit-tests]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: gridspace
+          POSTGRES_PASSWORD: gridspace_test
+          POSTGRES_DB: gridspace_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run Prisma Migrations
+        run: npx prisma migrate deploy --schema packages/server/prisma/schema.prisma
+      - name: Seed Test Database
+        run: npx prisma db seed --schema packages/server/prisma/schema.prisma
+      - uses: actions/download-artifact@v4
+        with:
+          name: client-dist
+          path: packages/client/dist/
+      - name: Start Server
+        run: |
+          npm run start --workspace=packages/server &
+          npx wait-on http://localhost:3001/health --timeout 30000
+      - name: Serve Client
+        run: |
+          npx serve packages/client/dist -l 5173 &
+          npx wait-on http://localhost:5173 --timeout 15000
+      - name: Run Playwright Tests
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

@@ -1,0 +1,3418 @@
+[
+  {
+    "id": "S1-001",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Grid renders with row/column headers (A,B,C / 1,2,3)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-002",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Click cell to select it",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-003",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Arrow key navigation between cells",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-004",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Tab moves right, Shift+Tab moves left",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-005",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Enter moves down, Shift+Enter moves up",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-006",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Double-click or F2 enters edit mode",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-007",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Type any character to start editing (replaces content)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-008",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Escape cancels edit, restores previous value",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-009",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Enter commits edit and moves down",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-010",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Shift+click extends selection range",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-011",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Ctrl+click adds to multi-selection",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-012",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Click+drag selects range",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-013",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Click row header selects entire row",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-014",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Click column header selects entire column",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-015",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Ctrl+A selects all cells",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-016",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Virtual scroll renders 10k rows smoothly (60fps)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-017",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Insert row above/below",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-018",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Insert column left/right",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-019",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Delete selected rows",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-020",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Delete selected columns",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-021",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Resize column by dragging header border",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-022",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Resize row by dragging header border",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-023",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Double-click column border auto-fits width",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-024",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Hide selected rows",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-025",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Unhide rows",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-026",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Hide selected columns",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-027",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Unhide columns",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-028",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Freeze rows (View > Freeze)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-029",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Freeze columns",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-030",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Copy cells (Ctrl+C)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-031",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Paste cells (Ctrl+V)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-032",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Cut cells (Ctrl+X)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-033",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Delete/Backspace clears selected cells",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S1-034",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Paste special \u2014 values only",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-035",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Paste special \u2014 format only",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-036",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Paste special \u2014 transpose",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-037",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Ctrl+Home goes to A1",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-038",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Ctrl+End goes to last cell with data",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-039",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Page Up/Down scrolls one viewport",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-040",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Ctrl+Arrow jumps to edge of data region",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S1-041",
+    "sprint": 1,
+    "category": "grid",
+    "name": "Drag fill handle extends series",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-001",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Typing = activates formula mode",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-002",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Formula autocomplete dropdown",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-003",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Click cell inserts reference while in formula mode",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-004",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Color-coded range references in formula bar",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-005",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Cell reference A1 style",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-006",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Absolute reference $A$1",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-007",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Mixed references $A1 and A$1",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-008",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Range reference A1:B5",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-009",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Cross-sheet reference Sheet2!A1",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-010",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Dependency graph recalculates on edit",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-011",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Circular reference detection shows #REF!",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-012",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Error values: #DIV/0!, #VALUE!, #NAME?, #N/A, #NUM!, #NULL!, #REF!",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-013",
+    "sprint": 2,
+    "category": "formula",
+    "name": "SUM, AVERAGE, COUNT, COUNTA, COUNTBLANK",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-014",
+    "sprint": 2,
+    "category": "formula",
+    "name": "MIN, MAX functions",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-015",
+    "sprint": 2,
+    "category": "formula",
+    "name": "IF, IFS, SWITCH functions",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-016",
+    "sprint": 2,
+    "category": "formula",
+    "name": "AND, OR, NOT, XOR, IFERROR, IFNA",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-017",
+    "sprint": 2,
+    "category": "formula",
+    "name": "VLOOKUP function",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-018",
+    "sprint": 2,
+    "category": "formula",
+    "name": "HLOOKUP function",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-019",
+    "sprint": 2,
+    "category": "formula",
+    "name": "INDEX, MATCH functions",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-020",
+    "sprint": 2,
+    "category": "formula",
+    "name": "XLOOKUP function",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-021",
+    "sprint": 2,
+    "category": "formula",
+    "name": "SUMIF, COUNTIF, AVERAGEIF",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-022",
+    "sprint": 2,
+    "category": "formula",
+    "name": "SUMIFS, COUNTIFS, AVERAGEIFS",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-023",
+    "sprint": 2,
+    "category": "formula",
+    "name": "CONCATENATE, LEFT, RIGHT, MID, LEN, TRIM",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-024",
+    "sprint": 2,
+    "category": "formula",
+    "name": "UPPER, LOWER, PROPER, SUBSTITUTE, FIND, SEARCH",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-025",
+    "sprint": 2,
+    "category": "formula",
+    "name": "TEXT, VALUE, REPT, EXACT, CLEAN, CHAR, CODE",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-026",
+    "sprint": 2,
+    "category": "formula",
+    "name": "TODAY, NOW, DATE, YEAR, MONTH, DAY",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-027",
+    "sprint": 2,
+    "category": "formula",
+    "name": "HOUR, MINUTE, SECOND, DATEDIF, EDATE, EOMONTH",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-028",
+    "sprint": 2,
+    "category": "formula",
+    "name": "WEEKDAY, WEEKNUM, WORKDAY, NETWORKDAYS",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-029",
+    "sprint": 2,
+    "category": "formula",
+    "name": "ROUND, ROUNDUP, ROUNDDOWN, ABS, SQRT, POWER, MOD",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-030",
+    "sprint": 2,
+    "category": "formula",
+    "name": "CEILING, FLOOR, LOG, LOG10, EXP, PI, RAND, RANDBETWEEN",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-031",
+    "sprint": 2,
+    "category": "formula",
+    "name": "STDEV, VAR, MEDIAN, MODE, PERCENTILE, QUARTILE, RANK",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-032",
+    "sprint": 2,
+    "category": "formula",
+    "name": "LARGE, SMALL, CORREL, FORECAST",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-033",
+    "sprint": 2,
+    "category": "formula",
+    "name": "PMT, FV, PV, NPV, IRR, RATE, NPER",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-034",
+    "sprint": 2,
+    "category": "formula",
+    "name": "ISBLANK, ISERROR, ISNUMBER, ISTEXT, ISLOGICAL, TYPE",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-035",
+    "sprint": 2,
+    "category": "formula",
+    "name": "OFFSET, INDIRECT, ROW, COLUMN, ROWS, COLUMNS, CHOOSE",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-036",
+    "sprint": 2,
+    "category": "formula",
+    "name": "SORT, FILTER, UNIQUE array functions",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S2-037",
+    "sprint": 2,
+    "category": "formula",
+    "name": "TRANSPOSE function",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S2-038",
+    "sprint": 2,
+    "category": "formula",
+    "name": "SPARKLINE function (inline mini-charts)",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S2-039",
+    "sprint": 2,
+    "category": "formula",
+    "name": "String concatenation with & operator",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-040",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Nested formulas work correctly",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S2-041",
+    "sprint": 2,
+    "category": "formula",
+    "name": "Operator precedence: ^ > */  > +- > & > comparisons",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-001",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Bold (Ctrl+B)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-002",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Italic (Ctrl+I)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-003",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Underline (Ctrl+U)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-004",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Strikethrough",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-005",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Font family picker",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-006",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Font size picker",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-007",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Text color picker",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-008",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Background/fill color picker",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-009",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Horizontal alignment (left, center, right)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-010",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Vertical alignment (top, middle, bottom)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-011",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Number format \u2014 General",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-012",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Number format \u2014 Number (decimals, thousands separator)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-013",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Number format \u2014 Currency ($, \u20ac, \u00a3, \u00a5)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-014",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Number format \u2014 Percent",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-015",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Number format \u2014 Date (multiple patterns)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-016",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Number format \u2014 Time",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-017",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Number format \u2014 Scientific",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-018",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Custom number format string",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S3-019",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Borders \u2014 all sides",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-020",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Borders \u2014 individual sides (top/right/bottom/left)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-021",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Borders \u2014 styles (thin, medium, thick, dashed, dotted, double)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-022",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Borders \u2014 color",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-023",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Merge cells",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-024",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Unmerge cells",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-025",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Paint format (format painter) \u2014 single click",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-026",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Paint format \u2014 double-click for persistent mode",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-027",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Text wrapping \u2014 Overflow mode",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-028",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Text wrapping \u2014 Wrap mode",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-029",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Text wrapping \u2014 Clip mode",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-030",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Text rotation (angled text in cells)",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S3-031",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Alternating row colors (Format > Alternating colors)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-032",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Clear formatting (Format > Clear formatting)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-033",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Indentation \u2014 increase indent",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-034",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Indentation \u2014 decrease indent",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-035",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Toolbar reflects selected cell's current format",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S3-036",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Conditional format \u2014 value rules (greater, less, between, equal)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-037",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Conditional format \u2014 text rules (contains, starts with)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S3-038",
+    "sprint": 3,
+    "category": "formatting",
+    "name": "Conditional format \u2014 color scales (2-color and 3-color)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-001",
+    "sprint": 4,
+    "category": "sheets",
+    "name": "Sheet tabs displayed at bottom",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-002",
+    "sprint": 4,
+    "category": "sheets",
+    "name": "Add new sheet",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-003",
+    "sprint": 4,
+    "category": "sheets",
+    "name": "Delete sheet",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-004",
+    "sprint": 4,
+    "category": "sheets",
+    "name": "Rename sheet (double-click tab)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-005",
+    "sprint": 4,
+    "category": "sheets",
+    "name": "Reorder sheets (drag tabs)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-006",
+    "sprint": 4,
+    "category": "sheets",
+    "name": "Duplicate sheet",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-007",
+    "sprint": 4,
+    "category": "sheets",
+    "name": "Tab color",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-008",
+    "sprint": 4,
+    "category": "sheets",
+    "name": "Sheet tab right-click context menu",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-009",
+    "sprint": 4,
+    "category": "data",
+    "name": "Sort column ascending",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-010",
+    "sprint": 4,
+    "category": "data",
+    "name": "Sort column descending",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-011",
+    "sprint": 4,
+    "category": "data",
+    "name": "Multi-column sort",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-012",
+    "sprint": 4,
+    "category": "data",
+    "name": "Filter \u2014 toggle filter row",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-013",
+    "sprint": 4,
+    "category": "data",
+    "name": "Filter \u2014 by value (checkbox list)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-014",
+    "sprint": 4,
+    "category": "data",
+    "name": "Filter \u2014 by condition (greater than, contains, etc)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-015",
+    "sprint": 4,
+    "category": "data",
+    "name": "Filter \u2014 by color",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-016",
+    "sprint": 4,
+    "category": "data",
+    "name": "Find (Ctrl+F)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-017",
+    "sprint": 4,
+    "category": "data",
+    "name": "Replace (Ctrl+H)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-018",
+    "sprint": 4,
+    "category": "data",
+    "name": "Find & replace with regex option",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-019",
+    "sprint": 4,
+    "category": "data",
+    "name": "Data validation \u2014 number range",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-020",
+    "sprint": 4,
+    "category": "data",
+    "name": "Data validation \u2014 text length",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-021",
+    "sprint": 4,
+    "category": "data",
+    "name": "Data validation \u2014 date range",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-022",
+    "sprint": 4,
+    "category": "data",
+    "name": "Data validation \u2014 dropdown list from range",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-023",
+    "sprint": 4,
+    "category": "data",
+    "name": "Data validation \u2014 checkbox",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S4-024",
+    "sprint": 4,
+    "category": "data",
+    "name": "Data validation \u2014 custom formula",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-025",
+    "sprint": 4,
+    "category": "data",
+    "name": "Pivot table \u2014 create from selection",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-026",
+    "sprint": 4,
+    "category": "data",
+    "name": "Pivot table \u2014 editor sidebar (rows/columns/values/filters)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-027",
+    "sprint": 4,
+    "category": "data",
+    "name": "Pivot table \u2014 aggregation types (SUM, COUNT, AVG, MIN, MAX)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-028",
+    "sprint": 4,
+    "category": "data",
+    "name": "Pivot table \u2014 filter in editor",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-029",
+    "sprint": 4,
+    "category": "data",
+    "name": "Pivot table \u2014 auto-refresh on source data change",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-030",
+    "sprint": 4,
+    "category": "data",
+    "name": "Named ranges \u2014 create",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-031",
+    "sprint": 4,
+    "category": "data",
+    "name": "Named ranges \u2014 use in formulas",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-032",
+    "sprint": 4,
+    "category": "data",
+    "name": "Named ranges \u2014 edit and delete",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-033",
+    "sprint": 4,
+    "category": "data",
+    "name": "Row grouping with collapse/expand",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-034",
+    "sprint": 4,
+    "category": "data",
+    "name": "Column grouping with collapse/expand",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-035",
+    "sprint": 4,
+    "category": "data",
+    "name": "Protected ranges \u2014 lock cells from editing",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S4-036",
+    "sprint": 4,
+    "category": "data",
+    "name": "Slicer \u2014 interactive filter control",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-037",
+    "sprint": 4,
+    "category": "data",
+    "name": "Split text to columns",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-038",
+    "sprint": 4,
+    "category": "data",
+    "name": "Remove duplicates (Data > Data cleanup)",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-039",
+    "sprint": 4,
+    "category": "data",
+    "name": "Trim whitespace (Data > Data cleanup)",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S4-040",
+    "sprint": 4,
+    "category": "data",
+    "name": "Checkbox cells (Insert > Checkbox)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S5-001",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "Undo (Ctrl+Z)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S5-002",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "Redo (Ctrl+Y / Ctrl+Shift+Z)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S5-003",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "Undo/redo stack holds 100 entries",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S5-004",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "CSV import via file picker",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S5-005",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "CSV export/download",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S5-006",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "XLSX import (SheetJS)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S5-007",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "XLSX export/download",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S5-008",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "TSV export",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S5-009",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "PDF export",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S5-010",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "JSON export",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S5-011",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "Drag-and-drop file import",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S5-012",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "Autosave to localStorage (30s debounce)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S5-013",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "Restore from localStorage on page load",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S5-014",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "XLSX import preserves formulas",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S5-015",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "XLSX import preserves formatting",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S5-016",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "XLSX import preserves multiple sheets",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S5-017",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "CSV import auto-detects delimiter",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S5-018",
+    "sprint": 5,
+    "category": "file-ops",
+    "name": "Export selected range only",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S6-001",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Create column chart from selection",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S6-002",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Create bar chart",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S6-003",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Create line chart",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S6-004",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Create area chart",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-005",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Create pie chart",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S6-006",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Create scatter chart",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-007",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Create combo chart",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S6-008",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Chart editor sidebar \u2014 change chart type",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S6-009",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Chart editor \u2014 set data range",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S6-010",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Chart editor \u2014 title and subtitle",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-011",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Chart editor \u2014 legend toggle and position",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-012",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Chart editor \u2014 axis labels and formatting",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-013",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Chart editor \u2014 colors and styling",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-014",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Move chart by dragging",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S6-015",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Resize chart with drag handles",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S6-016",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Delete chart",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S6-017",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Chart updates when source data changes",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-018",
+    "sprint": 6,
+    "category": "charts",
+    "name": "Double-click chart opens editor",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-019",
+    "sprint": 6,
+    "category": "conditional",
+    "name": "Conditional format \u2014 is blank / not blank",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-020",
+    "sprint": 6,
+    "category": "conditional",
+    "name": "Conditional format \u2014 date is (today, yesterday, etc.)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-021",
+    "sprint": 6,
+    "category": "conditional",
+    "name": "Conditional format \u2014 custom formula rule",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S6-022",
+    "sprint": 6,
+    "category": "conditional",
+    "name": "Multiple conditional format rules with priority order",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-023",
+    "sprint": 6,
+    "category": "conditional",
+    "name": "Conditional format manager \u2014 add/edit/delete rules",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S6-024",
+    "sprint": 6,
+    "category": "conditional",
+    "name": "Conditional format applies to range",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-001",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Formula bar \u2014 name box shows cell address",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S7-002",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Formula bar \u2014 shows formula for selected cell",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S7-003",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Formula bar \u2014 edit formula directly in bar",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S7-004",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Name box \u2014 type address to navigate (e.g. B5)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-005",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Name box \u2014 shows named range names",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-006",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Right-click context menu on cell",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S7-007",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Right-click context menu on row header",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-008",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Right-click context menu on column header",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-009",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Menu bar \u2014 File menu (New, Open, Save, Download, Print)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S7-010",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Menu bar \u2014 Edit menu (Undo, Redo, Cut, Copy, Paste, Find)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-011",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Menu bar \u2014 View menu (Freeze, Gridlines, Formula bar, Zoom)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-012",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Menu bar \u2014 Insert menu (Rows, Columns, Charts, Images, Links)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-013",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Menu bar \u2014 Format menu (Number, Text, Alignment, Borders)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-014",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Menu bar \u2014 Data menu (Sort, Filter, Validation, Pivot, Named ranges)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-015",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Menu bar \u2014 Tools menu (Spelling, Notifications)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-016",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Status bar \u2014 SUM of selection",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S7-017",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Status bar \u2014 AVERAGE, COUNT, MIN, MAX of selection",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-018",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Cell comments \u2014 add comment",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-019",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Cell comments \u2014 view, edit, delete",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-020",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Cell notes (simple, non-threaded)",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S7-021",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Hyperlink \u2014 insert link dialog (Ctrl+K)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-022",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Hyperlink \u2014 click to open link",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-023",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Image in cell (Insert > Image)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-024",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Show/hide gridlines (View > Gridlines)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S7-025",
+    "sprint": 7,
+    "category": "ui",
+    "name": "Show/hide formula bar",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S8-001",
+    "sprint": 8,
+    "category": "keyboard",
+    "name": "Ctrl+B/I/U formatting shortcuts",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S8-002",
+    "sprint": 8,
+    "category": "keyboard",
+    "name": "Ctrl+Z/Y undo/redo",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S8-003",
+    "sprint": 8,
+    "category": "keyboard",
+    "name": "Ctrl+C/V/X copy/paste/cut",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S8-004",
+    "sprint": 8,
+    "category": "keyboard",
+    "name": "Ctrl+Shift+V paste special",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S8-005",
+    "sprint": 8,
+    "category": "keyboard",
+    "name": "Ctrl+F find, Ctrl+H replace",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S8-006",
+    "sprint": 8,
+    "category": "keyboard",
+    "name": "Ctrl+; insert current date",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S8-007",
+    "sprint": 8,
+    "category": "keyboard",
+    "name": "Alt+Enter newline in cell",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S8-008",
+    "sprint": 8,
+    "category": "keyboard",
+    "name": "F2 enters edit mode",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S8-009",
+    "sprint": 8,
+    "category": "keyboard",
+    "name": "Ctrl+1 format cells dialog",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S8-010",
+    "sprint": 8,
+    "category": "keyboard",
+    "name": "Ctrl+Shift+1-6 number format shortcuts",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S8-011",
+    "sprint": 8,
+    "category": "ui",
+    "name": "Print dialog (Ctrl+P)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S8-012",
+    "sprint": 8,
+    "category": "ui",
+    "name": "Print \u2014 page orientation (portrait/landscape)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S8-013",
+    "sprint": 8,
+    "category": "ui",
+    "name": "Print \u2014 margins setting",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S8-014",
+    "sprint": 8,
+    "category": "ui",
+    "name": "Print \u2014 page breaks preview",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S8-015",
+    "sprint": 8,
+    "category": "ui",
+    "name": "Print \u2014 header/footer",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S8-016",
+    "sprint": 8,
+    "category": "ui",
+    "name": "Zoom controls (View > Zoom, 50-200%)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S8-017",
+    "sprint": 8,
+    "category": "ui",
+    "name": "Zoom with Ctrl+Plus/Ctrl+Minus",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S8-018",
+    "sprint": 8,
+    "category": "performance",
+    "name": "10k rows smooth scroll at 60fps",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S8-019",
+    "sprint": 8,
+    "category": "performance",
+    "name": "Formula recalc 1000 cells < 500ms",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S8-020",
+    "sprint": 8,
+    "category": "performance",
+    "name": "Bundle size < 500KB gzip",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S8-021",
+    "sprint": 8,
+    "category": "performance",
+    "name": "Time to interactive < 2 seconds",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S8-022",
+    "sprint": 8,
+    "category": "performance",
+    "name": "Web Worker offloads heavy formula recalc",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-001",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Express server with TypeScript setup",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S9-002",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Prisma ORM with PostgreSQL connection",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S9-003",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Database schema: User, Spreadsheet, Sheet, Cell models",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S9-004",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Database migrations setup (prisma migrate)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S9-005",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Environment configuration (.env, dotenv)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S9-006",
+    "sprint": 9,
+    "category": "backend",
+    "name": "CORS configuration for frontend origin",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S9-007",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Request body validation middleware (zod)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-008",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Error handling middleware (global error handler)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-009",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Request logging middleware (morgan/pino)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-010",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Rate limiting middleware (express-rate-limit)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-011",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Health check endpoint (GET /api/health)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-012",
+    "sprint": 9,
+    "category": "backend",
+    "name": "API router structure (routes/, controllers/, services/)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-013",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Docker Compose for PostgreSQL + Redis",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S9-014",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Redis setup for sessions and caching",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-015",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Database seed script for development",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-016",
+    "sprint": 9,
+    "category": "backend",
+    "name": "API response envelope format { success, data, error }",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-017",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Pagination helper for list endpoints",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-018",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Input sanitization (XSS prevention)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-019",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Secure HTTP headers (helmet)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-020",
+    "sprint": 9,
+    "category": "backend",
+    "name": "CSRF protection",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-021",
+    "sprint": 9,
+    "category": "backend",
+    "name": "Graceful shutdown handling",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S9-022",
+    "sprint": 9,
+    "category": "backend",
+    "name": "API documentation (OpenAPI/Swagger)",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S10-001",
+    "sprint": 10,
+    "category": "auth",
+    "name": "User registration with email and password",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S10-002",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Password hashing (bcrypt)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S10-003",
+    "sprint": 10,
+    "category": "auth",
+    "name": "User login returns JWT access token",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S10-004",
+    "sprint": 10,
+    "category": "auth",
+    "name": "JWT refresh token flow",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S10-005",
+    "sprint": 10,
+    "category": "auth",
+    "name": "JWT authentication middleware (protect routes)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S10-006",
+    "sprint": 10,
+    "category": "auth",
+    "name": "User logout (invalidate refresh token)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-007",
+    "sprint": 10,
+    "category": "auth",
+    "name": "OAuth 2.0 login with Google",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S10-008",
+    "sprint": 10,
+    "category": "auth",
+    "name": "OAuth 2.0 login with GitHub",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S10-009",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Link OAuth account to existing email account",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-010",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Password reset \u2014 request reset email",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-011",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Password reset \u2014 reset with token",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-012",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Email verification on registration",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-013",
+    "sprint": 10,
+    "category": "auth",
+    "name": "User profile page (name, avatar, email)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-014",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Update user profile (name, avatar)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-015",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Change password",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-016",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Delete account",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-017",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Login page UI (email/password form)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S10-018",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Registration page UI",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S10-019",
+    "sprint": 10,
+    "category": "auth",
+    "name": "OAuth login buttons (Google, GitHub)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S10-020",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Forgot password page UI",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-021",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Profile settings page UI",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-022",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Protected route wrapper (redirect to login)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-023",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Auth state in Zustand store (user, token)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S10-024",
+    "sprint": 10,
+    "category": "auth",
+    "name": "Axios/fetch interceptor adds JWT to API requests",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-001",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Create new spreadsheet (API + UI)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S11-002",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Save spreadsheet to PostgreSQL",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S11-003",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Load spreadsheet from PostgreSQL",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S11-004",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Auto-save to server (debounced 5s, replaces localStorage)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S11-005",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Auto-save indicator in UI (Saving... / All changes saved)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-006",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Dashboard page \u2014 list all user's spreadsheets",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S11-007",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Dashboard \u2014 grid/list view toggle",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-008",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Dashboard \u2014 sort by name, date modified, date created",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-009",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Dashboard \u2014 search spreadsheets by name",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-010",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Delete spreadsheet from dashboard",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-011",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Rename spreadsheet from title bar",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S11-012",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Rename spreadsheet from dashboard",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-013",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Duplicate spreadsheet (File > Make a copy)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-014",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Star/favorite spreadsheets",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-015",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Dashboard \u2014 filter: All, Owned by me, Shared with me, Starred",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-016",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Recently opened spreadsheets section",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-017",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Open spreadsheet from dashboard navigates to editor",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-018",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Spreadsheet URL routing (/spreadsheet/:id)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-019",
+    "sprint": 11,
+    "category": "storage",
+    "name": "404 page for invalid spreadsheet ID",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-020",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Loading skeleton while spreadsheet loads",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-021",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Fallback to localStorage if server unavailable",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S11-022",
+    "sprint": 11,
+    "category": "storage",
+    "name": "Landing/home page with create + recent spreadsheets",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-001",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Share button in toolbar opens share dialog",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S12-002",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Share dialog \u2014 add user by email",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S12-003",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Share dialog \u2014 select role: Viewer, Commenter, Editor",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S12-004",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Share dialog \u2014 list current collaborators with roles",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-005",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Share dialog \u2014 change user's role",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-006",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Share dialog \u2014 remove user access (revoke)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-007",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Share via link \u2014 generate shareable URL",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S12-008",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Share link \u2014 set permission level (view/comment/edit)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-009",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Share link \u2014 copy to clipboard button",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-010",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Share link \u2014 disable/enable toggle",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-011",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Permission enforcement \u2014 viewers cannot edit cells",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S12-012",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Permission enforcement \u2014 commenters can only add comments",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-013",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Permission enforcement \u2014 editors have full access",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-014",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "API middleware checks permission on every write operation",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S12-015",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Protected ranges respect per-user permissions",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-016",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Transfer ownership to another user",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-017",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "'Shared with me' section on dashboard",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S12-018",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Shared spreadsheet shows collaborator avatars in toolbar",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-019",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "'Make a copy' available for viewers",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-020",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Share notification \u2014 email sent to invited user",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S12-021",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Publish to web (File > Share > Publish) \u2014 read-only URL",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S12-022",
+    "sprint": 12,
+    "category": "sharing",
+    "name": "Embed spreadsheet in iframe",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S13-001",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Auto-create version snapshot on save",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S13-002",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Version history sidebar (File > Version history)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S13-003",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Version timeline with timestamps",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S13-004",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Version shows who made changes (user name + avatar)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S13-005",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Click version to preview it (read-only view)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S13-006",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Restore previous version (one-click)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S13-007",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Name/label a version",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S13-008",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Visual diff \u2014 highlight changed cells between versions",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S13-009",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Version grouping \u2014 collapse minor edits",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S13-010",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Version limit management (keep last 200)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S13-011",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Copy a previous version as new spreadsheet",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S13-012",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Keyboard shortcut Ctrl+Alt+Shift+H opens history",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S13-013",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Close version history returns to current version",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S13-014",
+    "sprint": 13,
+    "category": "versions",
+    "name": "Version storage is space-efficient (delta snapshots)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S13-015",
+    "sprint": 13,
+    "category": "versions",
+    "name": "API: GET /api/spreadsheets/:id/versions",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-001",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "WebSocket server (Socket.io) setup",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S14-002",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "WebSocket authentication (JWT verification)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S14-003",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Client connects to WebSocket on spreadsheet open",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S14-004",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Presence \u2014 show who is viewing (avatar row in toolbar)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S14-005",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Presence \u2014 user joins/leaves notifications",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-006",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Colored cursor per collaborator (unique color)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S14-007",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Cursor label shows collaborator name",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-008",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Selection range broadcast \u2014 see others' selections",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-009",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Real-time cell edits \u2014 see others' changes live",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S14-010",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "CRDT-based conflict resolution (Yjs)",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S14-011",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Cell lock indicator \u2014 shows who is editing a cell",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-012",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Sheet switch broadcast \u2014 see which sheet others are on",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-013",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Typing indicator in cells being edited by others",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-014",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Undo/redo is per-user (not global)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-015",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Reconnection handling (lost connection auto-reconnect)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-016",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Connection status indicator in UI (Connected/Reconnecting/Offline)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-017",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Graceful degradation \u2014 works offline, syncs when reconnected",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-018",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Multiple tabs same user handled correctly",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-019",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "WebSocket message rate limiting",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-020",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Operational batching (batch rapid edits into single update)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-021",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Scale: support 20+ simultaneous editors",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-022",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Concurrent formula recalculation handled correctly",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-023",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Row/column insert/delete synchronized across clients",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-024",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Sheet add/delete/rename synchronized across clients",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-025",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Format changes synchronized across clients",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-026",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Chart changes synchronized across clients",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-027",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Clipboard operations don't conflict",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S14-028",
+    "sprint": 14,
+    "category": "realtime",
+    "name": "Stress test: 10 concurrent users editing same sheet",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-001",
+    "sprint": 15,
+    "category": "comments",
+    "name": "Threaded comment replies",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "S15-002",
+    "sprint": 15,
+    "category": "comments",
+    "name": "@mention user in comment (autocomplete)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-003",
+    "sprint": 15,
+    "category": "comments",
+    "name": "@mention sends notification to mentioned user",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-004",
+    "sprint": 15,
+    "category": "comments",
+    "name": "Resolve/unresolve comment thread",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-005",
+    "sprint": 15,
+    "category": "comments",
+    "name": "Comment count badge on cells with comments",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-006",
+    "sprint": 15,
+    "category": "comments",
+    "name": "Comments panel \u2014 list all comments in sidebar",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-007",
+    "sprint": 15,
+    "category": "comments",
+    "name": "Filter comments: All, For you, Open, Resolved",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-008",
+    "sprint": 15,
+    "category": "notifications",
+    "name": "In-app notification center (bell icon)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-009",
+    "sprint": 15,
+    "category": "notifications",
+    "name": "Notification: someone shared a spreadsheet with you",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-010",
+    "sprint": 15,
+    "category": "notifications",
+    "name": "Notification: someone @mentioned you in a comment",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-011",
+    "sprint": 15,
+    "category": "notifications",
+    "name": "Notification: someone replied to your comment",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-012",
+    "sprint": 15,
+    "category": "notifications",
+    "name": "Email notifications (opt-in) for sharing and comments",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-013",
+    "sprint": 15,
+    "category": "notifications",
+    "name": "Notification preferences (per-spreadsheet and global)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-014",
+    "sprint": 15,
+    "category": "notifications",
+    "name": "Mark notification as read/unread",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-015",
+    "sprint": 15,
+    "category": "templates",
+    "name": "Template gallery on dashboard",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-016",
+    "sprint": 15,
+    "category": "templates",
+    "name": "Create spreadsheet from template",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-017",
+    "sprint": 15,
+    "category": "templates",
+    "name": "Built-in templates: Budget, Invoice, Project tracker, Schedule, Gradebook",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-018",
+    "sprint": 15,
+    "category": "templates",
+    "name": "Save spreadsheet as template",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-019",
+    "sprint": 15,
+    "category": "ui",
+    "name": "Spell check (browser native)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S15-020",
+    "sprint": 15,
+    "category": "ui",
+    "name": "Search menus (magnifying glass \u2014 search for any menu action)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-001",
+    "sprint": 16,
+    "category": "api",
+    "name": "REST API: CRUD spreadsheets (GET, POST, PUT, DELETE)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-002",
+    "sprint": 16,
+    "category": "api",
+    "name": "REST API: CRUD sheets within spreadsheet",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-003",
+    "sprint": 16,
+    "category": "api",
+    "name": "REST API: Read/write cell values and ranges",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-004",
+    "sprint": 16,
+    "category": "api",
+    "name": "REST API: Batch update cells",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-005",
+    "sprint": 16,
+    "category": "api",
+    "name": "REST API: Export spreadsheet as CSV/XLSX/PDF",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-006",
+    "sprint": 16,
+    "category": "api",
+    "name": "API key authentication for programmatic access",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-007",
+    "sprint": 16,
+    "category": "api",
+    "name": "API rate limiting (per-key)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-008",
+    "sprint": 16,
+    "category": "api",
+    "name": "API documentation page (Swagger UI)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-009",
+    "sprint": 16,
+    "category": "api",
+    "name": "Webhook support \u2014 notify URL on spreadsheet changes",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S16-010",
+    "sprint": 16,
+    "category": "integration",
+    "name": "IMPORTDATA() function \u2014 fetch CSV from URL",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S16-011",
+    "sprint": 16,
+    "category": "integration",
+    "name": "IMPORTRANGE() function \u2014 pull from another GridSpace spreadsheet",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "S16-012",
+    "sprint": 16,
+    "category": "integration",
+    "name": "IMAGE() function \u2014 display image from URL in cell",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-013",
+    "sprint": 16,
+    "category": "production",
+    "name": "Docker multi-stage build for production",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-014",
+    "sprint": 16,
+    "category": "production",
+    "name": "Nginx reverse proxy configuration",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-015",
+    "sprint": 16,
+    "category": "production",
+    "name": "Environment-based configuration (dev/staging/prod)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-016",
+    "sprint": 16,
+    "category": "production",
+    "name": "Database connection pooling",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-017",
+    "sprint": 16,
+    "category": "production",
+    "name": "Application monitoring (error tracking)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-018",
+    "sprint": 16,
+    "category": "production",
+    "name": "Structured logging (JSON format)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-019",
+    "sprint": 16,
+    "category": "production",
+    "name": "Database backup strategy documentation",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-020",
+    "sprint": 16,
+    "category": "production",
+    "name": "SSL/TLS configuration",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-021",
+    "sprint": 16,
+    "category": "production",
+    "name": "CDN for static assets",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-022",
+    "sprint": 16,
+    "category": "production",
+    "name": "Service worker for offline support (cache spreadsheet)",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-023",
+    "sprint": 16,
+    "category": "production",
+    "name": "Offline indicator in UI",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-024",
+    "sprint": 16,
+    "category": "production",
+    "name": "Sync queue \u2014 offline edits sync when reconnected",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "S16-025",
+    "sprint": 16,
+    "category": "production",
+    "name": "Load test: 100 concurrent users, 50 spreadsheets",
+    "priority": 2,
+    "passes": false
+  }
+]

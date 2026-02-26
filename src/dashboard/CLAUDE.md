@@ -1,0 +1,14 @@
+# src/dashboard/
+
+## What's Here
+Spreadsheet dashboard page: list/grid/search spreadsheets. Create new, delete, rename, star. Filter: All/Owned/Shared/Starred.
+
+## Patterns to Follow
+- Use authStore for current user
+- Use React Router for navigation
+- Loading skeletons while data fetches
+- Error boundaries for failed API calls
+
+## Do NOT
+- Import from server/ — frontend and backend are separate
+- Use any or @ts-ignore — fix the types
