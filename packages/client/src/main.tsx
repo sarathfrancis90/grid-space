@@ -9,14 +9,9 @@ enableMapSet();
 // S16-022: Register service worker for offline support
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/service-worker.js")
-      .then((registration) => {
-        console.log("SW registered:", registration.scope);
-      })
-      .catch((error) => {
-        console.warn("SW registration failed:", error);
-      });
+    navigator.serviceWorker.register("/service-worker.js").catch((error) => {
+      console.warn("SW registration failed:", error);
+    });
   });
 }
 

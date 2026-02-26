@@ -178,7 +178,7 @@ export function SheetTabs() {
             className="absolute bg-white border border-gray-300 rounded shadow-lg min-w-[160px] py-1 z-[201]"
             style={{
               left: contextMenu.x,
-              top: contextMenu.y - 180,
+              bottom: window.innerHeight - contextMenu.y,
             }}
             onClick={(e) => e.stopPropagation()}
           >

@@ -30,7 +30,8 @@ async function handleResponse<T>(response: Response): Promise<T> {
   const data: ApiResponse<T> = await response.json();
 
   if (!response.ok || !data.success) {
-    const message = data.error?.message || `HTTP ${response.status}`;
+    const message =
+      data.error?.message || "Something went wrong. Please try again.";
     const error = new Error(message);
     (error as Error & { status: number }).status = response.status;
     throw error;
@@ -44,7 +45,8 @@ async function handleFullResponse<T>(response: Response): Promise<T> {
   const data = await response.json();
 
   if (!response.ok || !data.success) {
-    const message = data.error?.message || `HTTP ${response.status}`;
+    const message =
+      data.error?.message || "Something went wrong. Please try again.";
     const error = new Error(message);
     (error as Error & { status: number }).status = response.status;
     throw error;
