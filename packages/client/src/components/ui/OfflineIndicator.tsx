@@ -37,19 +37,19 @@ export function OfflineIndicator() {
   return (
     <div
       data-testid="offline-indicator"
-      className={`flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium ${
+      className={`flex items-center justify-center gap-2 px-4 py-0.5 text-xs ${
         isDisconnected
-          ? "bg-red-600 text-white"
+          ? "bg-gray-100 text-gray-500 border-t border-gray-200"
           : isReconnecting
-            ? "bg-yellow-500 text-black"
-            : "bg-blue-600 text-white"
+            ? "bg-amber-50 text-amber-700 border-t border-amber-200"
+            : "bg-blue-50 text-blue-600 border-t border-blue-200"
       }`}
     >
       {isDisconnected && (
         <>
           <span
             data-testid="offline-icon"
-            className="inline-block h-2 w-2 rounded-full bg-white animate-pulse"
+            className="inline-block h-1.5 w-1.5 rounded-full bg-gray-400"
           />
           <span data-testid="offline-text">
             Offline
@@ -63,7 +63,7 @@ export function OfflineIndicator() {
         <>
           <span
             data-testid="reconnecting-icon"
-            className="inline-block h-2 w-2 rounded-full bg-black animate-pulse"
+            className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"
           />
           <span data-testid="reconnecting-text">Reconnecting...</span>
         </>
@@ -73,7 +73,7 @@ export function OfflineIndicator() {
         <>
           <span
             data-testid="syncing-icon"
-            className="inline-block h-2 w-2 rounded-full bg-white animate-pulse"
+            className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"
           />
           <span data-testid="syncing-text">Syncing offline edits...</span>
         </>

@@ -140,7 +140,7 @@ export default function SpreadsheetEditorPage() {
           />
         ) : (
           <h2
-            className="cursor-pointer truncate text-sm font-medium text-gray-800 hover:text-blue-600"
+            className="cursor-pointer truncate text-sm font-medium text-gray-800 hover:text-blue-600 hover:underline decoration-blue-300 underline-offset-2"
             onClick={() => {
               setTitleInput(currentSpreadsheet.title);
               setIsRenaming(true);

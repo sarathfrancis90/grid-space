@@ -5,6 +5,7 @@ interface ContextMenuItem {
   action: () => void;
   disabled?: boolean;
   separator?: boolean;
+  shortcut?: string;
 }
 
 interface ContextMenuProps {
@@ -27,43 +28,19 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   return (
     <div
       data-testid="context-menu-backdrop"
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        zIndex: 100,
-      }}
+      className="fixed inset-0 z-[100]"
       onMouseDown={handleBackdropClick}
       onContextMenu={handleBackdropClick}
     >
       <div
         data-testid="context-menu"
-        style={{
-          position: "absolute",
-          left: x,
-          top: y,
-          background: "white",
-          border: "1px solid #ccc",
-          borderRadius: 4,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-          minWidth: 180,
-          padding: "4px 0",
-          zIndex: 101,
-        }}
+        className="absolute z-[101] bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-[220px]"
+        style={{ left: x, top: y }}
         onMouseDown={(e) => e.stopPropagation()}
       >
         {items.map((item, idx) =>
           item.separator ? (
-            <div
-              key={idx}
-              style={{
-                height: 1,
-                background: "#e2e2e2",
-                margin: "4px 0",
-              }}
-            />
+            <div key={idx} className="h-px bg-gray-100 my-1 mx-3" />
           ) : (
             <div
               key={idx}
@@ -74,25 +51,18 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
                   onClose();
                 }
               }}
-              style={{
-                padding: "6px 16px",
-                cursor: item.disabled ? "default" : "pointer",
-                color: item.disabled ? "#999" : "#333",
-                fontSize: 13,
-                userSelect: "none",
-              }}
-              onMouseEnter={(e) => {
-                if (!item.disabled) {
-                  (e.currentTarget as HTMLDivElement).style.background =
-                    "#e8f0fe";
-                }
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  "transparent";
-              }}
+              className={`flex items-center justify-between px-4 py-1.5 text-[13px] select-none transition-colors ${
+                item.disabled
+                  ? "text-gray-400 cursor-default"
+                  : "text-gray-700 cursor-pointer hover:bg-blue-50 hover:text-gray-900"
+              }`}
             >
-              {item.label}
+              <span>{item.label}</span>
+              {item.shortcut && (
+                <span className="text-gray-400 text-[11px] ml-8 font-mono">
+                  {item.shortcut}
+                </span>
+              )}
             </div>
           ),
         )}

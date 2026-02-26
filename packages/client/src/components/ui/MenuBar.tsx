@@ -46,8 +46,15 @@ export function MenuBar() {
         setOpenMenu(null);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenMenu(null);
+    };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   const gatherClipboardData = () => {
@@ -408,16 +415,22 @@ export function MenuBar() {
     <div
       ref={menuRef}
       data-testid="menu-bar"
-      className="flex items-center bg-white px-1"
+      className="flex items-center bg-white px-1 h-7"
     >
       {menus.map((menu) => (
         <div key={menu.label} className="relative">
           <button
             data-testid={menu.testId}
-            className={`px-3 py-0.5 text-[13px] text-gray-700 rounded-sm hover:bg-gray-100 ${
-              openMenu === menu.label ? "bg-gray-200" : ""
+            className={`text-[13px] rounded transition-colors ${
+              openMenu === menu.label
+                ? "bg-gray-200 text-gray-900"
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
             }`}
+            style={{ padding: "4px 12px" }}
             onClick={() => handleMenuClick(menu.label)}
+            onMouseEnter={() => {
+              if (openMenu !== null) setOpenMenu(menu.label);
+            }}
             type="button"
           >
             {menu.label}
@@ -425,22 +438,23 @@ export function MenuBar() {
           {openMenu === menu.label && (
             <div
               data-testid={`${menu.testId}-dropdown`}
-              className="absolute left-0 top-full z-50 bg-white border border-gray-200 rounded-md shadow-lg py-1 min-w-52"
+              className="absolute left-0 top-full z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-56"
             >
               {menu.items.map((item, idx) => (
                 <div key={idx}>
                   {item.separator && idx > 0 && (
-                    <div className="h-px bg-gray-200 my-1" />
+                    <div className="h-px bg-gray-100 my-1 mx-3" />
                   )}
                   <button
                     data-testid={item.testId}
-                    className="w-full flex items-center justify-between px-4 py-1 text-[13px] hover:bg-gray-100"
+                    className="w-full flex items-center justify-between text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                    style={{ padding: "6px 16px" }}
                     onClick={item.action}
                     type="button"
                   >
                     <span>{item.label}</span>
                     {item.shortcut && (
-                      <span className="text-gray-400 text-xs ml-6">
+                      <span className="text-gray-400 text-[11px] ml-8 font-mono">
                         {item.shortcut}
                       </span>
                     )}

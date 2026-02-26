@@ -9,17 +9,17 @@ const STATUS_CONFIG: Record<
   connected: {
     label: "Connected",
     dotClass: "bg-green-500",
-    textClass: "text-green-700",
+    textClass: "text-green-600",
   },
   connecting: {
     label: "Reconnecting…",
-    dotClass: "bg-yellow-500 animate-pulse",
-    textClass: "text-yellow-700",
+    dotClass: "bg-amber-500 animate-pulse",
+    textClass: "text-amber-600",
   },
   disconnected: {
     label: "Offline",
-    dotClass: "bg-red-500",
-    textClass: "text-red-700",
+    dotClass: "bg-gray-400",
+    textClass: "text-gray-400",
   },
 };
 

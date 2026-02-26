@@ -24,6 +24,7 @@ interface MenuItem {
   label: string;
   action: () => void;
   separator?: boolean;
+  shortcut?: string;
   testId: string;
 }
 
@@ -140,12 +141,23 @@ export function ContextMenuUI({
   }, [sheetId, selectedCell, onClose]);
 
   const cellMenuItems: MenuItem[] = [
-    { label: "Cut", action: handleCut, testId: "ctx-cut" },
-    { label: "Copy", action: handleCopy, testId: "ctx-copy" },
-    { label: "Paste", action: handlePaste, testId: "ctx-paste" },
+    { label: "Cut", action: handleCut, shortcut: "Ctrl+X", testId: "ctx-cut" },
+    {
+      label: "Copy",
+      action: handleCopy,
+      shortcut: "Ctrl+C",
+      testId: "ctx-copy",
+    },
+    {
+      label: "Paste",
+      action: handlePaste,
+      shortcut: "Ctrl+V",
+      testId: "ctx-paste",
+    },
     {
       label: "Clear contents",
       action: handleClearContents,
+      shortcut: "Del",
       separator: true,
       testId: "ctx-clear",
     },
@@ -162,6 +174,7 @@ export function ContextMenuUI({
     {
       label: "Add comment",
       action: handleAddComment,
+      separator: true,
       testId: "ctx-add-comment",
     },
   ];
@@ -232,22 +245,28 @@ export function ContextMenuUI({
   return (
     <div
       data-testid={`context-menu-${target}`}
-      className="fixed z-50 bg-white border border-gray-300 rounded shadow-lg py-1 min-w-48"
+      className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-52"
       style={{ left: x, top: y }}
       onMouseDown={(e) => e.stopPropagation()}
     >
       {items.map((item, idx) => (
         <div key={idx}>
           {item.separator && idx > 0 && (
-            <div className="h-px bg-gray-200 my-1" />
+            <div className="h-px bg-gray-100 my-1 mx-3" />
           )}
           <button
             data-testid={item.testId}
-            className="w-full text-left px-4 py-1.5 text-sm hover:bg-gray-100"
+            className="w-full flex items-center justify-between text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+            style={{ padding: "6px 16px" }}
             onClick={item.action}
             type="button"
           >
-            {item.label}
+            <span>{item.label}</span>
+            {item.shortcut && (
+              <span className="text-gray-400 text-[11px] ml-8 font-mono">
+                {item.shortcut}
+              </span>
+            )}
           </button>
         </div>
       ))}

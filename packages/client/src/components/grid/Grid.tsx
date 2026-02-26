@@ -1239,9 +1239,9 @@ export function Grid() {
 
     // Cell context menu
     return [
-      { label: "Copy", action: () => performCopy("copy") },
-      { label: "Cut", action: () => performCopy("cut") },
-      { label: "Paste", action: () => performPaste() },
+      { label: "Copy", shortcut: "Ctrl+C", action: () => performCopy("copy") },
+      { label: "Cut", shortcut: "Ctrl+X", action: () => performCopy("cut") },
+      { label: "Paste", shortcut: "Ctrl+V", action: () => performPaste() },
       { label: "", action: () => {}, separator: true },
       {
         label: "Paste special: Values only",
