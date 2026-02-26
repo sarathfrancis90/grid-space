@@ -1,3 +1,9 @@
+import { config } from "dotenv";
+import { resolve } from "path";
+
+// Load .env from project root (monorepo)
+config({ path: resolve(__dirname, "../../../.env") });
+
 import http from "http";
 import { app } from "./app";
 import { env } from "./config/env";
