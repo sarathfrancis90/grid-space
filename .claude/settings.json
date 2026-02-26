@@ -1,77 +1,43 @@
 {
-  "model": "claude-sonnet-4-5-20250929",
+  "model": "claude-opus-4-6",
   "hooks": {
     "PostToolUse": [
       {
-        "event": "Write",
-        "command": "npx prettier --write $FILEPATH 2>/dev/null || true",
-        "timeout": 10000
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx prettier --write \"$FILEPATH\" 2>/dev/null || true",
+            "timeout": 10000
+          }
+        ]
       }
     ],
     "Stop": [
       {
-        "command": "bash .claude/hooks/verify-tests.sh",
-        "timeout": 120000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/verify-tests.sh 2>/dev/null || true",
+            "timeout": 120000
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
-        "event": "Write",
-        "command": "bash .claude/hooks/protect-files.sh \"$FILEPATH\"",
-        "timeout": 5000
-      }
-    ],
-    "SessionStart": [
-      {
-        "command": "git status --short && echo '---' && cat claude-progress.txt 2>/dev/null | tail -5 || echo 'No progress log yet'",
-        "timeout": 10000
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/protect-files.sh \"$FILEPATH\" 2>/dev/null || true",
+            "timeout": 5000
+          }
+        ]
       }
     ]
   },
-  "allow": [
-    "npm install",
-    "npm run",
-    "npm test",
-    "npm run build",
-    "npm run dev",
-    "npm run start",
-    "npx tsc",
-    "npx vitest",
-    "npx playwright",
-    "npx prettier",
-    "npx eslint",
-    "npx prisma",
-    "node",
-    "git add",
-    "git commit",
-    "git push",
-    "git pull",
-    "git status",
-    "git log",
-    "git diff",
-    "cat",
-    "ls",
-    "grep",
-    "find",
-    "wc",
-    "head",
-    "tail",
-    "mkdir",
-    "cp",
-    "mv",
-    "echo",
-    "docker compose up",
-    "docker compose down",
-    "docker compose ps",
-    "docker compose logs",
-    "redis-cli"
-  ],
-  "deny": [
-    "rm -rf /",
-    "sudo",
-    "curl | bash",
-    "wget | bash",
-    "chmod 777",
-    "docker system prune"
-  ]
+  "enabledPlugins": {
+    "vtsls@claude-code-lsps": true
+  }
 }

@@ -1,4 +1,5 @@
 # Find and Start Next Feature
+
 ```bash
 # Find next incomplete feature from current sprint
 NEXT=$(cat feature_list.json | python3 -c "
@@ -13,6 +14,7 @@ echo "Next feature: $NEXT"
 ```
 
 ## Workflow
+
 1. Read the relevant agent_docs/ for this feature's domain
 2. Read the relevant src/<module>/CLAUDE.md
 3. Implement the feature

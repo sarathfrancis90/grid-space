@@ -1,14 +1,17 @@
 # src/notifications/
 
 ## What's Here
+
 Notification center (bell icon), notification list, mark read/unread, notification preferences.
 
 ## Patterns to Follow
+
 - Use authStore for current user
 - Use React Router for navigation
 - Loading skeletons while data fetches
 - Error boundaries for failed API calls
 
 ## Do NOT
+
 - Import from server/ — frontend and backend are separate
 - Use any or @ts-ignore — fix the types

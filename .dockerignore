@@ -1,0 +1,35 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies (rebuilt in Docker)
+node_modules
+
+# Source files not needed in build context
+src/
+agent_docs/
+.claude/
+tests/
+deployment/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# Build artifacts
+.vite/
+dist/
+*.tsbuildinfo
+
+# Docs
+*.md
+!packages/*/README.md
+
+# Misc
+.DS_Store
+*.log

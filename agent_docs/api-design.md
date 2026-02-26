@@ -5,6 +5,7 @@
 ## API Endpoint Reference
 
 ### Authentication
+
 ```
 POST   /auth/register         Register new user (email, password, name)
 POST   /auth/login            Login (email, password) → { accessToken, user }
@@ -19,6 +20,7 @@ GET    /auth/github/callback   GitHub OAuth callback
 ```
 
 ### Users
+
 ```
 GET    /api/users/me           Get current user profile
 PUT    /api/users/me           Update profile (name, avatarUrl)
@@ -27,6 +29,7 @@ DELETE /api/users/me           Delete account
 ```
 
 ### Spreadsheets
+
 ```
 GET    /api/spreadsheets                    List user's spreadsheets (owned + shared)
 POST   /api/spreadsheets                    Create new spreadsheet
@@ -37,6 +40,7 @@ POST   /api/spreadsheets/:id/duplicate      Duplicate spreadsheet
 ```
 
 ### Sheets (Tabs)
+
 ```
 GET    /api/spreadsheets/:id/sheets              List sheets in spreadsheet
 POST   /api/spreadsheets/:id/sheets              Add new sheet
@@ -45,6 +49,7 @@ DELETE /api/spreadsheets/:id/sheets/:sheetId      Delete sheet
 ```
 
 ### Cell Data
+
 ```
 GET    /api/spreadsheets/:id/sheets/:sheetId/cells           Get all cell data
 PUT    /api/spreadsheets/:id/sheets/:sheetId/cells           Bulk update cells
@@ -52,6 +57,7 @@ PUT    /api/spreadsheets/:id/sheets/:sheetId/cells/:cellRef  Update single cell
 ```
 
 ### Sharing
+
 ```
 GET    /api/spreadsheets/:id/access                   List collaborators
 POST   /api/spreadsheets/:id/access                   Add collaborator (email, role)
@@ -63,6 +69,7 @@ POST   /api/spreadsheets/:id/transfer-ownership        Transfer to another user
 ```
 
 ### Version History
+
 ```
 GET    /api/spreadsheets/:id/versions                  List versions (paginated)
 GET    /api/spreadsheets/:id/versions/:versionId       Get version snapshot
@@ -71,6 +78,7 @@ PUT    /api/spreadsheets/:id/versions/:versionId       Name a version
 ```
 
 ### Comments
+
 ```
 GET    /api/spreadsheets/:id/comments                  List all comments
 POST   /api/spreadsheets/:id/comments                  Add comment
@@ -80,6 +88,7 @@ PUT    /api/spreadsheets/:id/comments/:commentId/resolve  Resolve thread
 ```
 
 ### Notifications
+
 ```
 GET    /api/notifications                              List user's notifications
 PUT    /api/notifications/:id/read                     Mark as read
@@ -88,12 +97,14 @@ DELETE /api/notifications/:id                          Delete notification
 ```
 
 ### Templates
+
 ```
 GET    /api/templates                                  List available templates
 POST   /api/spreadsheets/from-template/:templateId     Create from template
 ```
 
 ### Export
+
 ```
 GET    /api/spreadsheets/:id/export/csv                Download as CSV
 GET    /api/spreadsheets/:id/export/xlsx               Download as XLSX
@@ -101,6 +112,7 @@ GET    /api/spreadsheets/:id/export/pdf                Download as PDF
 ```
 
 ### Public API (API Key auth)
+
 ```
 GET    /api/v1/spreadsheets/:id                        Read spreadsheet
 GET    /api/v1/spreadsheets/:id/sheets/:sheetId/cells  Read cells
@@ -114,6 +126,7 @@ DELETE /api/users/me/api-keys/:keyId                   Revoke API key
 ```
 
 ### Health & Admin
+
 ```
 GET    /health                                         Health check
 GET    /api/stats                                      Server stats (admin)
@@ -122,23 +135,28 @@ GET    /api/stats                                      Server stats (admin)
 ## Authentication Methods
 
 ### 1. JWT Bearer Token (primary — web app)
+
 ```
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 ### 2. API Key (programmatic access)
+
 ```
 X-API-Key: gs_abc123def456...
 ```
+
 - Keys are prefixed with `gs_` for easy identification
 - Full key shown only once on creation
 - Stored as bcrypt hash in database
 - Has separate rate limits (lower than JWT)
 
 ### 3. Share Link Token (anonymous access)
+
 ```
 GET /api/spreadsheets/share/:shareToken
 ```
+
 - Grants viewer/commenter/editor based on link settings
 - No user account required
 - Rate limited per IP
@@ -146,6 +164,7 @@ GET /api/spreadsheets/share/:shareToken
 ## Request/Response Patterns
 
 ### Standard Success Response
+
 ```json
 {
   "success": true,
@@ -157,12 +176,11 @@ GET /api/spreadsheets/share/:shareToken
 ```
 
 ### Paginated Response
+
 ```json
 {
   "success": true,
-  "data": [
-    { "id": "clx1234...", "title": "Q4 Budget" }
-  ],
+  "data": [{ "id": "clx1234...", "title": "Q4 Budget" }],
   "pagination": {
     "page": 1,
     "limit": 20,
@@ -174,6 +192,7 @@ GET /api/spreadsheets/share/:shareToken
 ```
 
 ### Error Response
+
 ```json
 {
   "success": false,
@@ -186,6 +205,7 @@ GET /api/spreadsheets/share/:shareToken
 ```
 
 ### Validation Error
+
 ```json
 {
   "success": false,
@@ -202,17 +222,18 @@ GET /api/spreadsheets/share/:shareToken
 
 ## Rate Limits
 
-| Endpoint Group | Limit | Window |
-|---|---|---|
-| Auth (login/register) | 5 requests | 1 minute |
-| Auth (refresh) | 20 requests | 1 minute |
-| Read operations | 100 requests | 1 minute |
-| Write operations | 30 requests | 1 minute |
-| Export | 10 requests | 1 minute |
-| API Key access | 60 requests | 1 minute |
-| WebSocket messages | 50 events | 1 second |
+| Endpoint Group        | Limit        | Window   |
+| --------------------- | ------------ | -------- |
+| Auth (login/register) | 5 requests   | 1 minute |
+| Auth (refresh)        | 20 requests  | 1 minute |
+| Read operations       | 100 requests | 1 minute |
+| Write operations      | 30 requests  | 1 minute |
+| Export                | 10 requests  | 1 minute |
+| API Key access        | 60 requests  | 1 minute |
+| WebSocket messages    | 50 events    | 1 second |
 
 Headers returned:
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 87
@@ -230,9 +251,7 @@ Users can register webhook URLs to receive events:
   "data": {
     "spreadsheetId": "clx1234...",
     "sheetId": "clx5678...",
-    "changes": [
-      { "cell": "A1", "oldValue": "100", "newValue": "200" }
-    ],
+    "changes": [{ "cell": "A1", "oldValue": "100", "newValue": "200" }],
     "userId": "clx9012..."
   }
 }
@@ -245,11 +264,11 @@ Events: `spreadsheet.created`, `spreadsheet.updated`, `spreadsheet.deleted`,
 
 ```typescript
 // services/api.ts
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true,  // for refresh token cookie
+  withCredentials: true, // for refresh token cookie
 });
 
 // Auto-attach JWT
@@ -261,10 +280,11 @@ api.interceptors.request.use((config) => {
 
 // Spreadsheet API
 export const spreadsheetApi = {
-  list: () => api.get('/api/spreadsheets'),
+  list: () => api.get("/api/spreadsheets"),
   get: (id: string) => api.get(`/api/spreadsheets/${id}`),
-  create: (title?: string) => api.post('/api/spreadsheets', { title }),
-  update: (id: string, data: Partial<Spreadsheet>) => api.put(`/api/spreadsheets/${id}`, data),
+  create: (title?: string) => api.post("/api/spreadsheets", { title }),
+  update: (id: string, data: Partial<Spreadsheet>) =>
+    api.put(`/api/spreadsheets/${id}`, data),
   delete: (id: string) => api.delete(`/api/spreadsheets/${id}`),
 };
 ```

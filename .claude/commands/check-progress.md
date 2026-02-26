@@ -1,4 +1,5 @@
 # Check Progress Dashboard
+
 ```bash
 echo "=== GridSpace Progress ==="
 echo ""

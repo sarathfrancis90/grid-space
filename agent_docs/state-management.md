@@ -3,6 +3,7 @@
 ## 12 Stores
 
 ### Core Spreadsheet Stores (Sprints 1-8)
+
 ```typescript
 // spreadsheetStore — metadata
 { id, title, sheets: Sheet[], activeSheetId }
@@ -31,6 +32,7 @@
 ```
 
 ### Backend-Connected Stores (Sprints 9-16)
+
 ```typescript
 // authStore
 { user: User|null, accessToken, refreshToken, isAuthenticated, isLoading }
@@ -46,12 +48,13 @@
 ```
 
 ## Cross-Store Communication
+
 ```typescript
 // GOOD: Actions compose across stores
 const editCell = (ref: string, value: string) => {
   cellStore.getState().setCell(ref, value);
   formulaStore.getState().recalculate(ref);
-  historyStore.getState().push({ type: 'edit', ref, value });
+  historyStore.getState().push({ type: "edit", ref, value });
   // In collaboration mode:
   realtimeStore.getState().broadcastEdit(ref, value);
 };
@@ -61,12 +64,14 @@ const editCell = (ref: string, value: string) => {
 ```
 
 ## Immer Rules
+
 - Always use `set((state) => { state.x = y })` pattern
 - Immer handles immutability — mutate the draft directly
 - NEVER spread nested objects manually
 - NEVER return new objects from set() — just mutate
 
 ## Persistence Strategy
+
 - Sprints 1-8: localStorage autosave (fallback)
 - Sprints 9+: Server autosave (debounced 5s) with localStorage backup
 - Auth tokens: memory (accessToken) + httpOnly cookie (refreshToken)
@@ -75,6 +80,7 @@ const editCell = (ref: string, value: string) => {
 ## New Platform Stores (Sprints 9-16)
 
 ### Auth Store (`stores/authStore.ts`)
+
 ```typescript
 interface AuthState {
   user: User | null;
@@ -86,7 +92,7 @@ interface AuthState {
 interface AuthActions {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
-  loginWithOAuth: (provider: 'google' | 'github') => void;
+  loginWithOAuth: (provider: "google" | "github") => void;
   logout: () => Promise<void>;
   refreshToken: () => Promise<string>;
   setUser: (user: User) => void;
@@ -94,15 +100,17 @@ interface AuthActions {
   updateProfile: (data: Partial<User>) => Promise<void>;
 }
 ```
+
 **Owner:** Sprint 10 (Auth). Used by: API interceptor, ProtectedRoute, all auth pages.
 
 ### Sharing Store (`stores/sharingStore.ts`)
+
 ```typescript
 interface SharingState {
-  collaborators: Collaborator[];       // users with access
-  shareLink: ShareLink | null;         // link-based sharing config
+  collaborators: Collaborator[]; // users with access
+  shareLink: ShareLink | null; // link-based sharing config
   isShareDialogOpen: boolean;
-  currentUserRole: 'owner' | 'editor' | 'commenter' | 'viewer';
+  currentUserRole: "owner" | "editor" | "commenter" | "viewer";
 }
 
 interface SharingActions {
@@ -116,15 +124,17 @@ interface SharingActions {
   closeShareDialog: () => void;
 }
 ```
+
 **Owner:** Sprint 12 (Sharing). Used by: ShareDialog, toolbar, permission checks.
 
 ### Realtime Store (`stores/realtimeStore.ts`)
+
 ```typescript
 interface RealtimeState {
-  connectionStatus: 'connected' | 'connecting' | 'disconnected';
+  connectionStatus: "connected" | "connecting" | "disconnected";
   connectedUsers: PresenceUser[];
-  activeCursors: Record<string, CursorPosition>;  // userId → cursor
-  lockedCells: Record<string, string>;             // cellRef → userId
+  activeCursors: Record<string, CursorPosition>; // userId → cursor
+  lockedCells: Record<string, string>; // cellRef → userId
 }
 
 interface RealtimeActions {
@@ -139,9 +149,11 @@ interface RealtimeActions {
   broadcastCursorMove: (cell: string, range?: string) => void;
 }
 ```
+
 **Owner:** Sprint 14 (Real-Time). Used by: PresenceBar, CollaboratorCursor, grid overlay.
 
 ### Notification Store (`stores/notificationStore.ts`)
+
 ```typescript
 interface NotificationState {
   notifications: Notification[];
@@ -154,16 +166,18 @@ interface NotificationActions {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
-  addNotification: (notification: Notification) => void;  // from WebSocket
+  addNotification: (notification: Notification) => void; // from WebSocket
   openPanel: () => void;
   closePanel: () => void;
 }
 ```
+
 **Owner:** Sprint 15 (Notifications). Used by: NotificationBell, NotificationPanel.
 
 ## Cross-Store Orchestration (Platform)
 
 ### Auto-save Flow (Sprint 11)
+
 ```
 User edits cell → cellStore.setCell()
                 → spreadsheetStore.markDirty()
@@ -173,6 +187,7 @@ User edits cell → cellStore.setCell()
 ```
 
 ### Real-time Edit Flow (Sprint 14)
+
 ```
 Local user edits → cellStore.setCell() (local apply)
                  → Yjs update (automatic via shared doc)
@@ -182,6 +197,7 @@ Local user edits → cellStore.setCell() (local apply)
 ```
 
 ### Permission Check Flow (Sprint 12)
+
 ```
 Any write action → check sharingStore.currentUserRole
                  → if viewer: show "View only" toast, block action

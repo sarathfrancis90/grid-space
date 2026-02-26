@@ -1,4 +1,5 @@
-# Backend Rules (server/**)
+# Backend Rules (server/\*\*)
+
 - Express + TypeScript — async/await everywhere
 - Route → Controller → Service → Prisma pattern
 - Controllers: parse request, call service, send response, handle errors with next()

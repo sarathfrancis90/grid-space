@@ -1,4 +1,5 @@
 # Testing Rules
+
 - Every feature in feature_list.json needs at least one E2E test
 - E2E: Playwright — test user flows in real browser
 - Unit: Vitest — test pure functions, parsers, stores

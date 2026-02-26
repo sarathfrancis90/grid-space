@@ -48,7 +48,9 @@ packages/server/src/
 ## Key Patterns
 
 ### Controller-Service Pattern
+
 Controllers are THIN — they only:
+
 1. Extract validated input from `req`
 2. Call the appropriate service method
 3. Return the response
@@ -56,12 +58,16 @@ Controllers are THIN — they only:
 ```typescript
 // controllers/spreadsheet.controller.ts
 export const getSpreadsheet = async (req: AuthRequest, res: Response) => {
-  const spreadsheet = await spreadsheetService.getById(req.params.id, req.user.id);
+  const spreadsheet = await spreadsheetService.getById(
+    req.params.id,
+    req.user.id,
+  );
   res.json(apiSuccess(spreadsheet));
 };
 ```
 
 Services are FAT — all business logic:
+
 ```typescript
 // services/spreadsheet.service.ts
 export const getById = async (id: string, userId: string) => {
@@ -69,16 +75,17 @@ export const getById = async (id: string, userId: string) => {
     where: { id },
     include: { sheets: true, access: true },
   });
-  if (!spreadsheet) throw new AppError(404, 'Spreadsheet not found');
-  
-  const hasAccess = spreadsheet.access.some(a => a.userId === userId);
-  if (!hasAccess) throw new AppError(403, 'Access denied');
-  
+  if (!spreadsheet) throw new AppError(404, "Spreadsheet not found");
+
+  const hasAccess = spreadsheet.access.some((a) => a.userId === userId);
+  if (!hasAccess) throw new AppError(403, "Access denied");
+
   return spreadsheet;
 };
 ```
 
 ### API Response Envelope
+
 ```typescript
 // Success
 { "success": true, "data": { ... } }
@@ -91,32 +98,39 @@ export const getById = async (id: string, userId: string) => {
 ```
 
 ### Error Handling — AppError class + global middleware
+
 ```typescript
 class AppError extends Error {
-  constructor(public statusCode: number, message: string) {
+  constructor(
+    public statusCode: number,
+    message: string,
+  ) {
     super(message);
   }
 }
 
 // Throw from anywhere in services:
-throw new AppError(404, 'Spreadsheet not found');
-throw new AppError(403, 'Access denied');
-throw new AppError(422, 'Invalid cell reference');
+throw new AppError(404, "Spreadsheet not found");
+throw new AppError(403, "Access denied");
+throw new AppError(422, "Invalid cell reference");
 
 // Global handler catches all:
 app.use((err, req, res, next) => {
   if (err instanceof AppError) {
-    return res.status(err.statusCode).json(apiError(err.statusCode, err.message));
+    return res
+      .status(err.statusCode)
+      .json(apiError(err.statusCode, err.message));
   }
   logger.error(err);
-  res.status(500).json(apiError(500, 'Internal server error'));
+  res.status(500).json(apiError(500, "Internal server error"));
 });
 ```
 
 ### Input Validation with Zod
+
 ```typescript
 // Every route validates input
-router.post('/', validate(createSpreadsheetSchema), controller.create);
+router.post("/", validate(createSpreadsheetSchema), controller.create);
 
 const createSpreadsheetSchema = z.object({
   body: z.object({
@@ -149,6 +163,7 @@ volumes:
 ```
 
 ## Environment Variables (.env — NEVER commit)
+
 ```
 NODE_ENV=development
 PORT=3001
@@ -168,6 +183,7 @@ EMAIL_FROM=noreply@gridspace.app
 ```
 
 ## Middleware Registration Order (in app.ts)
+
 1. `helmet()` — security headers
 2. `cors({ origin: CLIENT_URL, credentials: true })`
 3. `express.json({ limit: '10mb' })`

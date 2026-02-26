@@ -1,6 +1,7 @@
 # src/hooks/ — Custom React Hooks
 
 ## What Lives Here
+
 - `useAuth.ts` — Current user, login state, logout function
 - `useSpreadsheet.ts` — Load/save spreadsheet, auto-save logic
 - `useRealtime.ts` — WebSocket connection, presence, cursor sync
@@ -11,6 +12,7 @@
 - `useUndoRedo.ts` — Undo/redo stack management
 
 ## Rules
+
 - Hooks are thin wrappers around Zustand stores + side effects
 - NEVER put business logic in hooks — that goes in stores or services
 - ALWAYS clean up side effects in useEffect return function

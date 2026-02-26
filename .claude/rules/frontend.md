@@ -1,4 +1,5 @@
-# Frontend Rules (src/**)
+# Frontend Rules (src/\*\*)
+
 - React 18 functional components only — no class components
 - TypeScript strict mode — no any, no as any, no @ts-ignore
 - Zustand + Immer for state — mutate draft directly in set()

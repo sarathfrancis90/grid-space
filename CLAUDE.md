@@ -10,24 +10,24 @@ Frontend + Backend + Database + Auth + Sharing + Real-time Collaboration + API.
 
 ## Tech Stack
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Frontend** | React 18 + TypeScript | UI framework |
-| **State** | Zustand + Immer | Client-side state management |
-| **Grid** | HTML5 Canvas + react-window | High-performance virtual grid |
-| **Formulas** | Custom parser + formulajs | 80+ spreadsheet functions |
-| **Charts** | Chart.js | 7 chart types |
-| **File I/O** | SheetJS + PapaParse | XLSX/CSV import/export |
-| **Styling** | TailwindCSS | Utility-first CSS |
-| **Backend** | Express + TypeScript | REST API + WebSocket server |
-| **Database** | PostgreSQL + Prisma ORM | Persistent storage |
-| **Cache/Sessions** | Redis | Session store, pub/sub, caching |
-| **Auth** | Passport.js + JWT + bcrypt | Email/password + OAuth |
-| **Real-time** | Socket.io + Yjs (CRDT) | Multi-user collaboration |
-| **Email** | Resend (or SendGrid) | Sharing invitations, notifications |
-| **Testing** | Playwright (E2E) + Vitest (unit) | Full test coverage |
-| **CI/CD** | GitHub Actions + Vercel/Docker | Automated deploy pipeline |
-| **Monitoring** | Sentry (errors) + Pino (logs) | Production observability |
+| Layer              | Technology                       | Purpose                            |
+| ------------------ | -------------------------------- | ---------------------------------- |
+| **Frontend**       | React 18 + TypeScript            | UI framework                       |
+| **State**          | Zustand + Immer                  | Client-side state management       |
+| **Grid**           | HTML5 Canvas + react-window      | High-performance virtual grid      |
+| **Formulas**       | Custom parser + formulajs        | 80+ spreadsheet functions          |
+| **Charts**         | Chart.js                         | 7 chart types                      |
+| **File I/O**       | SheetJS + PapaParse              | XLSX/CSV import/export             |
+| **Styling**        | TailwindCSS                      | Utility-first CSS                  |
+| **Backend**        | Express + TypeScript             | REST API + WebSocket server        |
+| **Database**       | PostgreSQL + Prisma ORM          | Persistent storage                 |
+| **Cache/Sessions** | Redis                            | Session store, pub/sub, caching    |
+| **Auth**           | Passport.js + JWT + bcrypt       | Email/password + OAuth             |
+| **Real-time**      | Socket.io + Yjs (CRDT)           | Multi-user collaboration           |
+| **Email**          | Resend (or SendGrid)             | Sharing invitations, notifications |
+| **Testing**        | Playwright (E2E) + Vitest (unit) | Full test coverage                 |
+| **CI/CD**          | GitHub Actions + Vercel/Docker   | Automated deploy pipeline          |
+| **Monitoring**     | Sentry (errors) + Pino (logs)    | Production observability           |
 
 ## Architecture Overview
 
@@ -137,34 +137,36 @@ grid-space/
 
 ## Feature Domains (427 total)
 
-| Sprint | Domain | Count | Key Features |
-|---|---|---|---|
-| 1 | Grid Foundation | 41 | Canvas render, selection, navigation, copy/paste, fill handle |
-| 2 | Formula Engine | 41 | Parser, 80+ functions, dependency graph, error handling |
-| 3 | Formatting | 38 | Text, number, borders, merge, paint format, conditional |
-| 4 | Sheets & Data | 40 | Tabs, sort, filter, pivot tables, named ranges, validation |
-| 5 | File Ops & Undo | 18 | CSV/XLSX import/export, undo/redo, autosave |
-| 6 | Charts | 24 | 7 chart types, chart editor, conditional formatting extras |
-| 7 | UI Polish | 25 | Menus, formula bar, context menus, comments, hyperlinks |
-| 8 | Keyboard & Perf | 22 | Shortcuts, print dialog, zoom, performance benchmarks |
-| **9** | **Backend Foundation** | **22** | **Express, Prisma, PostgreSQL, Redis, Docker, middleware** |
-| **10** | **Auth & Users** | **24** | **Register, login, JWT, OAuth (Google/GitHub), profile** |
-| **11** | **Cloud Storage** | **22** | **Save/load server, dashboard, auto-save, favorites** |
-| **12** | **Sharing & Perms** | **22** | **Share dialog, roles, link sharing, permission enforce** |
-| **13** | **Version History** | **15** | **Timeline, diff view, restore, named versions** |
-| **14** | **Real-Time Collab** | **28** | **WebSocket, presence, cursors, Yjs CRDT, sync** |
-| **15** | **Notif & Templates** | **20** | **Comments upgrade, @mentions, notifications, templates** |
-| **16** | **API & Production** | **25** | **REST API, webhooks, Docker prod, offline, monitoring** |
+| Sprint | Domain                 | Count  | Key Features                                                  |
+| ------ | ---------------------- | ------ | ------------------------------------------------------------- |
+| 1      | Grid Foundation        | 41     | Canvas render, selection, navigation, copy/paste, fill handle |
+| 2      | Formula Engine         | 41     | Parser, 80+ functions, dependency graph, error handling       |
+| 3      | Formatting             | 38     | Text, number, borders, merge, paint format, conditional       |
+| 4      | Sheets & Data          | 40     | Tabs, sort, filter, pivot tables, named ranges, validation    |
+| 5      | File Ops & Undo        | 18     | CSV/XLSX import/export, undo/redo, autosave                   |
+| 6      | Charts                 | 24     | 7 chart types, chart editor, conditional formatting extras    |
+| 7      | UI Polish              | 25     | Menus, formula bar, context menus, comments, hyperlinks       |
+| 8      | Keyboard & Perf        | 22     | Shortcuts, print dialog, zoom, performance benchmarks         |
+| **9**  | **Backend Foundation** | **22** | **Express, Prisma, PostgreSQL, Redis, Docker, middleware**    |
+| **10** | **Auth & Users**       | **24** | **Register, login, JWT, OAuth (Google/GitHub), profile**      |
+| **11** | **Cloud Storage**      | **22** | **Save/load server, dashboard, auto-save, favorites**         |
+| **12** | **Sharing & Perms**    | **22** | **Share dialog, roles, link sharing, permission enforce**     |
+| **13** | **Version History**    | **15** | **Timeline, diff view, restore, named versions**              |
+| **14** | **Real-Time Collab**   | **28** | **WebSocket, presence, cursors, Yjs CRDT, sync**              |
+| **15** | **Notif & Templates**  | **20** | **Comments upgrade, @mentions, notifications, templates**     |
+| **16** | **API & Production**   | **25** | **REST API, webhooks, Docker prod, offline, monitoring**      |
 
 ## Session Protocol
 
 ### On Session Start
+
 1. `git pull origin main`
 2. Check `feature_list.json` for next incomplete feature
 3. Read relevant `agent_docs/*.md` for the feature domain
 4. Read relevant `src/*/CLAUDE.md` for directory-specific rules
 
 ### Development Loop (per feature)
+
 1. Read the story/feature requirements
 2. Write the implementation code
 3. Write tests (Vitest unit + Playwright E2E)
@@ -176,27 +178,28 @@ grid-space/
 9. Update `claude-progress.txt` with session log
 
 ### On Session End
+
 1. Run full test suite: `npx tsc && npx vitest run && npx playwright test`
 2. Commit any remaining work: `git add -A && git commit -m "wip: session progress" && git push origin main`
 3. Update `claude-progress.txt` with summary
 
 ## Progressive Disclosure — Read Before Coding
 
-| If working on... | Read this first |
-|---|---|
-| Grid rendering, selection, scroll | `agent_docs/grid-rendering.md` |
-| Formulas, functions, parser | `agent_docs/formula-engine.md` |
-| Zustand stores, state updates | `agent_docs/state-management.md` |
-| Cell formatting, borders, styles | `agent_docs/formatting-system.md` |
-| Keyboard shortcuts | `agent_docs/keyboard-shortcuts.md` |
-| Writing tests | `agent_docs/testing-guide.md` |
-| Common mistakes, Canvas quirks | `agent_docs/known-gotchas.md` |
-| **Backend, Express, Prisma** | **`agent_docs/backend-architecture.md`** |
-| **Auth, JWT, OAuth, Passport** | **`agent_docs/auth-system.md`** |
-| **Real-time, WebSocket, Yjs** | **`agent_docs/collaboration-system.md`** |
-| **REST API, endpoints, keys** | **`agent_docs/api-design.md`** |
-| **Database schema, migrations** | **`agent_docs/database-schema.md`** |
-| Directory-specific rules | `src/<directory>/CLAUDE.md` |
+| If working on...                  | Read this first                          |
+| --------------------------------- | ---------------------------------------- |
+| Grid rendering, selection, scroll | `agent_docs/grid-rendering.md`           |
+| Formulas, functions, parser       | `agent_docs/formula-engine.md`           |
+| Zustand stores, state updates     | `agent_docs/state-management.md`         |
+| Cell formatting, borders, styles  | `agent_docs/formatting-system.md`        |
+| Keyboard shortcuts                | `agent_docs/keyboard-shortcuts.md`       |
+| Writing tests                     | `agent_docs/testing-guide.md`            |
+| Common mistakes, Canvas quirks    | `agent_docs/known-gotchas.md`            |
+| **Backend, Express, Prisma**      | **`agent_docs/backend-architecture.md`** |
+| **Auth, JWT, OAuth, Passport**    | **`agent_docs/auth-system.md`**          |
+| **Real-time, WebSocket, Yjs**     | **`agent_docs/collaboration-system.md`** |
+| **REST API, endpoints, keys**     | **`agent_docs/api-design.md`**           |
+| **Database schema, migrations**   | **`agent_docs/database-schema.md`**      |
+| Directory-specific rules          | `src/<directory>/CLAUDE.md`              |
 
 ## Commit Convention
 

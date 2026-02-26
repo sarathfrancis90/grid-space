@@ -1,4 +1,5 @@
 # Shared Files Rules
+
 - stores/ — Zustand stores with Immer. Shallow selectors. No cross-store subscriptions.
 - types/ — Interfaces only. No implementation. No imports from other modules.
 - shared/types/ — Types shared between frontend AND backend.

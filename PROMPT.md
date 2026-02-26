@@ -16,6 +16,7 @@ You are building GridSpace — a production-ready Google Sheets replacement.
 9. Repeat until session ends
 
 ## Sprint phases:
+
 - Sprints 1-8: Frontend spreadsheet engine (work in packages/client/)
 - Sprint 9: Backend setup (work in packages/server/)
 - Sprint 10: Auth system (packages/server/ + packages/client/src/components/auth/)
@@ -27,6 +28,7 @@ You are building GridSpace — a production-ready Google Sheets replacement.
 - Sprint 16: API + production hardening (both packages)
 
 ## Rules:
+
 - Always read agent_docs before coding a new domain
 - Always run tests before committing
 - Always push after committing
