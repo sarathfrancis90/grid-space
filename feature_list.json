@@ -267,7 +267,7 @@
     "id": "S1-034",
     "sprint": 1,
     "category": "grid",
-    "name": "Paste special — values only",
+    "name": "Paste special \u2014 values only",
     "priority": 2,
     "passes": true
   },
@@ -275,7 +275,7 @@
     "id": "S1-035",
     "sprint": 1,
     "category": "grid",
-    "name": "Paste special — format only",
+    "name": "Paste special \u2014 format only",
     "priority": 2,
     "passes": true
   },
@@ -283,7 +283,7 @@
     "id": "S1-036",
     "sprint": 1,
     "category": "grid",
-    "name": "Paste special — transpose",
+    "name": "Paste special \u2014 transpose",
     "priority": 2,
     "passes": true
   },
@@ -739,7 +739,7 @@
     "id": "S3-011",
     "sprint": 3,
     "category": "formatting",
-    "name": "Number format — General",
+    "name": "Number format \u2014 General",
     "priority": 1,
     "passes": true
   },
@@ -747,7 +747,7 @@
     "id": "S3-012",
     "sprint": 3,
     "category": "formatting",
-    "name": "Number format — Number (decimals, thousands separator)",
+    "name": "Number format \u2014 Number (decimals, thousands separator)",
     "priority": 1,
     "passes": true
   },
@@ -755,7 +755,7 @@
     "id": "S3-013",
     "sprint": 3,
     "category": "formatting",
-    "name": "Number format — Currency ($, €, £, ¥)",
+    "name": "Number format \u2014 Currency ($, \u20ac, \u00a3, \u00a5)",
     "priority": 1,
     "passes": true
   },
@@ -763,7 +763,7 @@
     "id": "S3-014",
     "sprint": 3,
     "category": "formatting",
-    "name": "Number format — Percent",
+    "name": "Number format \u2014 Percent",
     "priority": 1,
     "passes": true
   },
@@ -771,7 +771,7 @@
     "id": "S3-015",
     "sprint": 3,
     "category": "formatting",
-    "name": "Number format — Date (multiple patterns)",
+    "name": "Number format \u2014 Date (multiple patterns)",
     "priority": 1,
     "passes": true
   },
@@ -779,7 +779,7 @@
     "id": "S3-016",
     "sprint": 3,
     "category": "formatting",
-    "name": "Number format — Time",
+    "name": "Number format \u2014 Time",
     "priority": 2,
     "passes": true
   },
@@ -787,7 +787,7 @@
     "id": "S3-017",
     "sprint": 3,
     "category": "formatting",
-    "name": "Number format — Scientific",
+    "name": "Number format \u2014 Scientific",
     "priority": 2,
     "passes": true
   },
@@ -803,7 +803,7 @@
     "id": "S3-019",
     "sprint": 3,
     "category": "formatting",
-    "name": "Borders — all sides",
+    "name": "Borders \u2014 all sides",
     "priority": 1,
     "passes": true
   },
@@ -811,7 +811,7 @@
     "id": "S3-020",
     "sprint": 3,
     "category": "formatting",
-    "name": "Borders — individual sides (top/right/bottom/left)",
+    "name": "Borders \u2014 individual sides (top/right/bottom/left)",
     "priority": 2,
     "passes": true
   },
@@ -819,7 +819,7 @@
     "id": "S3-021",
     "sprint": 3,
     "category": "formatting",
-    "name": "Borders — styles (thin, medium, thick, dashed, dotted, double)",
+    "name": "Borders \u2014 styles (thin, medium, thick, dashed, dotted, double)",
     "priority": 2,
     "passes": true
   },
@@ -827,7 +827,7 @@
     "id": "S3-022",
     "sprint": 3,
     "category": "formatting",
-    "name": "Borders — color",
+    "name": "Borders \u2014 color",
     "priority": 2,
     "passes": true
   },
@@ -851,7 +851,7 @@
     "id": "S3-025",
     "sprint": 3,
     "category": "formatting",
-    "name": "Paint format (format painter) — single click",
+    "name": "Paint format (format painter) \u2014 single click",
     "priority": 1,
     "passes": true
   },
@@ -859,7 +859,7 @@
     "id": "S3-026",
     "sprint": 3,
     "category": "formatting",
-    "name": "Paint format — double-click for persistent mode",
+    "name": "Paint format \u2014 double-click for persistent mode",
     "priority": 2,
     "passes": true
   },
@@ -867,7 +867,7 @@
     "id": "S3-027",
     "sprint": 3,
     "category": "formatting",
-    "name": "Text wrapping — Overflow mode",
+    "name": "Text wrapping \u2014 Overflow mode",
     "priority": 1,
     "passes": true
   },
@@ -875,7 +875,7 @@
     "id": "S3-028",
     "sprint": 3,
     "category": "formatting",
-    "name": "Text wrapping — Wrap mode",
+    "name": "Text wrapping \u2014 Wrap mode",
     "priority": 1,
     "passes": true
   },
@@ -883,7 +883,7 @@
     "id": "S3-029",
     "sprint": 3,
     "category": "formatting",
-    "name": "Text wrapping — Clip mode",
+    "name": "Text wrapping \u2014 Clip mode",
     "priority": 2,
     "passes": true
   },
@@ -915,7 +915,7 @@
     "id": "S3-033",
     "sprint": 3,
     "category": "formatting",
-    "name": "Indentation — increase indent",
+    "name": "Indentation \u2014 increase indent",
     "priority": 2,
     "passes": true
   },
@@ -923,7 +923,7 @@
     "id": "S3-034",
     "sprint": 3,
     "category": "formatting",
-    "name": "Indentation — decrease indent",
+    "name": "Indentation \u2014 decrease indent",
     "priority": 2,
     "passes": true
   },
@@ -939,7 +939,7 @@
     "id": "S3-036",
     "sprint": 3,
     "category": "formatting",
-    "name": "Conditional format — value rules (greater, less, between, equal)",
+    "name": "Conditional format \u2014 value rules (greater, less, between, equal)",
     "priority": 2,
     "passes": true
   },
@@ -947,7 +947,7 @@
     "id": "S3-037",
     "sprint": 3,
     "category": "formatting",
-    "name": "Conditional format — text rules (contains, starts with)",
+    "name": "Conditional format \u2014 text rules (contains, starts with)",
     "priority": 2,
     "passes": true
   },
@@ -955,7 +955,7 @@
     "id": "S3-038",
     "sprint": 3,
     "category": "formatting",
-    "name": "Conditional format — color scales (2-color and 3-color)",
+    "name": "Conditional format \u2014 color scales (2-color and 3-color)",
     "priority": 2,
     "passes": true
   },
@@ -1051,7 +1051,7 @@
     "id": "S4-012",
     "sprint": 4,
     "category": "data",
-    "name": "Filter — toggle filter row",
+    "name": "Filter \u2014 toggle filter row",
     "priority": 1,
     "passes": true
   },
@@ -1059,7 +1059,7 @@
     "id": "S4-013",
     "sprint": 4,
     "category": "data",
-    "name": "Filter — by value (checkbox list)",
+    "name": "Filter \u2014 by value (checkbox list)",
     "priority": 1,
     "passes": true
   },
@@ -1067,7 +1067,7 @@
     "id": "S4-014",
     "sprint": 4,
     "category": "data",
-    "name": "Filter — by condition (greater than, contains, etc)",
+    "name": "Filter \u2014 by condition (greater than, contains, etc)",
     "priority": 2,
     "passes": true
   },
@@ -1075,7 +1075,7 @@
     "id": "S4-015",
     "sprint": 4,
     "category": "data",
-    "name": "Filter — by color",
+    "name": "Filter \u2014 by color",
     "priority": 3,
     "passes": true
   },
@@ -1107,7 +1107,7 @@
     "id": "S4-019",
     "sprint": 4,
     "category": "data",
-    "name": "Data validation — number range",
+    "name": "Data validation \u2014 number range",
     "priority": 2,
     "passes": true
   },
@@ -1115,7 +1115,7 @@
     "id": "S4-020",
     "sprint": 4,
     "category": "data",
-    "name": "Data validation — text length",
+    "name": "Data validation \u2014 text length",
     "priority": 2,
     "passes": true
   },
@@ -1123,7 +1123,7 @@
     "id": "S4-021",
     "sprint": 4,
     "category": "data",
-    "name": "Data validation — date range",
+    "name": "Data validation \u2014 date range",
     "priority": 2,
     "passes": true
   },
@@ -1131,7 +1131,7 @@
     "id": "S4-022",
     "sprint": 4,
     "category": "data",
-    "name": "Data validation — dropdown list from range",
+    "name": "Data validation \u2014 dropdown list from range",
     "priority": 1,
     "passes": true
   },
@@ -1139,7 +1139,7 @@
     "id": "S4-023",
     "sprint": 4,
     "category": "data",
-    "name": "Data validation — checkbox",
+    "name": "Data validation \u2014 checkbox",
     "priority": 1,
     "passes": true
   },
@@ -1147,7 +1147,7 @@
     "id": "S4-024",
     "sprint": 4,
     "category": "data",
-    "name": "Data validation — custom formula",
+    "name": "Data validation \u2014 custom formula",
     "priority": 3,
     "passes": true
   },
@@ -1155,7 +1155,7 @@
     "id": "S4-025",
     "sprint": 4,
     "category": "data",
-    "name": "Pivot table — create from selection",
+    "name": "Pivot table \u2014 create from selection",
     "priority": 2,
     "passes": true
   },
@@ -1163,7 +1163,7 @@
     "id": "S4-026",
     "sprint": 4,
     "category": "data",
-    "name": "Pivot table — editor sidebar (rows/columns/values/filters)",
+    "name": "Pivot table \u2014 editor sidebar (rows/columns/values/filters)",
     "priority": 2,
     "passes": true
   },
@@ -1171,7 +1171,7 @@
     "id": "S4-027",
     "sprint": 4,
     "category": "data",
-    "name": "Pivot table — aggregation types (SUM, COUNT, AVG, MIN, MAX)",
+    "name": "Pivot table \u2014 aggregation types (SUM, COUNT, AVG, MIN, MAX)",
     "priority": 2,
     "passes": true
   },
@@ -1179,7 +1179,7 @@
     "id": "S4-028",
     "sprint": 4,
     "category": "data",
-    "name": "Pivot table — filter in editor",
+    "name": "Pivot table \u2014 filter in editor",
     "priority": 3,
     "passes": true
   },
@@ -1187,7 +1187,7 @@
     "id": "S4-029",
     "sprint": 4,
     "category": "data",
-    "name": "Pivot table — auto-refresh on source data change",
+    "name": "Pivot table \u2014 auto-refresh on source data change",
     "priority": 3,
     "passes": true
   },
@@ -1195,7 +1195,7 @@
     "id": "S4-030",
     "sprint": 4,
     "category": "data",
-    "name": "Named ranges — create",
+    "name": "Named ranges \u2014 create",
     "priority": 2,
     "passes": true
   },
@@ -1203,7 +1203,7 @@
     "id": "S4-031",
     "sprint": 4,
     "category": "data",
-    "name": "Named ranges — use in formulas",
+    "name": "Named ranges \u2014 use in formulas",
     "priority": 2,
     "passes": true
   },
@@ -1211,7 +1211,7 @@
     "id": "S4-032",
     "sprint": 4,
     "category": "data",
-    "name": "Named ranges — edit and delete",
+    "name": "Named ranges \u2014 edit and delete",
     "priority": 3,
     "passes": true
   },
@@ -1235,7 +1235,7 @@
     "id": "S4-035",
     "sprint": 4,
     "category": "data",
-    "name": "Protected ranges — lock cells from editing",
+    "name": "Protected ranges \u2014 lock cells from editing",
     "priority": 2,
     "passes": true
   },
@@ -1243,7 +1243,7 @@
     "id": "S4-036",
     "sprint": 4,
     "category": "data",
-    "name": "Slicer — interactive filter control",
+    "name": "Slicer \u2014 interactive filter control",
     "priority": 3,
     "passes": true
   },
@@ -1483,7 +1483,7 @@
     "id": "S6-008",
     "sprint": 6,
     "category": "charts",
-    "name": "Chart editor sidebar — change chart type",
+    "name": "Chart editor sidebar \u2014 change chart type",
     "priority": 1,
     "passes": false
   },
@@ -1491,7 +1491,7 @@
     "id": "S6-009",
     "sprint": 6,
     "category": "charts",
-    "name": "Chart editor — set data range",
+    "name": "Chart editor \u2014 set data range",
     "priority": 1,
     "passes": false
   },
@@ -1499,7 +1499,7 @@
     "id": "S6-010",
     "sprint": 6,
     "category": "charts",
-    "name": "Chart editor — title and subtitle",
+    "name": "Chart editor \u2014 title and subtitle",
     "priority": 2,
     "passes": false
   },
@@ -1507,7 +1507,7 @@
     "id": "S6-011",
     "sprint": 6,
     "category": "charts",
-    "name": "Chart editor — legend toggle and position",
+    "name": "Chart editor \u2014 legend toggle and position",
     "priority": 2,
     "passes": false
   },
@@ -1515,7 +1515,7 @@
     "id": "S6-012",
     "sprint": 6,
     "category": "charts",
-    "name": "Chart editor — axis labels and formatting",
+    "name": "Chart editor \u2014 axis labels and formatting",
     "priority": 2,
     "passes": false
   },
@@ -1523,7 +1523,7 @@
     "id": "S6-013",
     "sprint": 6,
     "category": "charts",
-    "name": "Chart editor — colors and styling",
+    "name": "Chart editor \u2014 colors and styling",
     "priority": 2,
     "passes": false
   },
@@ -1571,7 +1571,7 @@
     "id": "S6-019",
     "sprint": 6,
     "category": "conditional",
-    "name": "Conditional format — is blank / not blank",
+    "name": "Conditional format \u2014 is blank / not blank",
     "priority": 2,
     "passes": false
   },
@@ -1579,7 +1579,7 @@
     "id": "S6-020",
     "sprint": 6,
     "category": "conditional",
-    "name": "Conditional format — date is (today, yesterday, etc.)",
+    "name": "Conditional format \u2014 date is (today, yesterday, etc.)",
     "priority": 2,
     "passes": false
   },
@@ -1587,7 +1587,7 @@
     "id": "S6-021",
     "sprint": 6,
     "category": "conditional",
-    "name": "Conditional format — custom formula rule",
+    "name": "Conditional format \u2014 custom formula rule",
     "priority": 3,
     "passes": false
   },
@@ -1603,7 +1603,7 @@
     "id": "S6-023",
     "sprint": 6,
     "category": "conditional",
-    "name": "Conditional format manager — add/edit/delete rules",
+    "name": "Conditional format manager \u2014 add/edit/delete rules",
     "priority": 2,
     "passes": false
   },
@@ -1619,7 +1619,7 @@
     "id": "S7-001",
     "sprint": 7,
     "category": "ui",
-    "name": "Formula bar — name box shows cell address",
+    "name": "Formula bar \u2014 name box shows cell address",
     "priority": 1,
     "passes": false
   },
@@ -1627,7 +1627,7 @@
     "id": "S7-002",
     "sprint": 7,
     "category": "ui",
-    "name": "Formula bar — shows formula for selected cell",
+    "name": "Formula bar \u2014 shows formula for selected cell",
     "priority": 1,
     "passes": false
   },
@@ -1635,7 +1635,7 @@
     "id": "S7-003",
     "sprint": 7,
     "category": "ui",
-    "name": "Formula bar — edit formula directly in bar",
+    "name": "Formula bar \u2014 edit formula directly in bar",
     "priority": 1,
     "passes": false
   },
@@ -1643,7 +1643,7 @@
     "id": "S7-004",
     "sprint": 7,
     "category": "ui",
-    "name": "Name box — type address to navigate (e.g. B5)",
+    "name": "Name box \u2014 type address to navigate (e.g. B5)",
     "priority": 2,
     "passes": false
   },
@@ -1651,7 +1651,7 @@
     "id": "S7-005",
     "sprint": 7,
     "category": "ui",
-    "name": "Name box — shows named range names",
+    "name": "Name box \u2014 shows named range names",
     "priority": 2,
     "passes": false
   },
@@ -1683,7 +1683,7 @@
     "id": "S7-009",
     "sprint": 7,
     "category": "ui",
-    "name": "Menu bar — File menu (New, Open, Save, Download, Print)",
+    "name": "Menu bar \u2014 File menu (New, Open, Save, Download, Print)",
     "priority": 1,
     "passes": false
   },
@@ -1691,7 +1691,7 @@
     "id": "S7-010",
     "sprint": 7,
     "category": "ui",
-    "name": "Menu bar — Edit menu (Undo, Redo, Cut, Copy, Paste, Find)",
+    "name": "Menu bar \u2014 Edit menu (Undo, Redo, Cut, Copy, Paste, Find)",
     "priority": 2,
     "passes": false
   },
@@ -1699,7 +1699,7 @@
     "id": "S7-011",
     "sprint": 7,
     "category": "ui",
-    "name": "Menu bar — View menu (Freeze, Gridlines, Formula bar, Zoom)",
+    "name": "Menu bar \u2014 View menu (Freeze, Gridlines, Formula bar, Zoom)",
     "priority": 2,
     "passes": false
   },
@@ -1707,7 +1707,7 @@
     "id": "S7-012",
     "sprint": 7,
     "category": "ui",
-    "name": "Menu bar — Insert menu (Rows, Columns, Charts, Images, Links)",
+    "name": "Menu bar \u2014 Insert menu (Rows, Columns, Charts, Images, Links)",
     "priority": 2,
     "passes": false
   },
@@ -1715,7 +1715,7 @@
     "id": "S7-013",
     "sprint": 7,
     "category": "ui",
-    "name": "Menu bar — Format menu (Number, Text, Alignment, Borders)",
+    "name": "Menu bar \u2014 Format menu (Number, Text, Alignment, Borders)",
     "priority": 2,
     "passes": false
   },
@@ -1723,7 +1723,7 @@
     "id": "S7-014",
     "sprint": 7,
     "category": "ui",
-    "name": "Menu bar — Data menu (Sort, Filter, Validation, Pivot, Named ranges)",
+    "name": "Menu bar \u2014 Data menu (Sort, Filter, Validation, Pivot, Named ranges)",
     "priority": 2,
     "passes": false
   },
@@ -1731,7 +1731,7 @@
     "id": "S7-015",
     "sprint": 7,
     "category": "ui",
-    "name": "Menu bar — Tools menu (Spelling, Notifications)",
+    "name": "Menu bar \u2014 Tools menu (Spelling, Notifications)",
     "priority": 2,
     "passes": false
   },
@@ -1739,7 +1739,7 @@
     "id": "S7-016",
     "sprint": 7,
     "category": "ui",
-    "name": "Status bar — SUM of selection",
+    "name": "Status bar \u2014 SUM of selection",
     "priority": 1,
     "passes": false
   },
@@ -1747,7 +1747,7 @@
     "id": "S7-017",
     "sprint": 7,
     "category": "ui",
-    "name": "Status bar — AVERAGE, COUNT, MIN, MAX of selection",
+    "name": "Status bar \u2014 AVERAGE, COUNT, MIN, MAX of selection",
     "priority": 2,
     "passes": false
   },
@@ -1755,7 +1755,7 @@
     "id": "S7-018",
     "sprint": 7,
     "category": "ui",
-    "name": "Cell comments — add comment",
+    "name": "Cell comments \u2014 add comment",
     "priority": 2,
     "passes": false
   },
@@ -1763,7 +1763,7 @@
     "id": "S7-019",
     "sprint": 7,
     "category": "ui",
-    "name": "Cell comments — view, edit, delete",
+    "name": "Cell comments \u2014 view, edit, delete",
     "priority": 2,
     "passes": false
   },
@@ -1779,7 +1779,7 @@
     "id": "S7-021",
     "sprint": 7,
     "category": "ui",
-    "name": "Hyperlink — insert link dialog (Ctrl+K)",
+    "name": "Hyperlink \u2014 insert link dialog (Ctrl+K)",
     "priority": 2,
     "passes": false
   },
@@ -1787,7 +1787,7 @@
     "id": "S7-022",
     "sprint": 7,
     "category": "ui",
-    "name": "Hyperlink — click to open link",
+    "name": "Hyperlink \u2014 click to open link",
     "priority": 2,
     "passes": false
   },
@@ -1907,7 +1907,7 @@
     "id": "S8-012",
     "sprint": 8,
     "category": "ui",
-    "name": "Print — page orientation (portrait/landscape)",
+    "name": "Print \u2014 page orientation (portrait/landscape)",
     "priority": 2,
     "passes": false
   },
@@ -1915,7 +1915,7 @@
     "id": "S8-013",
     "sprint": 8,
     "category": "ui",
-    "name": "Print — margins setting",
+    "name": "Print \u2014 margins setting",
     "priority": 2,
     "passes": false
   },
@@ -1923,7 +1923,7 @@
     "id": "S8-014",
     "sprint": 8,
     "category": "ui",
-    "name": "Print — page breaks preview",
+    "name": "Print \u2014 page breaks preview",
     "priority": 3,
     "passes": false
   },
@@ -1931,7 +1931,7 @@
     "id": "S8-015",
     "sprint": 8,
     "category": "ui",
-    "name": "Print — header/footer",
+    "name": "Print \u2014 header/footer",
     "priority": 3,
     "passes": false
   },
@@ -2243,7 +2243,7 @@
     "id": "S10-010",
     "sprint": 10,
     "category": "auth",
-    "name": "Password reset — request reset email",
+    "name": "Password reset \u2014 request reset email",
     "priority": 2,
     "passes": true
   },
@@ -2251,7 +2251,7 @@
     "id": "S10-011",
     "sprint": 10,
     "category": "auth",
-    "name": "Password reset — reset with token",
+    "name": "Password reset \u2014 reset with token",
     "priority": 2,
     "passes": true
   },
@@ -2403,7 +2403,7 @@
     "id": "S11-006",
     "sprint": 11,
     "category": "storage",
-    "name": "Dashboard page — list all user's spreadsheets",
+    "name": "Dashboard page \u2014 list all user's spreadsheets",
     "priority": 1,
     "passes": true
   },
@@ -2411,7 +2411,7 @@
     "id": "S11-007",
     "sprint": 11,
     "category": "storage",
-    "name": "Dashboard — grid/list view toggle",
+    "name": "Dashboard \u2014 grid/list view toggle",
     "priority": 2,
     "passes": true
   },
@@ -2419,7 +2419,7 @@
     "id": "S11-008",
     "sprint": 11,
     "category": "storage",
-    "name": "Dashboard — sort by name, date modified, date created",
+    "name": "Dashboard \u2014 sort by name, date modified, date created",
     "priority": 2,
     "passes": true
   },
@@ -2427,7 +2427,7 @@
     "id": "S11-009",
     "sprint": 11,
     "category": "storage",
-    "name": "Dashboard — search spreadsheets by name",
+    "name": "Dashboard \u2014 search spreadsheets by name",
     "priority": 2,
     "passes": true
   },
@@ -2475,7 +2475,7 @@
     "id": "S11-015",
     "sprint": 11,
     "category": "storage",
-    "name": "Dashboard — filter: All, Owned by me, Shared with me, Starred",
+    "name": "Dashboard \u2014 filter: All, Owned by me, Shared with me, Starred",
     "priority": 2,
     "passes": true
   },
@@ -2541,103 +2541,103 @@
     "category": "sharing",
     "name": "Share button in toolbar opens share dialog",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-002",
     "sprint": 12,
     "category": "sharing",
-    "name": "Share dialog — add user by email",
+    "name": "Share dialog \u2014 add user by email",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-003",
     "sprint": 12,
     "category": "sharing",
-    "name": "Share dialog — select role: Viewer, Commenter, Editor",
+    "name": "Share dialog \u2014 select role: Viewer, Commenter, Editor",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-004",
     "sprint": 12,
     "category": "sharing",
-    "name": "Share dialog — list current collaborators with roles",
+    "name": "Share dialog \u2014 list current collaborators with roles",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-005",
     "sprint": 12,
     "category": "sharing",
-    "name": "Share dialog — change user's role",
+    "name": "Share dialog \u2014 change user's role",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-006",
     "sprint": 12,
     "category": "sharing",
-    "name": "Share dialog — remove user access (revoke)",
+    "name": "Share dialog \u2014 remove user access (revoke)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-007",
     "sprint": 12,
     "category": "sharing",
-    "name": "Share via link — generate shareable URL",
+    "name": "Share via link \u2014 generate shareable URL",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-008",
     "sprint": 12,
     "category": "sharing",
-    "name": "Share link — set permission level (view/comment/edit)",
+    "name": "Share link \u2014 set permission level (view/comment/edit)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-009",
     "sprint": 12,
     "category": "sharing",
-    "name": "Share link — copy to clipboard button",
+    "name": "Share link \u2014 copy to clipboard button",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-010",
     "sprint": 12,
     "category": "sharing",
-    "name": "Share link — disable/enable toggle",
+    "name": "Share link \u2014 disable/enable toggle",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-011",
     "sprint": 12,
     "category": "sharing",
-    "name": "Permission enforcement — viewers cannot edit cells",
+    "name": "Permission enforcement \u2014 viewers cannot edit cells",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-012",
     "sprint": 12,
     "category": "sharing",
-    "name": "Permission enforcement — commenters can only add comments",
+    "name": "Permission enforcement \u2014 commenters can only add comments",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-013",
     "sprint": 12,
     "category": "sharing",
-    "name": "Permission enforcement — editors have full access",
+    "name": "Permission enforcement \u2014 editors have full access",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-014",
@@ -2645,7 +2645,7 @@
     "category": "sharing",
     "name": "API middleware checks permission on every write operation",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-015",
@@ -2653,7 +2653,7 @@
     "category": "sharing",
     "name": "Protected ranges respect per-user permissions",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-016",
@@ -2661,7 +2661,7 @@
     "category": "sharing",
     "name": "Transfer ownership to another user",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-017",
@@ -2669,7 +2669,7 @@
     "category": "sharing",
     "name": "'Shared with me' section on dashboard",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-018",
@@ -2677,7 +2677,7 @@
     "category": "sharing",
     "name": "Shared spreadsheet shows collaborator avatars in toolbar",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-019",
@@ -2685,23 +2685,23 @@
     "category": "sharing",
     "name": "'Make a copy' available for viewers",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-020",
     "sprint": 12,
     "category": "sharing",
-    "name": "Share notification — email sent to invited user",
+    "name": "Share notification \u2014 email sent to invited user",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-021",
     "sprint": 12,
     "category": "sharing",
-    "name": "Publish to web (File > Share > Publish) — read-only URL",
+    "name": "Publish to web (File > Share > Publish) \u2014 read-only URL",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S12-022",
@@ -2709,7 +2709,7 @@
     "category": "sharing",
     "name": "Embed spreadsheet in iframe",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S13-001",
@@ -2771,7 +2771,7 @@
     "id": "S13-008",
     "sprint": 13,
     "category": "versions",
-    "name": "Visual diff — highlight changed cells between versions",
+    "name": "Visual diff \u2014 highlight changed cells between versions",
     "priority": 2,
     "passes": false
   },
@@ -2779,7 +2779,7 @@
     "id": "S13-009",
     "sprint": 13,
     "category": "versions",
-    "name": "Version grouping — collapse minor edits",
+    "name": "Version grouping \u2014 collapse minor edits",
     "priority": 2,
     "passes": false
   },
@@ -2859,7 +2859,7 @@
     "id": "S14-004",
     "sprint": 14,
     "category": "realtime",
-    "name": "Presence — show who is viewing (avatar row in toolbar)",
+    "name": "Presence \u2014 show who is viewing (avatar row in toolbar)",
     "priority": 1,
     "passes": false
   },
@@ -2867,7 +2867,7 @@
     "id": "S14-005",
     "sprint": 14,
     "category": "realtime",
-    "name": "Presence — user joins/leaves notifications",
+    "name": "Presence \u2014 user joins/leaves notifications",
     "priority": 2,
     "passes": false
   },
@@ -2891,7 +2891,7 @@
     "id": "S14-008",
     "sprint": 14,
     "category": "realtime",
-    "name": "Selection range broadcast — see others' selections",
+    "name": "Selection range broadcast \u2014 see others' selections",
     "priority": 2,
     "passes": false
   },
@@ -2899,7 +2899,7 @@
     "id": "S14-009",
     "sprint": 14,
     "category": "realtime",
-    "name": "Real-time cell edits — see others' changes live",
+    "name": "Real-time cell edits \u2014 see others' changes live",
     "priority": 1,
     "passes": false
   },
@@ -2915,7 +2915,7 @@
     "id": "S14-011",
     "sprint": 14,
     "category": "realtime",
-    "name": "Cell lock indicator — shows who is editing a cell",
+    "name": "Cell lock indicator \u2014 shows who is editing a cell",
     "priority": 2,
     "passes": false
   },
@@ -2923,7 +2923,7 @@
     "id": "S14-012",
     "sprint": 14,
     "category": "realtime",
-    "name": "Sheet switch broadcast — see which sheet others are on",
+    "name": "Sheet switch broadcast \u2014 see which sheet others are on",
     "priority": 2,
     "passes": false
   },
@@ -2963,7 +2963,7 @@
     "id": "S14-017",
     "sprint": 14,
     "category": "realtime",
-    "name": "Graceful degradation — works offline, syncs when reconnected",
+    "name": "Graceful degradation \u2014 works offline, syncs when reconnected",
     "priority": 2,
     "passes": false
   },
@@ -3099,7 +3099,7 @@
     "id": "S15-006",
     "sprint": 15,
     "category": "comments",
-    "name": "Comments panel — list all comments in sidebar",
+    "name": "Comments panel \u2014 list all comments in sidebar",
     "priority": 2,
     "passes": false
   },
@@ -3211,7 +3211,7 @@
     "id": "S15-020",
     "sprint": 15,
     "category": "ui",
-    "name": "Search menus (magnifying glass — search for any menu action)",
+    "name": "Search menus (magnifying glass \u2014 search for any menu action)",
     "priority": 2,
     "passes": false
   },
@@ -3283,7 +3283,7 @@
     "id": "S16-009",
     "sprint": 16,
     "category": "api",
-    "name": "Webhook support — notify URL on spreadsheet changes",
+    "name": "Webhook support \u2014 notify URL on spreadsheet changes",
     "priority": 3,
     "passes": false
   },
@@ -3291,7 +3291,7 @@
     "id": "S16-010",
     "sprint": 16,
     "category": "integration",
-    "name": "IMPORTDATA() function — fetch CSV from URL",
+    "name": "IMPORTDATA() function \u2014 fetch CSV from URL",
     "priority": 3,
     "passes": false
   },
@@ -3299,7 +3299,7 @@
     "id": "S16-011",
     "sprint": 16,
     "category": "integration",
-    "name": "IMPORTRANGE() function — pull from another GridSpace spreadsheet",
+    "name": "IMPORTRANGE() function \u2014 pull from another GridSpace spreadsheet",
     "priority": 3,
     "passes": false
   },
@@ -3307,7 +3307,7 @@
     "id": "S16-012",
     "sprint": 16,
     "category": "integration",
-    "name": "IMAGE() function — display image from URL in cell",
+    "name": "IMAGE() function \u2014 display image from URL in cell",
     "priority": 2,
     "passes": false
   },
@@ -3403,7 +3403,7 @@
     "id": "S16-024",
     "sprint": 16,
     "category": "production",
-    "name": "Sync queue — offline edits sync when reconnected",
+    "name": "Sync queue \u2014 offline edits sync when reconnected",
     "priority": 2,
     "passes": false
   },
