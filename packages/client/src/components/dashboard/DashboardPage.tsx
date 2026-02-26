@@ -164,6 +164,7 @@ export default function DashboardPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="w-full rounded-full bg-gray-100 py-2.5 pl-12 pr-5 text-sm text-gray-700 placeholder-gray-400 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 focus:border focus:border-[#1a73e8]"
+                style={{ padding: "10px 20px 10px 48px" }}
                 data-testid="search-input"
               />
             </div>
@@ -182,6 +183,7 @@ export default function DashboardPage() {
             <button
               onClick={handleLogout}
               className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800"
+              style={{ padding: "6px 12px" }}
               data-testid="logout-button"
             >
               Logout
@@ -203,6 +205,7 @@ export default function DashboardPage() {
           <button
             onClick={handleCreate}
             className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-[#1a73e8] px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#1765cc] hover:shadow-lg active:scale-[0.98]"
+            style={{ padding: "10px 24px" }}
             data-testid="create-spreadsheet-btn"
           >
             <svg
@@ -231,6 +234,7 @@ export default function DashboardPage() {
                   ? "bg-gray-100 text-gray-900"
                   : "text-gray-400 hover:text-gray-600"
               }`}
+              style={{ padding: "6px 12px" }}
               data-testid="view-grid-btn"
             >
               <svg
@@ -252,6 +256,7 @@ export default function DashboardPage() {
                   ? "bg-gray-100 text-gray-900"
                   : "text-gray-400 hover:text-gray-600"
               }`}
+              style={{ padding: "6px 12px" }}
               data-testid="view-list-btn"
             >
               <svg
@@ -280,6 +285,7 @@ export default function DashboardPage() {
                     ? "text-[#1a73e8]"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
+                style={{ padding: "4px 16px 12px 16px" }}
                 data-testid={`filter-${f.value}`}
               >
                 {f.label}
@@ -302,6 +308,7 @@ export default function DashboardPage() {
               setSortBy(e.target.value as "title" | "updatedAt" | "createdAt")
             }
             className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-600 transition-colors hover:border-gray-300 focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]/30"
+            style={{ padding: "4px 10px" }}
             data-testid="sort-select"
           >
             {sortOptions.map((opt) => (
@@ -313,6 +320,7 @@ export default function DashboardPage() {
           <button
             onClick={toggleSortDir}
             className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+            style={{ padding: "4px 8px" }}
             data-testid="sort-dir-btn"
           >
             {sortDir === "desc" ? "Newest first" : "Oldest first"}
@@ -413,6 +421,7 @@ export default function DashboardPage() {
             <button
               onClick={handleCreate}
               className="inline-flex items-center gap-2 rounded-full bg-[#1a73e8] px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#1765cc] hover:shadow-lg active:scale-[0.98]"
+              style={{ padding: "10px 24px" }}
             >
               <svg
                 width="18"
@@ -477,6 +486,7 @@ export default function DashboardPage() {
                   onClick={() => setPage(Math.max(1, page - 1))}
                   disabled={page <= 1}
                   className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent"
+                  style={{ padding: "8px 16px" }}
                   data-testid="prev-page-btn"
                 >
                   Previous
@@ -491,6 +501,7 @@ export default function DashboardPage() {
                   onClick={() => setPage(Math.min(totalPages, page + 1))}
                   disabled={page >= totalPages}
                   className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent"
+                  style={{ padding: "8px 16px" }}
                   data-testid="next-page-btn"
                 >
                   Next

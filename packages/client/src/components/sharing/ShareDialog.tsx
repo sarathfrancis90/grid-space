@@ -137,6 +137,7 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
               className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              style={{ padding: "8px 12px" }}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
               data-testid="share-email-input"
             />
@@ -144,6 +145,7 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
               value={role}
               onChange={(e) => setRole(e.target.value as RoleOption)}
               className="rounded-lg border border-gray-300 px-2 py-2 text-sm"
+              style={{ padding: "8px 8px" }}
               data-testid="share-role-select"
             >
               <option value="viewer">Viewer</option>
@@ -153,6 +155,7 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
             <button
               onClick={handleAdd}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              style={{ padding: "8px 16px" }}
               data-testid="share-add-btn"
             >
               Add
@@ -212,6 +215,7 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
                           )
                         }
                         className="rounded border border-gray-200 px-1.5 py-0.5 text-xs"
+                        style={{ padding: "2px 6px" }}
                         data-testid={`role-select-${c.userId}`}
                       >
                         <option value="viewer">Viewer</option>
@@ -262,11 +266,13 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
                   readOnly
                   value={`${window.location.origin}/share/${shareLink.shareLink}`}
                   className="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs"
+                  style={{ padding: "8px 12px" }}
                   data-testid="share-link-url"
                 />
                 <button
                   onClick={handleCopyLink}
                   className="rounded-lg border border-gray-300 px-3 py-2 text-xs hover:bg-gray-100"
+                  style={{ padding: "8px 12px" }}
                   data-testid="copy-link-btn"
                 >
                   {copied ? "Copied!" : "Copy"}
@@ -291,6 +297,7 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
                 value={linkRole}
                 onChange={(e) => setLinkRole(e.target.value as RoleOption)}
                 className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                style={{ padding: "6px 8px" }}
                 data-testid="link-role-select"
               >
                 <option value="viewer">Can view</option>
@@ -300,6 +307,7 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
               <button
                 onClick={handleCreateLink}
                 className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100"
+                style={{ padding: "6px 12px" }}
                 data-testid="create-link-btn"
               >
                 Create link

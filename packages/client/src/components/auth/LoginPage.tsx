@@ -187,6 +187,7 @@ export default function LoginPage() {
                 required
                 data-testid="login-email"
                 className="mt-1.5 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 transition-colors focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8] [&:-webkit-autofill]:shadow-[inset_0_0_0_9999px_white]"
+                style={{ padding: "12px 16px" }}
                 placeholder="you@example.com"
               />
             </div>
@@ -208,6 +209,7 @@ export default function LoginPage() {
                   minLength={8}
                   data-testid="login-password"
                   className="block w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 text-gray-900 placeholder-gray-400 transition-colors focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8] [&:-webkit-autofill]:shadow-[inset_0_0_0_9999px_white]"
+                  style={{ padding: "12px 48px 12px 16px" }}
                   placeholder="Enter your password"
                 />
                 <button
@@ -273,6 +275,7 @@ export default function LoginPage() {
               disabled={isLoading}
               data-testid="login-submit"
               className="w-full rounded-lg bg-[#1a73e8] px-4 py-3 text-white font-semibold transition-colors hover:bg-[#1557b0] focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:ring-offset-2 disabled:opacity-50"
+              style={{ padding: "12px 16px" }}
             >
               {isLoading ? "Signing in..." : "Sign in"}
             </button>
@@ -298,6 +301,7 @@ export default function LoginPage() {
                 }}
                 data-testid="login-google"
                 className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:ring-offset-2"
+                style={{ padding: "12px 16px" }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path
@@ -326,6 +330,7 @@ export default function LoginPage() {
                 }}
                 data-testid="login-github"
                 className="flex items-center justify-center gap-2 rounded-lg bg-[#24292e] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1b1f23] focus:outline-none focus:ring-2 focus:ring-[#24292e] focus:ring-offset-2"
+                style={{ padding: "12px 16px" }}
               >
                 <svg
                   width="18"

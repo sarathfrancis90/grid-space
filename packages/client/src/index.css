@@ -1,1 +1,33 @@
 @import "tailwindcss";
+
+/*
+ * Fix Tailwind v4 preflight vs utility padding/margin conflict.
+ *
+ * Tailwind v4 preflight sets `padding: 0; margin: 0` on `*` using physical
+ * shorthands. Utility classes like `px-3` generate `padding-inline` (logical).
+ * When both physical and logical properties target the same side, the one
+ * declared LATER in the same cascade context is the "active" property.
+ *
+ * Problem: The preflight's physical `padding: 0` on `*` remains "active" for
+ * the inline/block directions, so utility-layer logical properties can't
+ * override them (they're different CSS properties competing for the same side).
+ *
+ * Fix: Re-declare the `*` reset using BOTH physical AND logical properties.
+ * Since our logical declarations come after the physical shorthand within the
+ * same rule, they become the "active" properties for each direction. Then
+ * utility-layer rules (which also use logical properties) properly override
+ * them via the cascade.
+ */
+@layer base {
+  *,
+  ::before,
+  ::after,
+  ::backdrop {
+    padding: 0;
+    padding-block: 0;
+    padding-inline: 0;
+    margin: 0;
+    margin-block: 0;
+    margin-inline: 0;
+  }
+}

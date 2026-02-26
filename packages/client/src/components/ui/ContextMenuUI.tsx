@@ -256,7 +256,7 @@ export function ContextMenuUI({
           )}
           <button
             data-testid={item.testId}
-            className="w-full flex items-center justify-between text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+            className="w-full flex items-center justify-between px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
             style={{ padding: "6px 16px" }}
             onClick={item.action}
             type="button"

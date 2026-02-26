@@ -421,7 +421,7 @@ export function MenuBar() {
         <div key={menu.label} className="relative">
           <button
             data-testid={menu.testId}
-            className={`text-[13px] rounded transition-colors ${
+            className={`text-[13px] px-3 py-1 rounded transition-colors ${
               openMenu === menu.label
                 ? "bg-gray-200 text-gray-900"
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -447,7 +447,7 @@ export function MenuBar() {
                   )}
                   <button
                     data-testid={item.testId}
-                    className="w-full flex items-center justify-between text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
                     style={{ padding: "6px 16px" }}
                     onClick={item.action}
                     type="button"
