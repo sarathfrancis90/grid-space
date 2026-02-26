@@ -45,7 +45,6 @@ steps:
       - "--vpc-egress=private-ranges-only"
       # Environment variables
       - "--set-env-vars=NODE_ENV=production"
-      - "--set-env-vars=PORT=8080"
       # Secrets from Secret Manager
       - "--set-secrets=DATABASE_URL=database-url:latest"
       - "--set-secrets=REDIS_URL=redis-url:latest"
