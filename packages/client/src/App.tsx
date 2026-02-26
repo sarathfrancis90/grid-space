@@ -1,8 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Grid } from "./components/grid";
-import { Toolbar } from "./components/toolbar";
-import { SheetTabs } from "./components/sheets/SheetTabs";
-import { FindReplace } from "./components/data/FindReplace";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./components/auth/LoginPage";
 import RegisterPage from "./components/auth/RegisterPage";
 import ForgotPasswordPage from "./components/auth/ForgotPasswordPage";
@@ -56,33 +52,8 @@ export function App() {
         {/* 404 page */}
         <Route path="/not-found" element={<NotFoundPage />} />
 
-        {/* Root — the full spreadsheet editor (legacy / default) */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <div
-                data-testid="app-root"
-                style={{
-                  width: "100vw",
-                  height: "100vh",
-                  overflow: "hidden",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <Toolbar />
-                <div
-                  style={{ flex: 1, overflow: "hidden", position: "relative" }}
-                >
-                  <Grid />
-                  <FindReplace />
-                </div>
-                <SheetTabs />
-              </div>
-            </ProtectedRoute>
-          }
-        />
+        {/* Root redirects to dashboard */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
         {/* Catch-all 404 */}
         <Route path="*" element={<NotFoundPage />} />

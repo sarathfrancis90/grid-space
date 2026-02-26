@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
+import { GridSpaceLogo } from "../ui/GridSpaceLogo";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -14,7 +15,7 @@ export default function RegisterPage() {
     e.preventDefault();
     try {
       await register(email, password, name || undefined);
-      navigate("/");
+      navigate("/dashboard");
     } catch {
       // Error is set in the store
     }
@@ -22,8 +23,12 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
         <div className="mb-6 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <GridSpaceLogo size={32} />
+            <span className="text-xl font-bold text-indigo-600">GridSpace</span>
+          </div>
           <h1
             className="text-2xl font-bold text-gray-900"
             data-testid="register-title"
@@ -128,19 +133,24 @@ export default function RegisterPage() {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
+              disabled
               data-testid="register-google"
-              className="flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed opacity-60"
+              title="Coming soon"
             >
               Google
             </button>
             <button
               type="button"
+              disabled
               data-testid="register-github"
-              className="flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed opacity-60"
+              title="Coming soon"
             >
               GitHub
             </button>
           </div>
+          <p className="text-center text-xs text-gray-400">OAuth coming soon</p>
         </div>
 
         <p className="mt-6 text-center text-sm text-gray-500">

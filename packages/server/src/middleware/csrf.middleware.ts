@@ -24,6 +24,12 @@ export function csrfProtection(allowedOrigin: string) {
       return;
     }
 
+    // Skip CSRF for auth routes (login/register don't have existing sessions to protect)
+    if (req.path.startsWith("/api/auth/")) {
+      next();
+      return;
+    }
+
     const origin = req.headers["origin"];
     const referer = req.headers["referer"];
 

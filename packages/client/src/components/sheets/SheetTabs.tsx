@@ -110,45 +110,16 @@ export function SheetTabs() {
   return (
     <div
       data-testid="sheet-tabs-container"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        height: 32,
-        background: "#f0f0f0",
-        borderTop: "1px solid #ccc",
-        paddingLeft: 4,
-        overflow: "hidden",
-        userSelect: "none",
-      }}
+      className="flex items-center h-8 bg-gray-100 border-t border-gray-300 pl-1 overflow-hidden select-none"
     >
       <button
         data-testid="add-sheet-btn"
         onClick={() => addSheet()}
-        style={{
-          width: 28,
-          height: 28,
-          border: "1px solid #ccc",
-          borderRadius: 4,
-          background: "white",
-          cursor: "pointer",
-          fontSize: 16,
-          lineHeight: "28px",
-          marginRight: 4,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        className="w-7 h-7 border border-gray-300 rounded bg-white cursor-pointer text-base leading-7 mr-1 flex items-center justify-center hover:bg-gray-50"
       >
         +
       </button>
-      <div
-        style={{
-          display: "flex",
-          gap: 1,
-          overflowX: "auto",
-          flex: 1,
-        }}
-      >
+      <div className="flex gap-px overflow-x-auto flex-1">
         {sheets.map((sheet, idx) => (
           <div
             key={sheet.id}
@@ -160,23 +131,15 @@ export function SheetTabs() {
             onClick={() => handleTabClick(sheet.id)}
             onDoubleClick={() => handleDoubleClick(sheet.id, sheet.name)}
             onContextMenu={(e) => handleContextMenu(e, sheet.id)}
+            className={`px-3 py-1 cursor-pointer text-xs whitespace-nowrap min-w-[60px] text-center border-l border-r border-gray-300 ${
+              sheet.id === activeSheetId
+                ? "bg-white border-t-2 border-t-blue-600"
+                : "bg-gray-200 border-t-2 border-t-transparent"
+            }`}
             style={{
-              padding: "4px 12px",
-              background: sheet.id === activeSheetId ? "white" : "#e8e8e8",
-              borderTop:
-                sheet.id === activeSheetId
-                  ? "2px solid #1a73e8"
-                  : "2px solid transparent",
               borderBottom: sheet.tabColor
                 ? `3px solid ${sheet.tabColor}`
                 : "3px solid transparent",
-              borderLeft: "1px solid #ccc",
-              borderRight: "1px solid #ccc",
-              cursor: "pointer",
-              fontSize: 12,
-              whiteSpace: "nowrap",
-              minWidth: 60,
-              textAlign: "center",
             }}
           >
             {editingTabId === sheet.id ? (
@@ -190,14 +153,7 @@ export function SheetTabs() {
                   if (e.key === "Enter") commitRename();
                   if (e.key === "Escape") setEditingTabId(null);
                 }}
-                style={{
-                  width: 60,
-                  border: "none",
-                  outline: "none",
-                  fontSize: 12,
-                  textAlign: "center",
-                  background: "transparent",
-                }}
+                className="w-[60px] border-none outline-none text-xs text-center bg-transparent"
                 autoFocus
               />
             ) : (
@@ -210,14 +166,7 @@ export function SheetTabs() {
       {contextMenu && (
         <div
           data-testid="sheet-context-menu-backdrop"
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            zIndex: 200,
-          }}
+          className="fixed top-0 left-0 w-screen h-screen z-[200]"
           onClick={() => setContextMenu(null)}
           onContextMenu={(e) => {
             e.preventDefault();
@@ -226,17 +175,10 @@ export function SheetTabs() {
         >
           <div
             data-testid="sheet-context-menu"
+            className="absolute bg-white border border-gray-300 rounded shadow-lg min-w-[160px] py-1 z-[201]"
             style={{
-              position: "absolute",
               left: contextMenu.x,
               top: contextMenu.y - 180,
-              background: "white",
-              border: "1px solid #ccc",
-              borderRadius: 4,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              minWidth: 160,
-              padding: "4px 0",
-              zIndex: 201,
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -249,106 +191,44 @@ export function SheetTabs() {
                 }
                 setContextMenu(null);
               }}
-              style={{ padding: "6px 16px", cursor: "pointer", fontSize: 13 }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  "#e8f0fe";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  "transparent";
-              }}
+              className="px-4 py-1.5 cursor-pointer text-[13px] hover:bg-blue-50"
             >
               Rename
             </div>
             <div
               data-testid="ctx-duplicate"
               onClick={() => handleDuplicate(contextMenu.sheetId)}
-              style={{ padding: "6px 16px", cursor: "pointer", fontSize: 13 }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  "#e8f0fe";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  "transparent";
-              }}
+              className="px-4 py-1.5 cursor-pointer text-[13px] hover:bg-blue-50"
             >
               Duplicate
             </div>
             <div
               data-testid="ctx-delete"
               onClick={() => handleDelete(contextMenu.sheetId)}
-              style={{
-                padding: "6px 16px",
-                cursor: sheets.length <= 1 ? "default" : "pointer",
-                fontSize: 13,
-                color: sheets.length <= 1 ? "#999" : "#333",
-              }}
-              onMouseEnter={(e) => {
-                if (sheets.length > 1) {
-                  (e.currentTarget as HTMLDivElement).style.background =
-                    "#e8f0fe";
-                }
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  "transparent";
-              }}
+              className={`px-4 py-1.5 text-[13px] ${
+                sheets.length <= 1
+                  ? "cursor-default text-gray-400"
+                  : "cursor-pointer text-gray-700 hover:bg-blue-50"
+              }`}
             >
               Delete
             </div>
-            <div
-              style={{ height: 1, background: "#e2e2e2", margin: "4px 0" }}
-            />
-            <div
-              style={{
-                padding: "6px 16px",
-                fontSize: 12,
-                color: "#666",
-              }}
-            >
-              Tab color
-            </div>
-            <div
-              style={{
-                display: "flex",
-                gap: 4,
-                padding: "4px 16px",
-                flexWrap: "wrap",
-              }}
-            >
+            <div className="h-px bg-gray-200 my-1" />
+            <div className="px-4 py-1.5 text-xs text-gray-500">Tab color</div>
+            <div className="flex gap-1 px-4 py-1 flex-wrap">
               {TAB_COLORS.map((color) => (
                 <div
                   key={color}
                   data-testid={`tab-color-${color}`}
                   onClick={() => handleSetColor(contextMenu.sheetId, color)}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 3,
-                    background: color,
-                    cursor: "pointer",
-                    border: "1px solid rgba(0,0,0,0.2)",
-                  }}
+                  className="w-[18px] h-[18px] rounded-sm cursor-pointer border border-black/20"
+                  style={{ background: color }}
                 />
               ))}
               <div
                 data-testid="tab-color-none"
                 onClick={() => handleSetColor(contextMenu.sheetId, undefined)}
-                style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: 3,
-                  background: "white",
-                  cursor: "pointer",
-                  border: "1px solid #ccc",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 10,
-                  color: "#999",
-                }}
+                className="w-[18px] h-[18px] rounded-sm cursor-pointer border border-gray-300 bg-white flex items-center justify-center text-[10px] text-gray-400"
               >
                 X
               </div>

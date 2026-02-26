@@ -5,12 +5,15 @@ import { useAuthStore } from "../../stores/authStore";
 import { SpreadsheetCard } from "./SpreadsheetCard";
 import { SpreadsheetListItem } from "./SpreadsheetListItem";
 import { DashboardSkeleton } from "./DashboardSkeleton";
+import { TemplateGallery } from "./TemplateGallery";
+import { GridSpaceLogo } from "../ui/GridSpaceLogo";
 
 type FilterType = "all" | "owned" | "shared" | "starred";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const {
     spreadsheets,
     isListLoading,
@@ -94,6 +97,11 @@ export default function DashboardPage() {
     [updateSpreadsheet],
   );
 
+  const handleLogout = useCallback(async () => {
+    await logout();
+    navigate("/login");
+  }, [logout, navigate]);
+
   const filters: { label: string; value: FilterType }[] = [
     { label: "All", value: "all" },
     { label: "Owned by me", value: "owned" },
@@ -115,7 +123,10 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="border-b border-gray-200 bg-white px-6 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">GridSpace</h1>
+          <div className="flex items-center gap-2">
+            <GridSpaceLogo size={28} />
+            <h1 className="text-xl font-semibold text-gray-900">GridSpace</h1>
+          </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-600" data-testid="user-name">
               {user?.name || user?.email}
@@ -127,11 +138,21 @@ export default function DashboardPage() {
             >
               Profile
             </button>
+            <button
+              onClick={handleLogout}
+              className="rounded-full bg-gray-100 px-3 py-1 text-sm text-red-600 hover:bg-red-50 hover:text-red-700"
+              data-testid="logout-button"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
+        {/* Template Gallery */}
+        <TemplateGallery />
+
         {/* Create + Search Bar */}
         <div className="mb-6 flex items-center gap-4">
           <button
