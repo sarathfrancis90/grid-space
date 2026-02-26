@@ -333,7 +333,7 @@
     "category": "formula",
     "name": "Typing = activates formula mode",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-002",
@@ -341,7 +341,7 @@
     "category": "formula",
     "name": "Formula autocomplete dropdown",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-003",
@@ -349,7 +349,7 @@
     "category": "formula",
     "name": "Click cell inserts reference while in formula mode",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-004",
@@ -357,7 +357,7 @@
     "category": "formula",
     "name": "Color-coded range references in formula bar",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-005",
@@ -1429,7 +1429,7 @@
     "category": "charts",
     "name": "Create column chart from selection",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-002",
@@ -1437,7 +1437,7 @@
     "category": "charts",
     "name": "Create bar chart",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-003",
@@ -1445,7 +1445,7 @@
     "category": "charts",
     "name": "Create line chart",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-004",
@@ -1453,7 +1453,7 @@
     "category": "charts",
     "name": "Create area chart",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-005",
@@ -1461,7 +1461,7 @@
     "category": "charts",
     "name": "Create pie chart",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-006",
@@ -1469,7 +1469,7 @@
     "category": "charts",
     "name": "Create scatter chart",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-007",
@@ -1477,7 +1477,7 @@
     "category": "charts",
     "name": "Create combo chart",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-008",
@@ -1485,7 +1485,7 @@
     "category": "charts",
     "name": "Chart editor sidebar \u2014 change chart type",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-009",
@@ -1493,7 +1493,7 @@
     "category": "charts",
     "name": "Chart editor \u2014 set data range",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-010",
@@ -1501,7 +1501,7 @@
     "category": "charts",
     "name": "Chart editor \u2014 title and subtitle",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-011",
@@ -1509,7 +1509,7 @@
     "category": "charts",
     "name": "Chart editor \u2014 legend toggle and position",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-012",
@@ -1517,7 +1517,7 @@
     "category": "charts",
     "name": "Chart editor \u2014 axis labels and formatting",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-013",
@@ -1525,7 +1525,7 @@
     "category": "charts",
     "name": "Chart editor \u2014 colors and styling",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-014",
@@ -1533,7 +1533,7 @@
     "category": "charts",
     "name": "Move chart by dragging",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-015",
@@ -1541,7 +1541,7 @@
     "category": "charts",
     "name": "Resize chart with drag handles",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-016",
@@ -1549,7 +1549,7 @@
     "category": "charts",
     "name": "Delete chart",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-017",
@@ -1557,7 +1557,7 @@
     "category": "charts",
     "name": "Chart updates when source data changes",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-018",
@@ -1565,7 +1565,7 @@
     "category": "charts",
     "name": "Double-click chart opens editor",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-019",
@@ -1573,7 +1573,7 @@
     "category": "conditional",
     "name": "Conditional format \u2014 is blank / not blank",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-020",
@@ -1581,7 +1581,7 @@
     "category": "conditional",
     "name": "Conditional format \u2014 date is (today, yesterday, etc.)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-021",
@@ -1589,7 +1589,7 @@
     "category": "conditional",
     "name": "Conditional format \u2014 custom formula rule",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-022",
@@ -1597,7 +1597,7 @@
     "category": "conditional",
     "name": "Multiple conditional format rules with priority order",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-023",
@@ -1605,7 +1605,7 @@
     "category": "conditional",
     "name": "Conditional format manager \u2014 add/edit/delete rules",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S6-024",
@@ -1613,7 +1613,7 @@
     "category": "conditional",
     "name": "Conditional format applies to range",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-001",
@@ -1621,7 +1621,7 @@
     "category": "ui",
     "name": "Formula bar \u2014 name box shows cell address",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-002",
@@ -1629,7 +1629,7 @@
     "category": "ui",
     "name": "Formula bar \u2014 shows formula for selected cell",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-003",
@@ -1637,7 +1637,7 @@
     "category": "ui",
     "name": "Formula bar \u2014 edit formula directly in bar",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-004",
@@ -1645,7 +1645,7 @@
     "category": "ui",
     "name": "Name box \u2014 type address to navigate (e.g. B5)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-005",
@@ -1653,7 +1653,7 @@
     "category": "ui",
     "name": "Name box \u2014 shows named range names",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-006",
@@ -1661,7 +1661,7 @@
     "category": "ui",
     "name": "Right-click context menu on cell",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-007",
@@ -1669,7 +1669,7 @@
     "category": "ui",
     "name": "Right-click context menu on row header",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-008",
@@ -1677,7 +1677,7 @@
     "category": "ui",
     "name": "Right-click context menu on column header",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-009",
@@ -1685,7 +1685,7 @@
     "category": "ui",
     "name": "Menu bar \u2014 File menu (New, Open, Save, Download, Print)",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-010",
@@ -1693,7 +1693,7 @@
     "category": "ui",
     "name": "Menu bar \u2014 Edit menu (Undo, Redo, Cut, Copy, Paste, Find)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-011",
@@ -1701,7 +1701,7 @@
     "category": "ui",
     "name": "Menu bar \u2014 View menu (Freeze, Gridlines, Formula bar, Zoom)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-012",
@@ -1709,7 +1709,7 @@
     "category": "ui",
     "name": "Menu bar \u2014 Insert menu (Rows, Columns, Charts, Images, Links)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-013",
@@ -1717,7 +1717,7 @@
     "category": "ui",
     "name": "Menu bar \u2014 Format menu (Number, Text, Alignment, Borders)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-014",
@@ -1725,7 +1725,7 @@
     "category": "ui",
     "name": "Menu bar \u2014 Data menu (Sort, Filter, Validation, Pivot, Named ranges)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-015",
@@ -1733,7 +1733,7 @@
     "category": "ui",
     "name": "Menu bar \u2014 Tools menu (Spelling, Notifications)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-016",
@@ -1741,7 +1741,7 @@
     "category": "ui",
     "name": "Status bar \u2014 SUM of selection",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-017",
@@ -1749,7 +1749,7 @@
     "category": "ui",
     "name": "Status bar \u2014 AVERAGE, COUNT, MIN, MAX of selection",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-018",
@@ -1757,7 +1757,7 @@
     "category": "ui",
     "name": "Cell comments \u2014 add comment",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-019",
@@ -1765,7 +1765,7 @@
     "category": "ui",
     "name": "Cell comments \u2014 view, edit, delete",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-020",
@@ -1773,7 +1773,7 @@
     "category": "ui",
     "name": "Cell notes (simple, non-threaded)",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-021",
@@ -1781,7 +1781,7 @@
     "category": "ui",
     "name": "Hyperlink \u2014 insert link dialog (Ctrl+K)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-022",
@@ -1789,7 +1789,7 @@
     "category": "ui",
     "name": "Hyperlink \u2014 click to open link",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-023",
@@ -1797,7 +1797,7 @@
     "category": "ui",
     "name": "Image in cell (Insert > Image)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-024",
@@ -1805,7 +1805,7 @@
     "category": "ui",
     "name": "Show/hide gridlines (View > Gridlines)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S7-025",
@@ -1813,7 +1813,7 @@
     "category": "ui",
     "name": "Show/hide formula bar",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-001",
@@ -1821,7 +1821,7 @@
     "category": "keyboard",
     "name": "Ctrl+B/I/U formatting shortcuts",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-002",
@@ -1829,7 +1829,7 @@
     "category": "keyboard",
     "name": "Ctrl+Z/Y undo/redo",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-003",
@@ -1837,7 +1837,7 @@
     "category": "keyboard",
     "name": "Ctrl+C/V/X copy/paste/cut",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-004",
@@ -1845,7 +1845,7 @@
     "category": "keyboard",
     "name": "Ctrl+Shift+V paste special",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-005",
@@ -1853,7 +1853,7 @@
     "category": "keyboard",
     "name": "Ctrl+F find, Ctrl+H replace",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-006",
@@ -1861,7 +1861,7 @@
     "category": "keyboard",
     "name": "Ctrl+; insert current date",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-007",
@@ -1869,7 +1869,7 @@
     "category": "keyboard",
     "name": "Alt+Enter newline in cell",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-008",
@@ -1877,7 +1877,7 @@
     "category": "keyboard",
     "name": "F2 enters edit mode",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-009",
@@ -1885,7 +1885,7 @@
     "category": "keyboard",
     "name": "Ctrl+1 format cells dialog",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-010",
@@ -1893,7 +1893,7 @@
     "category": "keyboard",
     "name": "Ctrl+Shift+1-6 number format shortcuts",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-011",
@@ -1901,7 +1901,7 @@
     "category": "ui",
     "name": "Print dialog (Ctrl+P)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-012",
@@ -1909,7 +1909,7 @@
     "category": "ui",
     "name": "Print \u2014 page orientation (portrait/landscape)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-013",
@@ -1917,7 +1917,7 @@
     "category": "ui",
     "name": "Print \u2014 margins setting",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-014",
@@ -1925,7 +1925,7 @@
     "category": "ui",
     "name": "Print \u2014 page breaks preview",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-015",
@@ -1933,7 +1933,7 @@
     "category": "ui",
     "name": "Print \u2014 header/footer",
     "priority": 3,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-016",
@@ -1941,7 +1941,7 @@
     "category": "ui",
     "name": "Zoom controls (View > Zoom, 50-200%)",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-017",
@@ -1949,7 +1949,7 @@
     "category": "ui",
     "name": "Zoom with Ctrl+Plus/Ctrl+Minus",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-018",
@@ -1957,7 +1957,7 @@
     "category": "performance",
     "name": "10k rows smooth scroll at 60fps",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-019",
@@ -1965,7 +1965,7 @@
     "category": "performance",
     "name": "Formula recalc 1000 cells < 500ms",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-020",
@@ -1973,7 +1973,7 @@
     "category": "performance",
     "name": "Bundle size < 500KB gzip",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-021",
@@ -1981,7 +1981,7 @@
     "category": "performance",
     "name": "Time to interactive < 2 seconds",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S8-022",
@@ -1989,7 +1989,7 @@
     "category": "performance",
     "name": "Web Worker offloads heavy formula recalc",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S9-001",

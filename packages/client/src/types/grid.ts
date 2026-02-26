@@ -3,6 +3,9 @@ export interface CellData {
   formula?: string;
   format?: CellFormat;
   comment?: string;
+  hyperlink?: CellHyperlink;
+  image?: CellImage;
+  note?: string;
 }
 
 export interface CellFormat {
@@ -33,11 +36,13 @@ export interface MergedRegion {
 export interface ConditionalRule {
   id: string;
   range: { startRow: number; startCol: number; endRow: number; endCol: number };
-  type: "value" | "text" | "colorScale";
+  type: "value" | "text" | "colorScale" | "blank" | "date" | "customFormula";
   condition: string;
   values: string[];
   format: Partial<CellFormat>;
   priority: number;
+  /** For customFormula type: the formula string to evaluate */
+  formula?: string;
 }
 
 export interface BorderStyle {
@@ -199,4 +204,64 @@ export interface SlicerConfig {
   width: number;
   height: number;
   selectedValues: Set<string>;
+}
+
+// Charts
+export type ChartType =
+  | "column"
+  | "bar"
+  | "line"
+  | "area"
+  | "pie"
+  | "scatter"
+  | "combo";
+
+export interface ChartConfig {
+  id: string;
+  sheetId: string;
+  type: ChartType;
+  dataRange: SelectionRange;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  title?: string;
+  subtitle?: string;
+  legendPosition?: "top" | "bottom" | "left" | "right" | "none";
+  showLegend?: boolean;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+  colors?: string[];
+}
+
+// Comments
+export interface CellComment {
+  id: string;
+  cellKey: string;
+  sheetId: string;
+  text: string;
+  author: string;
+  authorId?: string;
+  createdAt: number;
+  updatedAt?: number;
+  resolved?: boolean;
+  replies?: CommentReply[];
+}
+
+export interface CommentReply {
+  id: string;
+  text: string;
+  author: string;
+  authorId?: string;
+  createdAt: number;
+}
+
+// Hyperlinks
+export interface CellHyperlink {
+  url: string;
+  label?: string;
+}
+
+// Image in cell
+export interface CellImage {
+  url: string;
+  alt?: string;
 }

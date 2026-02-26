@@ -93,6 +93,12 @@ interface FormatState {
   // --- Conditional formatting ---
   addConditionalRule: (sheetId: string, rule: ConditionalRule) => void;
   removeConditionalRule: (sheetId: string, ruleId: string) => void;
+  updateConditionalRule: (
+    sheetId: string,
+    ruleId: string,
+    updates: Partial<ConditionalRule>,
+  ) => void;
+  reorderConditionalRules: (sheetId: string, ruleIds: string[]) => void;
   getConditionalRules: (sheetId: string) => ConditionalRule[];
   evaluateConditionalFormat: (
     sheetId: string,
@@ -454,6 +460,39 @@ export const useFormatStore = create<FormatState>()(
       });
     },
 
+    updateConditionalRule: (sheetId, ruleId, updates) => {
+      set((state) => {
+        const rules = state.conditionalRules.get(sheetId);
+        if (!rules) return;
+        const rule = rules.find((r) => r.id === ruleId);
+        if (!rule) return;
+        Object.assign(rule, updates);
+      });
+    },
+
+    reorderConditionalRules: (sheetId, ruleIds) => {
+      set((state) => {
+        const rules = state.conditionalRules.get(sheetId);
+        if (!rules) return;
+        const ordered: ConditionalRule[] = [];
+        for (let i = 0; i < ruleIds.length; i++) {
+          const rule = rules.find((r) => r.id === ruleIds[i]);
+          if (rule) {
+            rule.priority = i;
+            ordered.push(rule);
+          }
+        }
+        // Add any rules not in the ruleIds list at the end
+        for (const rule of rules) {
+          if (!ruleIds.includes(rule.id)) {
+            rule.priority = ordered.length;
+            ordered.push(rule);
+          }
+        }
+        state.conditionalRules.set(sheetId, ordered);
+      });
+    },
+
     getConditionalRules: (sheetId) => {
       return get().conditionalRules.get(sheetId) ?? [];
     },
@@ -522,7 +561,132 @@ function matchesRule(
     }
   }
 
+  // S6-019: is blank / not blank
+  if (rule.type === "blank") {
+    const isEmpty =
+      value === null ||
+      value === undefined ||
+      (typeof value === "string" && value.trim() === "");
+    return rule.condition === "isBlank" ? isEmpty : !isEmpty;
+  }
+
+  // S6-020: date conditions (today, yesterday, tomorrow, lastWeek, thisWeek, nextWeek)
+  if (rule.type === "date") {
+    return matchesDateRule(rule.condition, value);
+  }
+
+  // S6-021: custom formula rule — the formula field contains a formula string
+  // For now, we evaluate simple comparisons against the cell value
+  if (rule.type === "customFormula") {
+    return matchesCustomFormula(rule.formula ?? "", value);
+  }
+
   // colorScale is applied by the renderer, not matched per-rule
+  return false;
+}
+
+/** S6-020: Check if a cell value matches a date condition */
+function matchesDateRule(
+  condition: string,
+  value: string | number | boolean | null,
+): boolean {
+  if (value === null || value === undefined) return false;
+
+  let cellDay: Date;
+  if (typeof value === "number") {
+    const d = new Date(value);
+    cellDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  } else if (typeof value === "string") {
+    // Parse YYYY-MM-DD as local date to avoid timezone issues
+    const ymdMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (ymdMatch) {
+      cellDay = new Date(
+        parseInt(ymdMatch[1], 10),
+        parseInt(ymdMatch[2], 10) - 1,
+        parseInt(ymdMatch[3], 10),
+      );
+    } else {
+      const parsed = Date.parse(value);
+      if (isNaN(parsed)) return false;
+      const d = new Date(parsed);
+      cellDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+  } else {
+    return false;
+  }
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.round(
+    (cellDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  switch (condition) {
+    case "today":
+      return diffDays === 0;
+    case "yesterday":
+      return diffDays === -1;
+    case "tomorrow":
+      return diffDays === 1;
+    case "lastWeek":
+      return diffDays >= -7 && diffDays < 0;
+    case "thisWeek": {
+      const dayOfWeek = today.getDay();
+      const startOfWeek = -dayOfWeek;
+      const endOfWeek = 6 - dayOfWeek;
+      return diffDays >= startOfWeek && diffDays <= endOfWeek;
+    }
+    case "nextWeek": {
+      const dow = today.getDay();
+      const nextWeekStart = 7 - dow;
+      const nextWeekEnd = 13 - dow;
+      return diffDays >= nextWeekStart && diffDays <= nextWeekEnd;
+    }
+    case "pastMonth":
+      return diffDays >= -30 && diffDays <= 0;
+    default:
+      return false;
+  }
+}
+
+/** S6-021: Evaluate a custom formula rule against a cell value */
+function matchesCustomFormula(
+  formula: string,
+  value: string | number | boolean | null,
+): boolean {
+  if (!formula) return false;
+
+  // Simple evaluation: if the formula is a comparison like ">10", "<5", ">=100", etc.
+  const compMatch = formula.match(/^(>=|<=|<>|!=|>|<|=)\s*(-?\d+(?:\.\d+)?)$/);
+  if (compMatch) {
+    const op = compMatch[1];
+    const threshold = Number(compMatch[2]);
+    const numVal = typeof value === "number" ? value : Number(value);
+    if (isNaN(numVal)) return false;
+    switch (op) {
+      case ">":
+        return numVal > threshold;
+      case "<":
+        return numVal < threshold;
+      case ">=":
+        return numVal >= threshold;
+      case "<=":
+        return numVal <= threshold;
+      case "=":
+        return numVal === threshold;
+      case "<>":
+      case "!=":
+        return numVal !== threshold;
+      default:
+        return false;
+    }
+  }
+
+  // If formula is "TRUE" or "FALSE" literal
+  if (formula.toUpperCase() === "TRUE") return true;
+  if (formula.toUpperCase() === "FALSE") return false;
+
+  // Default: the formula doesn't match a recognized pattern
   return false;
 }
 
