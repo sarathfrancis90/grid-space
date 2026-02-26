@@ -41,12 +41,12 @@ export function SpreadsheetCard({
 
   return (
     <div
-      className="group relative rounded-lg border border-gray-200 bg-white p-4 hover:shadow-md"
+      className="group relative rounded-xl border border-gray-200 bg-white transition-all hover:shadow-lg hover:border-gray-300"
       data-testid={`spreadsheet-card-${spreadsheet.id}`}
     >
       {/* Preview area */}
       <div
-        className="mb-3 flex h-32 cursor-pointer items-center justify-center rounded bg-gray-100"
+        className="flex h-36 cursor-pointer items-center justify-center rounded-t-xl bg-gradient-to-br from-gray-50 to-gray-100"
         onClick={() => onOpen(spreadsheet.id)}
         data-testid={`open-spreadsheet-${spreadsheet.id}`}
       >
@@ -65,45 +65,48 @@ export function SpreadsheetCard({
         </svg>
       </div>
 
-      {/* Title */}
-      {isRenaming ? (
-        <input
-          type="text"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          onBlur={handleRename}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleRename();
-            if (e.key === "Escape") setIsRenaming(false);
-          }}
-          autoFocus
-          className="w-full rounded border border-blue-500 px-1 py-0.5 text-sm"
-          data-testid={`rename-input-${spreadsheet.id}`}
-        />
-      ) : (
-        <h3
-          className="cursor-pointer truncate text-sm font-medium text-gray-900"
-          onClick={() => onOpen(spreadsheet.id)}
-          title={spreadsheet.title}
-        >
-          {spreadsheet.title}
-        </h3>
-      )}
-
-      {/* Metadata */}
-      <p className="mt-1 text-xs text-gray-500">
-        {timeAgo}
-        {spreadsheet.role !== "owner" && (
-          <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-xs">
-            {spreadsheet.role}
-          </span>
+      {/* Card body */}
+      <div className="p-4">
+        {/* Title */}
+        {isRenaming ? (
+          <input
+            type="text"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onBlur={handleRename}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleRename();
+              if (e.key === "Escape") setIsRenaming(false);
+            }}
+            autoFocus
+            className="w-full rounded border border-[#1a73e8] px-1.5 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#1a73e8]/30"
+            data-testid={`rename-input-${spreadsheet.id}`}
+          />
+        ) : (
+          <h3
+            className="cursor-pointer truncate text-sm font-medium text-gray-900"
+            onClick={() => onOpen(spreadsheet.id)}
+            title={spreadsheet.title}
+          >
+            {spreadsheet.title}
+          </h3>
         )}
-      </p>
+
+        {/* Metadata */}
+        <p className="mt-1.5 flex items-center text-xs text-gray-400">
+          {timeAgo}
+          {spreadsheet.role !== "owner" && (
+            <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+              {spreadsheet.role}
+            </span>
+          )}
+        </p>
+      </div>
 
       {/* Star button */}
       <button
         onClick={() => onToggleStar(spreadsheet.id)}
-        className="absolute right-2 top-2 p-1 text-gray-400 hover:text-yellow-500"
+        className="absolute right-10 top-2 rounded-full p-1.5 text-gray-400 transition-colors hover:bg-white/80 hover:text-yellow-500"
         data-testid={`star-btn-${spreadsheet.id}`}
       >
         {spreadsheet.isStarred ? (
@@ -132,10 +135,10 @@ export function SpreadsheetCard({
       </button>
 
       {/* Menu button */}
-      <div className="absolute right-2 bottom-2">
+      <div className="absolute right-2 top-2">
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className="rounded p-1 text-gray-400 opacity-0 hover:bg-gray-100 group-hover:opacity-100"
+          className="rounded-full p-1.5 text-gray-400 opacity-0 transition-all hover:bg-white/80 hover:text-gray-600 group-hover:opacity-100"
           data-testid={`menu-btn-${spreadsheet.id}`}
         >
           <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -145,7 +148,7 @@ export function SpreadsheetCard({
 
         {showMenu && (
           <div
-            className="absolute right-0 bottom-8 z-10 w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+            className="absolute right-0 top-8 z-10 w-44 rounded-xl border border-gray-200 bg-white py-1 shadow-xl"
             data-testid={`menu-${spreadsheet.id}`}
           >
             <button
@@ -153,7 +156,7 @@ export function SpreadsheetCard({
                 setShowMenu(false);
                 onOpen(spreadsheet.id);
               }}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
+              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
             >
               Open
             </button>
@@ -162,7 +165,7 @@ export function SpreadsheetCard({
                 setShowMenu(false);
                 setIsRenaming(true);
               }}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
+              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
               data-testid={`rename-btn-${spreadsheet.id}`}
             >
               Rename
@@ -172,22 +175,25 @@ export function SpreadsheetCard({
                 setShowMenu(false);
                 onDuplicate(spreadsheet.id);
               }}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
+              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
               data-testid={`duplicate-btn-${spreadsheet.id}`}
             >
               Make a copy
             </button>
             {spreadsheet.role === "owner" && (
-              <button
-                onClick={() => {
-                  setShowMenu(false);
-                  onDelete(spreadsheet.id);
-                }}
-                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-                data-testid={`delete-btn-${spreadsheet.id}`}
-              >
-                Delete
-              </button>
+              <>
+                <div className="my-1 border-t border-gray-100" />
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    onDelete(spreadsheet.id);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                  data-testid={`delete-btn-${spreadsheet.id}`}
+                >
+                  Delete
+                </button>
+              </>
             )}
           </div>
         )}

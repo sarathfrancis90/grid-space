@@ -136,18 +136,21 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50" data-testid="dashboard-page">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white px-6 py-3">
-        <div className="mx-auto flex max-w-6xl items-center gap-4">
-          <div className="flex items-center gap-2">
-            <GridSpaceLogo size={28} />
-            <h1 className="text-xl font-semibold text-gray-800">GridSpace</h1>
+      <header className="border-b border-gray-200 bg-white shadow-sm">
+        <div className="mx-auto flex max-w-7xl items-center px-6 py-4">
+          {/* Logo */}
+          <div className="flex items-center gap-2.5 mr-8">
+            <GridSpaceLogo size={32} />
+            <h1 className="text-xl font-semibold text-gray-800 tracking-tight">
+              GridSpace
+            </h1>
           </div>
 
           {/* Centered search bar */}
           <div className="flex-1 flex justify-center">
-            <div className="relative w-full max-w-lg">
+            <div className="relative w-full max-w-2xl">
               <svg
-                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -162,17 +165,17 @@ export default function DashboardPage() {
                 placeholder="Search spreadsheets..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-lg bg-gray-100 py-2 pl-10 pr-4 text-sm text-gray-700 placeholder-gray-400 transition-colors focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1a73e8]"
+                className="w-full rounded-full bg-gray-100 py-2.5 pl-12 pr-5 text-sm text-gray-700 placeholder-gray-400 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 focus:border focus:border-[#1a73e8]"
                 data-testid="search-input"
               />
             </div>
           </div>
 
           {/* User area */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 ml-8">
             <button
               onClick={() => navigate("/profile")}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a73e8] text-sm font-medium text-white transition-colors hover:bg-[#1765cc]"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1a73e8] text-sm font-medium text-white transition-colors hover:bg-[#1765cc]"
               data-testid="profile-link"
               title={user?.name || user?.email || "Profile"}
             >
@@ -180,7 +183,7 @@ export default function DashboardPage() {
             </button>
             <button
               onClick={handleLogout}
-              className="rounded-md px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100"
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800"
               data-testid="logout-button"
             >
               Logout
@@ -189,95 +192,118 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-8">
-        {/* Template Gallery */}
-        <TemplateGallery />
+      {/* Template Gallery — full-width gray band */}
+      <div className="border-b border-gray-200 bg-gray-50">
+        <div className="mx-auto max-w-7xl px-6 py-6">
+          <TemplateGallery />
+        </div>
+      </div>
 
+      <main className="mx-auto max-w-7xl px-6 py-8">
         {/* Create + View Toggle */}
         <div className="mb-6 flex items-center gap-4">
           <button
             onClick={handleCreate}
-            className="rounded-full bg-[#1a73e8] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#1765cc]"
+            className="inline-flex items-center gap-2 rounded-full bg-[#1a73e8] px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#1765cc] hover:shadow-lg active:scale-[0.98]"
             data-testid="create-spreadsheet-btn"
           >
-            + New Spreadsheet
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <line x1="9" y1="3" x2="9" y2="15" />
+              <line x1="3" y1="9" x2="15" y2="9" />
+            </svg>
+            New Spreadsheet
           </button>
 
           <div className="flex-1" />
 
           {/* View Mode Toggle */}
-          <div className="flex rounded-lg border border-gray-200 bg-white">
+          <div className="flex rounded-full border border-gray-200 bg-white p-0.5">
             <button
               onClick={() => setViewMode("grid")}
-              className={`rounded-l-lg px-3 py-1.5 text-sm transition-colors ${
+              className={`rounded-full px-3 py-1.5 transition-colors ${
                 viewMode === "grid"
                   ? "bg-gray-100 text-gray-900"
-                  : "text-gray-500 hover:text-gray-700"
+                  : "text-gray-400 hover:text-gray-600"
               }`}
               data-testid="view-grid-btn"
             >
               <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
                 fill="currentColor"
               >
-                <rect x="1" y="1" width="6" height="6" rx="1" />
-                <rect x="9" y="1" width="6" height="6" rx="1" />
-                <rect x="1" y="9" width="6" height="6" rx="1" />
-                <rect x="9" y="9" width="6" height="6" rx="1" />
+                <rect x="1" y="1" width="7" height="7" rx="1.5" />
+                <rect x="10" y="1" width="7" height="7" rx="1.5" />
+                <rect x="1" y="10" width="7" height="7" rx="1.5" />
+                <rect x="10" y="10" width="7" height="7" rx="1.5" />
               </svg>
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`rounded-r-lg px-3 py-1.5 text-sm transition-colors ${
+              className={`rounded-full px-3 py-1.5 transition-colors ${
                 viewMode === "list"
                   ? "bg-gray-100 text-gray-900"
-                  : "text-gray-500 hover:text-gray-700"
+                  : "text-gray-400 hover:text-gray-600"
               }`}
               data-testid="view-list-btn"
             >
               <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
                 fill="currentColor"
               >
-                <rect x="1" y="2" width="14" height="2" rx="1" />
-                <rect x="1" y="7" width="14" height="2" rx="1" />
-                <rect x="1" y="12" width="14" height="2" rx="1" />
+                <rect x="1" y="3" width="16" height="2" rx="1" />
+                <rect x="1" y="8" width="16" height="2" rx="1" />
+                <rect x="1" y="13" width="16" height="2" rx="1" />
               </svg>
             </button>
           </div>
         </div>
 
-        {/* Filter Tabs — Google-style underline */}
-        <div className="mb-4 flex items-center gap-6 border-b border-gray-200">
-          {filters.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className={`border-b-2 pb-2.5 text-sm font-medium transition-colors ${
-                filter === f.value
-                  ? "border-[#1a73e8] text-[#1a73e8]"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-              data-testid={`filter-${f.value}`}
-            >
-              {f.label}
-            </button>
-          ))}
+        {/* Filter Tabs */}
+        <div className="mb-4 flex items-center border-b border-gray-200">
+          <div className="flex items-center gap-1">
+            {filters.map((f) => (
+              <button
+                key={f.value}
+                onClick={() => setFilter(f.value)}
+                className={`relative px-4 pb-3 pt-1 text-sm font-medium transition-colors ${
+                  filter === f.value
+                    ? "text-[#1a73e8]"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+                data-testid={`filter-${f.value}`}
+              >
+                {f.label}
+                {filter === f.value && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-[#1a73e8]" />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Sort Controls */}
-        <div className="mb-4 flex items-center gap-2">
-          <span className="text-xs text-gray-500">Sort by:</span>
+        <div className="mb-5 flex items-center gap-2">
+          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+            Sort by:
+          </span>
           <select
             value={sortBy}
             onChange={(e) =>
               setSortBy(e.target.value as "title" | "updatedAt" | "createdAt")
             }
-            className="rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-600"
+            className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-600 transition-colors hover:border-gray-300 focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]/30"
             data-testid="sort-select"
           >
             {sortOptions.map((opt) => (
@@ -288,17 +314,33 @@ export default function DashboardPage() {
           </select>
           <button
             onClick={toggleSortDir}
-            className="text-xs text-gray-500 hover:text-gray-700"
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
             data-testid="sort-dir-btn"
           >
             {sortDir === "desc" ? "Newest first" : "Oldest first"}
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {sortDir === "desc" ? (
+                <path d="M6 2v8M3 7l3 3 3-3" />
+              ) : (
+                <path d="M6 10V2M3 5l3-3 3 3" />
+              )}
+            </svg>
           </button>
         </div>
 
         {/* Error */}
         {error && (
           <div
-            className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600"
+            className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600"
             data-testid="dashboard-error"
           >
             {error}
@@ -311,69 +353,81 @@ export default function DashboardPage() {
         {/* Empty State */}
         {!isListLoading && spreadsheets.length === 0 && (
           <div
-            className="flex flex-col items-center py-20"
+            className="flex flex-col items-center py-24"
             data-testid="empty-state"
           >
             <svg
-              width="80"
-              height="80"
-              viewBox="0 0 80 80"
+              width="96"
+              height="96"
+              viewBox="0 0 96 96"
               fill="none"
-              className="mb-6"
+              className="mb-8"
             >
               <rect
-                x="10"
-                y="10"
-                width="60"
-                height="60"
-                rx="8"
-                fill="#ecfdf5"
-                stroke="#0F9D58"
+                x="12"
+                y="12"
+                width="72"
+                height="72"
+                rx="10"
+                fill="#eff6ff"
+                stroke="#1a73e8"
                 strokeWidth="2"
               />
               <line
-                x1="10"
-                y1="30"
-                x2="70"
-                y2="30"
-                stroke="#0F9D58"
+                x1="12"
+                y1="36"
+                x2="84"
+                y2="36"
+                stroke="#93c5fd"
                 strokeWidth="1.5"
               />
               <line
-                x1="10"
-                y1="50"
-                x2="70"
-                y2="50"
-                stroke="#0F9D58"
+                x1="12"
+                y1="60"
+                x2="84"
+                y2="60"
+                stroke="#93c5fd"
                 strokeWidth="1.5"
               />
               <line
-                x1="30"
-                y1="10"
-                x2="30"
-                y2="70"
-                stroke="#0F9D58"
+                x1="36"
+                y1="12"
+                x2="36"
+                y2="84"
+                stroke="#93c5fd"
                 strokeWidth="1.5"
               />
               <line
-                x1="50"
-                y1="10"
-                x2="50"
-                y2="70"
-                stroke="#0F9D58"
+                x1="60"
+                y1="12"
+                x2="60"
+                y2="84"
+                stroke="#93c5fd"
                 strokeWidth="1.5"
               />
             </svg>
-            <p className="mb-2 text-lg font-medium text-gray-700">
+            <p className="mb-2 text-xl font-semibold text-gray-800">
               No spreadsheets yet
             </p>
-            <p className="mb-6 text-sm text-gray-400">
+            <p className="mb-8 text-sm text-gray-500">
               Create your first spreadsheet to get started
             </p>
             <button
               onClick={handleCreate}
-              className="rounded-full bg-[#1a73e8] px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#1765cc]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#1a73e8] px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#1765cc] hover:shadow-lg active:scale-[0.98]"
             >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <line x1="9" y1="3" x2="9" y2="15" />
+                <line x1="3" y1="9" x2="15" y2="9" />
+              </svg>
               Create your first spreadsheet
             </button>
           </div>
@@ -384,7 +438,7 @@ export default function DashboardPage() {
           <>
             {viewMode === "grid" ? (
               <div
-                className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
                 data-testid="spreadsheet-grid"
               >
                 {spreadsheets.map((s) => (
@@ -401,7 +455,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div
-                className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white"
+                className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm"
                 data-testid="spreadsheet-list"
               >
                 {spreadsheets.map((s) => (
@@ -420,22 +474,25 @@ export default function DashboardPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-center gap-2">
+              <div className="mt-8 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setPage(Math.max(1, page - 1))}
                   disabled={page <= 1}
-                  className="rounded px-3 py-1 text-sm text-gray-600 hover:bg-gray-200 disabled:opacity-50"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent"
                   data-testid="prev-page-btn"
                 >
                   Previous
                 </button>
-                <span className="text-sm text-gray-500" data-testid="page-info">
+                <span
+                  className="px-3 text-sm text-gray-500"
+                  data-testid="page-info"
+                >
                   Page {page} of {totalPages}
                 </span>
                 <button
                   onClick={() => setPage(Math.min(totalPages, page + 1))}
                   disabled={page >= totalPages}
-                  className="rounded px-3 py-1 text-sm text-gray-600 hover:bg-gray-200 disabled:opacity-50"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent"
                   data-testid="next-page-btn"
                 >
                   Next

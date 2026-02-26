@@ -1,7 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
+import passport from "passport";
 import type { AuthRequest } from "../types/index";
 import * as authService from "../services/auth.service";
 import { apiSuccess, apiError } from "../utils/apiResponse";
+import { env } from "../config/env";
 
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
@@ -200,23 +202,89 @@ export async function deleteAccount(
   }
 }
 
-// OAuth stubs — route structure ready, actual OAuth requires client IDs
-export function oauthGoogleRedirect(_req: Request, res: Response): void {
-  // TODO: Sprint 10 — implement with Passport Google Strategy
-  res.status(501).json(apiError(501, "Google OAuth not configured"));
+interface OAuthResult {
+  user: { id: string };
+  tokens: { accessToken: string; refreshToken: string };
 }
 
-export function oauthGoogleCallback(_req: Request, res: Response): void {
-  // TODO: Sprint 10 — handle Google callback, issue JWT, redirect to client
-  res.status(501).json(apiError(501, "Google OAuth not configured"));
+export function oauthGoogleRedirect(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  if (!env.GOOGLE_CLIENT_ID) {
+    res.status(501).json(apiError(501, "Google OAuth not configured"));
+    return;
+  }
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+  })(req, res, next);
 }
 
-export function oauthGithubRedirect(_req: Request, res: Response): void {
-  // TODO: Sprint 10 — implement with Passport GitHub Strategy
-  res.status(501).json(apiError(501, "GitHub OAuth not configured"));
+export function oauthGoogleCallback(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  passport.authenticate(
+    "google",
+    { session: false },
+    (err: Error | null, result: OAuthResult | false) => {
+      if (err || !result) {
+        return res.redirect(`${env.CLIENT_URL}/login?error=oauth_failed`);
+      }
+      res.cookie("refreshToken", result.tokens.refreshToken, {
+        httpOnly: true,
+        secure: env.NODE_ENV === "production",
+        sameSite: "lax" as const,
+        path: "/api/auth/refresh",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      res.redirect(
+        `${env.CLIENT_URL}/auth/callback?token=${result.tokens.accessToken}`,
+      );
+    },
+  )(req, res, next);
 }
 
-export function oauthGithubCallback(_req: Request, res: Response): void {
-  // TODO: Sprint 10 — handle GitHub callback, issue JWT, redirect to client
-  res.status(501).json(apiError(501, "GitHub OAuth not configured"));
+export function oauthGithubRedirect(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  if (!env.GITHUB_CLIENT_ID) {
+    res.status(501).json(apiError(501, "GitHub OAuth not configured"));
+    return;
+  }
+  passport.authenticate("github", {
+    scope: ["user:email"],
+    session: false,
+  })(req, res, next);
+}
+
+export function oauthGithubCallback(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  passport.authenticate(
+    "github",
+    { session: false },
+    (err: Error | null, result: OAuthResult | false) => {
+      if (err || !result) {
+        return res.redirect(`${env.CLIENT_URL}/login?error=oauth_failed`);
+      }
+      res.cookie("refreshToken", result.tokens.refreshToken, {
+        httpOnly: true,
+        secure: env.NODE_ENV === "production",
+        sameSite: "lax" as const,
+        path: "/api/auth/refresh",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      res.redirect(
+        `${env.CLIENT_URL}/auth/callback?token=${result.tokens.accessToken}`,
+      );
+    },
+  )(req, res, next);
 }

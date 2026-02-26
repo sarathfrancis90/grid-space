@@ -88,6 +88,66 @@ function sanitizeUser(user: {
   };
 }
 
+export async function findOrCreateOAuthUser(
+  email: string,
+  name: string | null,
+  avatarUrl: string | null,
+  provider: string,
+): Promise<{ user: UserProfile; tokens: TokenPair }> {
+  let user = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      avatarUrl: true,
+      emailVerified: true,
+      createdAt: true,
+    },
+  });
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        email,
+        name,
+        avatarUrl,
+        emailVerified: true, // OAuth emails are verified
+        passwordHash: null,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatarUrl: true,
+        emailVerified: true,
+        createdAt: true,
+      },
+    });
+    logger.info({ userId: user.id, provider }, "OAuth user created");
+  } else {
+    // Update avatar if not set
+    if (!user.avatarUrl && avatarUrl) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { avatarUrl },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          avatarUrl: true,
+          emailVerified: true,
+          createdAt: true,
+        },
+      });
+    }
+    logger.info({ userId: user.id, provider }, "OAuth user logged in");
+  }
+
+  const tokens = generateTokens(user.id, user.email);
+  return { user: sanitizeUser(user), tokens };
+}
+
 export async function register(
   email: string,
   password: string,

@@ -19,12 +19,12 @@ const TEMPLATE_ICONS: Record<string, string> = {
   Gradebook: "G",
 };
 
-const TEMPLATE_COLORS: Record<string, string> = {
-  Budget: "bg-green-100 text-green-700",
-  Invoice: "bg-blue-100 text-blue-700",
-  "Project Tracker": "bg-purple-100 text-purple-700",
-  Schedule: "bg-orange-100 text-orange-700",
-  Gradebook: "bg-red-100 text-red-700",
+const TEMPLATE_COLORS: Record<string, { bg: string; text: string }> = {
+  Budget: { bg: "bg-green-100", text: "text-green-700" },
+  Invoice: { bg: "bg-blue-100", text: "text-blue-700" },
+  "Project Tracker": { bg: "bg-purple-100", text: "text-purple-700" },
+  Schedule: { bg: "bg-orange-100", text: "text-orange-700" },
+  Gradebook: { bg: "bg-red-100", text: "text-red-700" },
 };
 
 function TemplateCard({
@@ -36,24 +36,29 @@ function TemplateCard({
 }) {
   const name = template.templateName ?? template.title;
   const icon = TEMPLATE_ICONS[name] ?? name.charAt(0).toUpperCase();
-  const colorClass = TEMPLATE_COLORS[name] ?? "bg-gray-100 text-gray-700";
+  const colors = TEMPLATE_COLORS[name] ?? {
+    bg: "bg-gray-100",
+    text: "text-gray-700",
+  };
 
   return (
     <button
       onClick={() => onUse(template.id)}
-      className="flex flex-col items-center gap-2 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-[#1a73e8] hover:shadow-md cursor-pointer text-center"
+      className="group/card flex min-w-[160px] flex-col items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-5 transition-all hover:border-[#1a73e8] hover:shadow-md hover:scale-[1.02] cursor-pointer text-center"
       data-testid={`template-card-${template.id}`}
       type="button"
     >
       <div
-        className={`w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold ${colorClass}`}
+        className={`flex h-12 w-12 items-center justify-center rounded-full text-xl font-bold ${colors.bg} ${colors.text}`}
       >
         {icon}
       </div>
-      <span className="text-sm font-medium text-gray-800">{name}</span>
-      <span className="text-xs text-gray-400">
-        {template.owner.name ?? "GridSpace"}
-      </span>
+      <div className="flex flex-col items-center gap-0.5">
+        <span className="text-sm font-medium text-gray-800">{name}</span>
+        <span className="text-xs text-gray-400">
+          {template.owner.name ?? "GridSpace"}
+        </span>
+      </div>
     </button>
   );
 }
@@ -83,16 +88,24 @@ export function TemplateGallery() {
 
   if (isLoading) {
     return (
-      <div className="mb-8" data-testid="template-gallery-loading">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">
-          Start with a template
-        </h2>
-        <div className="flex gap-3 overflow-x-auto pb-2">
+      <div data-testid="template-gallery-loading">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-gray-800">
+            Start with a template
+          </h2>
+        </div>
+        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-28 h-28 rounded-lg border border-gray-200 bg-gray-50 animate-pulse"
-            />
+              className="flex min-w-[160px] flex-col items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-5 animate-pulse"
+            >
+              <div className="h-12 w-12 rounded-full bg-gray-200" />
+              <div className="flex flex-col items-center gap-1">
+                <div className="h-4 w-16 rounded bg-gray-200" />
+                <div className="h-3 w-12 rounded bg-gray-200" />
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -102,15 +115,25 @@ export function TemplateGallery() {
   if (templates.length === 0) return null;
 
   return (
-    <div className="mb-8" data-testid="template-gallery">
-      <h2 className="text-sm font-semibold text-gray-700 mb-3">
-        Start with a template
-      </h2>
-      <div className="flex gap-3 overflow-x-auto pb-2">
+    <div data-testid="template-gallery">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-base font-semibold text-gray-800">
+          Start with a template
+        </h2>
+        <button
+          className="text-sm font-medium text-[#1a73e8] transition-colors hover:text-[#1765cc]"
+          type="button"
+        >
+          View all
+          <span className="ml-1">&rarr;</span>
+        </button>
+      </div>
+      <div
+        className="flex gap-4 overflow-x-auto pb-2"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
         {templates.map((t) => (
-          <div key={t.id} className="flex-shrink-0">
-            <TemplateCard template={t} onUse={handleUseTemplate} />
-          </div>
+          <TemplateCard key={t.id} template={t} onUse={handleUseTemplate} />
         ))}
       </div>
     </div>

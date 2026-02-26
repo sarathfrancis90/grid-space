@@ -15,6 +15,10 @@ const envSchema = z.object({
   COMMIT_SHA: z.string().default("dev"),
   SENTRY_DSN: z.string().default(""),
   LOG_LEVEL: z.string().default(""),
+  GOOGLE_CLIENT_ID: z.string().default(""),
+  GOOGLE_CLIENT_SECRET: z.string().default(""),
+  GITHUB_CLIENT_ID: z.string().default(""),
+  GITHUB_CLIENT_SECRET: z.string().default(""),
 });
 
 type Env = z.infer<typeof envSchema>;
