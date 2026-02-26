@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import prisma from "../models/prisma";
 import { NotFoundError, ForbiddenError } from "../utils/AppError";
 import logger from "../utils/logger";
@@ -134,8 +135,7 @@ export async function listSpreadsheets(
     limit,
   } = options;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = {};
+  const where: Prisma.SpreadsheetWhereInput = {};
 
   switch (filter) {
     case "owned":

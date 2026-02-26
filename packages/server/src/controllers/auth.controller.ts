@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import type { AuthRequest } from "../types/index";
 import * as authService from "../services/auth.service";
-import { apiSuccess } from "../utils/apiResponse";
+import { apiSuccess, apiError } from "../utils/apiResponse";
 
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
@@ -71,10 +71,7 @@ export async function refresh(
   try {
     const token = req.cookies?.refreshToken;
     if (!token) {
-      res.status(401).json({
-        success: false,
-        error: { code: 401, message: "Refresh token required" },
-      });
+      res.status(401).json(apiError(401, "Refresh token required"));
       return;
     }
 
@@ -206,20 +203,20 @@ export async function deleteAccount(
 // OAuth stubs — route structure ready, actual OAuth requires client IDs
 export function oauthGoogleRedirect(_req: Request, res: Response): void {
   // TODO: Sprint 10 — implement with Passport Google Strategy
-  res.status(501).json(apiSuccess({ message: "Google OAuth not configured" }));
+  res.status(501).json(apiError(501, "Google OAuth not configured"));
 }
 
 export function oauthGoogleCallback(_req: Request, res: Response): void {
   // TODO: Sprint 10 — handle Google callback, issue JWT, redirect to client
-  res.status(501).json(apiSuccess({ message: "Google OAuth not configured" }));
+  res.status(501).json(apiError(501, "Google OAuth not configured"));
 }
 
 export function oauthGithubRedirect(_req: Request, res: Response): void {
   // TODO: Sprint 10 — implement with Passport GitHub Strategy
-  res.status(501).json(apiSuccess({ message: "GitHub OAuth not configured" }));
+  res.status(501).json(apiError(501, "GitHub OAuth not configured"));
 }
 
 export function oauthGithubCallback(_req: Request, res: Response): void {
   // TODO: Sprint 10 — handle GitHub callback, issue JWT, redirect to client
-  res.status(501).json(apiSuccess({ message: "GitHub OAuth not configured" }));
+  res.status(501).json(apiError(501, "GitHub OAuth not configured"));
 }
