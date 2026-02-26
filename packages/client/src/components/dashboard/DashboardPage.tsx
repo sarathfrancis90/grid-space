@@ -39,11 +39,22 @@ export default function DashboardPage() {
     setPage,
   } = useCloudStore();
 
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [searchInput, setSearchInput] = useState(search);
 
   useEffect(() => {
-    fetchSpreadsheets();
-  }, [filter, search, sortBy, sortDir, page, fetchSpreadsheets]);
+    if (isAuthenticated) {
+      fetchSpreadsheets();
+    }
+  }, [
+    isAuthenticated,
+    filter,
+    search,
+    sortBy,
+    sortDir,
+    page,
+    fetchSpreadsheets,
+  ]);
 
   // Debounce search
   useEffect(() => {

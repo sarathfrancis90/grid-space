@@ -128,6 +128,10 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       refreshToken: async () => {
+        set((state) => {
+          state.isLoading = true;
+        });
+
         try {
           const data = await api.post<AuthResponse>("/auth/refresh");
 
@@ -136,12 +140,14 @@ export const useAuthStore = create<AuthStore>()(
           set((state) => {
             state.user = data.user;
             state.isAuthenticated = true;
+            state.isLoading = false;
           });
         } catch {
           setAccessToken(null);
           set((state) => {
             state.user = null;
             state.isAuthenticated = false;
+            state.isLoading = false;
           });
         }
       },
