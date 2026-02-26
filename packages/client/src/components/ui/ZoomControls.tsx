@@ -8,19 +8,19 @@ export const ZoomControls: React.FC = () => {
   const setZoom = useUIStore((s) => s.setZoom);
 
   return (
-    <div className="flex items-center gap-1" data-testid="zoom-controls">
+    <div className="flex items-center gap-0.5 px-2" data-testid="zoom-controls">
       <button
-        className="px-1 py-0.5 text-sm border rounded hover:bg-gray-100 disabled:opacity-50"
+        className="flex h-5 w-5 items-center justify-center rounded-sm text-xs text-gray-500 hover:bg-gray-200 disabled:opacity-40"
         data-testid="zoom-out"
         disabled={zoom <= 50}
         onClick={() => setZoom(zoom - 10)}
         aria-label="Zoom out"
       >
-        -
+        −
       </button>
 
       <select
-        className="text-xs border rounded px-1 py-0.5 w-16 text-center"
+        className="h-5 w-14 rounded-sm border-none bg-transparent px-0.5 text-center text-xs text-gray-500"
         value={zoom}
         onChange={(e) => setZoom(Number(e.target.value))}
         data-testid="zoom-select"
@@ -34,7 +34,7 @@ export const ZoomControls: React.FC = () => {
       </select>
 
       <button
-        className="px-1 py-0.5 text-sm border rounded hover:bg-gray-100 disabled:opacity-50"
+        className="flex h-5 w-5 items-center justify-center rounded-sm text-xs text-gray-500 hover:bg-gray-200 disabled:opacity-40"
         data-testid="zoom-in"
         disabled={zoom >= 200}
         onClick={() => setZoom(zoom + 10)}

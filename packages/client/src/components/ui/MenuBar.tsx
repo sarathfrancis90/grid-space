@@ -408,13 +408,13 @@ export function MenuBar() {
     <div
       ref={menuRef}
       data-testid="menu-bar"
-      className="flex items-center bg-white border-b border-gray-200 px-1"
+      className="flex items-center bg-white px-1"
     >
       {menus.map((menu) => (
         <div key={menu.label} className="relative">
           <button
             data-testid={menu.testId}
-            className={`px-3 py-1 text-sm rounded hover:bg-gray-100 ${
+            className={`px-3 py-0.5 text-[13px] text-gray-700 rounded-sm hover:bg-gray-100 ${
               openMenu === menu.label ? "bg-gray-200" : ""
             }`}
             onClick={() => handleMenuClick(menu.label)}
@@ -425,7 +425,7 @@ export function MenuBar() {
           {openMenu === menu.label && (
             <div
               data-testid={`${menu.testId}-dropdown`}
-              className="absolute left-0 top-full z-50 bg-white border border-gray-300 rounded shadow-lg py-1 min-w-52"
+              className="absolute left-0 top-full z-50 bg-white border border-gray-200 rounded-md shadow-lg py-1 min-w-52"
             >
               {menu.items.map((item, idx) => (
                 <div key={idx}>
@@ -434,7 +434,7 @@ export function MenuBar() {
                   )}
                   <button
                     data-testid={item.testId}
-                    className="w-full flex items-center justify-between px-4 py-1.5 text-sm hover:bg-gray-100"
+                    className="w-full flex items-center justify-between px-4 py-1 text-[13px] hover:bg-gray-100"
                     onClick={item.action}
                     type="button"
                   >

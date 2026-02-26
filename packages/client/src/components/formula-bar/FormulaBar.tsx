@@ -121,7 +121,7 @@ export function FormulaBar() {
   return (
     <div
       data-testid="formula-bar"
-      className="flex items-center border-b border-gray-300 bg-white h-8"
+      className="flex items-center border-b border-gray-200 bg-gray-50 h-7"
     >
       {/* Name box */}
       <div className="flex-shrink-0 w-24 border-r border-gray-300">
@@ -134,12 +134,12 @@ export function FormulaBar() {
           onFocus={handleNameBoxFocus}
           onBlur={handleNameBoxBlur}
           onKeyDown={handleNameBoxKeyDown}
-          className="w-full h-full px-2 text-xs text-center font-medium outline-none"
+          className="h-full w-full bg-white px-2 text-xs text-center font-medium outline-none border border-gray-300"
         />
       </div>
 
       {/* fx label */}
-      <div className="flex-shrink-0 px-2 text-gray-400 text-sm font-bold select-none">
+      <div className="flex-shrink-0 px-2 text-gray-400 text-[13px] italic select-none">
         fx
       </div>
 
@@ -152,7 +152,7 @@ export function FormulaBar() {
         onChange={handleFormulaChange}
         onFocus={handleFormulaFocus}
         onKeyDown={handleFormulaKeyDown}
-        className="flex-1 h-full px-2 text-sm outline-none"
+        className="flex-1 h-full bg-transparent px-2 text-[13px] outline-none focus:border-b focus:border-blue-400"
         readOnly={!isEditing}
       />
     </div>

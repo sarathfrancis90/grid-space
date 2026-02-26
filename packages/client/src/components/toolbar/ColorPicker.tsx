@@ -108,17 +108,19 @@ export function ColorPicker({
     <div ref={containerRef} className="relative inline-block">
       <button
         data-testid={`color-picker-${label.toLowerCase().replace(/\s/g, "-")}`}
-        className="flex items-center gap-1 px-2 py-1 border border-gray-300 rounded hover:bg-gray-100 text-xs"
+        className="flex items-center gap-0.5 h-6 px-1 rounded-sm hover:bg-gray-100 text-xs"
         onClick={() => setIsOpen(!isOpen)}
         title={label}
         type="button"
       >
-        <span className="text-xs">{label === "Text color" ? "A" : "⬛"}</span>
+        <span className="text-[11px]">
+          {label === "Text color" ? "A" : "⬛"}
+        </span>
         <span
-          className="w-4 h-1 block"
+          className="block h-0.5 w-3.5"
           style={{ backgroundColor: currentColor }}
         />
-        <span className="text-[8px]">▼</span>
+        <span className="text-[7px] text-gray-500">▼</span>
       </button>
       {isOpen && (
         <div

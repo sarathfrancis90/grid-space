@@ -53,6 +53,7 @@ export default function SpreadsheetEditorPage() {
     fetchSpreadsheet,
     updateSpreadsheet,
     clearCurrent,
+    toggleStar,
   } = useCloudStore();
 
   const showFormulaBar = useUIStore((s) => s.showFormulaBar);
@@ -88,6 +89,10 @@ export default function SpreadsheetEditorPage() {
     if (id) openShareDialog(id);
   }, [id, openShareDialog]);
 
+  const handleToggleStar = useCallback(() => {
+    if (id) toggleStar(id);
+  }, [id, toggleStar]);
+
   if (isLoading || error || !currentSpreadsheet) {
     return <SpreadsheetLoader />;
   }
@@ -98,39 +103,24 @@ export default function SpreadsheetEditorPage() {
       data-testid="spreadsheet-editor"
     >
       {/* Title bar */}
-      <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-3 py-1.5">
+      <div className="flex items-center gap-2 bg-white px-3 py-1">
         <button
           onClick={() => navigate("/dashboard")}
-          className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          className="rounded p-0.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
           data-testid="back-to-dashboard"
           title="Back to dashboard"
         >
           <svg
-            className="h-5 w-5"
-            fill="none"
+            className="h-5 w-5 text-[#0F9D58]"
             viewBox="0 0 24 24"
-            stroke="currentColor"
+            fill="currentColor"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" opacity="0.5" />
           </svg>
         </button>
-
-        <svg
-          className="h-6 w-6 text-green-600"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          data-testid="gridspace-icon"
-        >
-          <rect x="3" y="3" width="7" height="7" rx="1" />
-          <rect x="14" y="3" width="7" height="7" rx="1" />
-          <rect x="3" y="14" width="7" height="7" rx="1" />
-          <rect x="14" y="14" width="7" height="7" rx="1" opacity="0.5" />
-        </svg>
 
         {isRenaming ? (
           <input
@@ -148,7 +138,7 @@ export default function SpreadsheetEditorPage() {
           />
         ) : (
           <h2
-            className="cursor-pointer truncate text-sm font-medium text-gray-900 hover:text-blue-600"
+            className="cursor-pointer truncate text-sm font-medium text-gray-800 hover:text-blue-600"
             onClick={() => {
               setTitleInput(currentSpreadsheet.title);
               setIsRenaming(true);
@@ -159,6 +149,27 @@ export default function SpreadsheetEditorPage() {
           </h2>
         )}
 
+        <button
+          onClick={handleToggleStar}
+          className="rounded p-0.5 hover:bg-gray-100"
+          data-testid="star-toggle"
+          title={
+            currentSpreadsheet.isStarred
+              ? "Remove from starred"
+              : "Add to starred"
+          }
+        >
+          <svg
+            className="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill={currentSpreadsheet.isStarred ? "#FBBC04" : "none"}
+            stroke={currentSpreadsheet.isStarred ? "#FBBC04" : "#9CA3AF"}
+            strokeWidth="2"
+          >
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+        </button>
+
         <SaveIndicator />
 
         <div className="ml-auto flex items-center gap-2">
@@ -166,7 +177,7 @@ export default function SpreadsheetEditorPage() {
           <CollaboratorAvatars />
           <button
             onClick={handleShare}
-            className="rounded-full bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-full bg-blue-500 px-4 py-1 text-sm font-medium text-white hover:bg-blue-600"
             data-testid="share-button"
           >
             Share
@@ -204,8 +215,8 @@ export default function SpreadsheetEditorPage() {
       <SheetTabs />
 
       {/* Status bar + zoom */}
-      <div className="flex items-center border-t border-gray-200 bg-gray-50">
-        <div className="flex-1">
+      <div className="flex h-6 items-center border-t border-gray-200 bg-gray-50">
+        <div className="ml-auto flex flex-1 items-center justify-end">
           <StatusBar />
         </div>
         <ZoomControls />

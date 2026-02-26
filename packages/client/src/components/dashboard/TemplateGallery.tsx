@@ -41,7 +41,7 @@ function TemplateCard({
   return (
     <button
       onClick={() => onUse(template.id)}
-      className="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer text-center"
+      className="flex flex-col items-center gap-2 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-emerald-400 hover:shadow-md cursor-pointer text-center"
       data-testid={`template-card-${template.id}`}
       type="button"
     >
@@ -91,7 +91,7 @@ export function TemplateGallery() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-28 h-28 rounded-lg border border-gray-200 bg-gray-100 animate-pulse"
+              className="flex-shrink-0 w-28 h-28 rounded-lg border border-gray-200 bg-gray-50 animate-pulse"
             />
           ))}
         </div>

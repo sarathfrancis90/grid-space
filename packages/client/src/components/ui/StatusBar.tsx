@@ -69,7 +69,7 @@ export function StatusBar() {
     return (
       <div
         data-testid="status-bar"
-        className="flex items-center h-6 px-2 bg-gray-50 border-t border-gray-300 text-xs text-gray-500"
+        className="flex items-center px-3 text-xs text-gray-500"
       >
         <span>Ready</span>
       </div>
@@ -84,7 +84,7 @@ export function StatusBar() {
   return (
     <div
       data-testid="status-bar"
-      className="flex items-center h-6 px-2 bg-gray-50 border-t border-gray-300 text-xs text-gray-600 gap-4"
+      className="flex items-center px-3 text-xs text-gray-500 gap-4"
     >
       <span data-testid="status-sum">SUM: {fmt(stats.sum)}</span>
       <span data-testid="status-average">AVG: {fmt(stats.avg)}</span>
