@@ -7,13 +7,124 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ─── USER ──────────────────────────────────────────────────
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  password  String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  avatarUrl      String?   @map("avatar_url")
+  passwordHash   String?   @map("password_hash")
+  oauthProvider  String?   @map("oauth_provider")
+  oauthId        String?   @map("oauth_id")
+  emailVerified  Boolean   @default(false) @map("email_verified")
+  tokenVersion   Int       @default(0) @map("token_version")
 
+  ownedSpreadsheets  Spreadsheet[]       @relation("OwnedSpreadsheets")
+  access             SpreadsheetAccess[]
+  versions           Version[]
+
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@unique([oauthProvider, oauthId])
+  @@index([email])
   @@map("users")
+}
+
+// ─── SPREADSHEET ───────────────────────────────────────────
+model Spreadsheet {
+  id             String    @id @default(cuid())
+  title          String    @default("Untitled Spreadsheet")
+
+  ownerId        String    @map("owner_id")
+  owner          User      @relation("OwnedSpreadsheets", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  shareLink      String?   @unique @map("share_link")
+  shareLinkRole  String?   @map("share_link_role")
+  isPublished    Boolean   @default(false) @map("is_published")
+
+  isStarred      Boolean   @default(false) @map("is_starred")
+  isTemplate     Boolean   @default(false) @map("is_template")
+  templateName   String?   @map("template_name")
+
+  sheets         Sheet[]
+  access         SpreadsheetAccess[]
+  versions       Version[]
+
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([ownerId])
+  @@index([updatedAt])
+  @@map("spreadsheets")
+}
+
+// ─── ACCESS CONTROL ────────────────────────────────────────
+model SpreadsheetAccess {
+  id             String      @id @default(cuid())
+
+  spreadsheetId  String      @map("spreadsheet_id")
+  spreadsheet    Spreadsheet @relation(fields: [spreadsheetId], references: [id], onDelete: Cascade)
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role           String      @default("viewer")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@unique([spreadsheetId, userId])
+  @@index([userId])
+  @@index([spreadsheetId])
+  @@map("spreadsheet_access")
+}
+
+// ─── SHEET (TAB) ───────────────────────────────────────────
+model Sheet {
+  id             String      @id @default(cuid())
+
+  spreadsheetId  String      @map("spreadsheet_id")
+  spreadsheet    Spreadsheet @relation(fields: [spreadsheetId], references: [id], onDelete: Cascade)
+
+  name           String      @default("Sheet1")
+  index          Int         @default(0)
+  color          String?
+  isHidden       Boolean     @default(false) @map("is_hidden")
+
+  cellData       Json        @default("{}") @map("cell_data")
+  columnMeta     Json        @default("{}") @map("column_meta")
+  rowMeta        Json        @default("{}") @map("row_meta")
+
+  frozenRows     Int         @default(0) @map("frozen_rows")
+  frozenCols     Int         @default(0) @map("frozen_cols")
+
+  filterState    Json?       @map("filter_state")
+  sortState      Json?       @map("sort_state")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@unique([spreadsheetId, index])
+  @@index([spreadsheetId])
+  @@map("sheets")
+}
+
+// ─── VERSION HISTORY ───────────────────────────────────────
+model Version {
+  id             String      @id @default(cuid())
+
+  spreadsheetId  String      @map("spreadsheet_id")
+  spreadsheet    Spreadsheet @relation(fields: [spreadsheetId], references: [id], onDelete: Cascade)
+
+  createdById    String      @map("created_by_id")
+  createdBy      User        @relation(fields: [createdById], references: [id])
+
+  name           String?
+  snapshot       Json
+  changeset      Json?
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@index([spreadsheetId, createdAt])
+  @@map("versions")
 }

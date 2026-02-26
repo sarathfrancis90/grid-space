@@ -3,29 +3,52 @@ import cors from "cors";
 import helmet from "helmet";
 import path from "path";
 import { env } from "./config/env";
-import featureCount from "./generated/feature-count.json";
+import { requestLogger } from "./middleware/logging.middleware";
+import { globalLimiter } from "./middleware/rateLimit.middleware";
+import { sanitize } from "./middleware/sanitize.middleware";
+import { csrfProtection } from "./middleware/csrf.middleware";
+import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
+import apiRouter from "./routes/index";
 
 const app = express();
 
-// Security headers
+// 1. Security headers
 app.use(
   helmet({
     contentSecurityPolicy: false,
   }),
 );
 
-// CORS
+// 2. CORS
 app.use(
   cors({
-    origin: env.NODE_ENV === "production" ? true : env.CLIENT_URL,
+    origin: env.NODE_ENV === "production" ? env.CLIENT_URL : true,
     credentials: true,
   }),
 );
 
-// Body parsing
+// 3. Body parsing
 app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Health check
+// 4. Request logging
+app.use(requestLogger);
+
+// 5. Rate limiting
+app.use(globalLimiter);
+
+// 6. Input sanitization (XSS prevention)
+app.use(sanitize);
+
+// 7. CSRF protection
+if (env.NODE_ENV === "production") {
+  app.use(csrfProtection(env.CLIENT_URL));
+}
+
+// 8. API routes
+app.use("/api", apiRouter);
+
+// Legacy health endpoint (kept for backward compatibility)
 app.get("/health", (_req, res) => {
   res.json({
     status: "healthy",
@@ -35,16 +58,7 @@ app.get("/health", (_req, res) => {
   });
 });
 
-// Status endpoint — feature progress
-app.get("/api/status", (_req, res) => {
-  res.json({
-    app: "GridSpace",
-    version: "0.1.0",
-    features: featureCount,
-  });
-});
-
-// Static frontend serving in production
+// 9. Static frontend serving in production
 if (env.NODE_ENV === "production") {
   const clientDistPath = path.join(__dirname, "public");
 
@@ -68,5 +82,11 @@ if (env.NODE_ENV === "production") {
     res.sendFile(path.join(clientDistPath, "index.html"));
   });
 }
+
+// 10. Not found handler
+app.use(notFoundHandler);
+
+// 11. Global error handler (must be last)
+app.use(errorHandler);
 
 export { app };

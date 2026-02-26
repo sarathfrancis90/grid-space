@@ -365,7 +365,7 @@
     "category": "formula",
     "name": "Cell reference A1 style",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-006",
@@ -373,7 +373,7 @@
     "category": "formula",
     "name": "Absolute reference $A$1",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-007",
@@ -381,7 +381,7 @@
     "category": "formula",
     "name": "Mixed references $A1 and A$1",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-008",
@@ -389,7 +389,7 @@
     "category": "formula",
     "name": "Range reference A1:B5",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-009",
@@ -397,7 +397,7 @@
     "category": "formula",
     "name": "Cross-sheet reference Sheet2!A1",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-010",
@@ -405,7 +405,7 @@
     "category": "formula",
     "name": "Dependency graph recalculates on edit",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-011",
@@ -413,7 +413,7 @@
     "category": "formula",
     "name": "Circular reference detection shows #REF!",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-012",
@@ -421,7 +421,7 @@
     "category": "formula",
     "name": "Error values: #DIV/0!, #VALUE!, #NAME?, #N/A, #NUM!, #NULL!, #REF!",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-013",
@@ -429,7 +429,7 @@
     "category": "formula",
     "name": "SUM, AVERAGE, COUNT, COUNTA, COUNTBLANK",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-014",
@@ -437,7 +437,7 @@
     "category": "formula",
     "name": "MIN, MAX functions",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-015",
@@ -445,7 +445,7 @@
     "category": "formula",
     "name": "IF, IFS, SWITCH functions",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-016",
@@ -453,7 +453,7 @@
     "category": "formula",
     "name": "AND, OR, NOT, XOR, IFERROR, IFNA",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-017",
@@ -645,7 +645,7 @@
     "category": "formula",
     "name": "Nested formulas work correctly",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S2-041",
@@ -653,7 +653,7 @@
     "category": "formula",
     "name": "Operator precedence: ^ > */  > +- > & > comparisons",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "S3-001",
