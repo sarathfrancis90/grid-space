@@ -415,7 +415,8 @@ export function MenuBar() {
     <div
       ref={menuRef}
       data-testid="menu-bar"
-      className="flex items-center bg-white px-1 h-7"
+      className="flex items-center bg-white px-2 h-7"
+      style={{ padding: "0 8px", height: "28px" }}
     >
       {menus.map((menu) => (
         <div key={menu.label} className="relative">

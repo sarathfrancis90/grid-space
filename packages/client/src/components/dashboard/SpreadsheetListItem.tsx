@@ -38,13 +38,56 @@ export function SpreadsheetListItem({
 
   return (
     <div
-      className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50"
+      className="group flex items-center gap-4 px-5 py-3 transition-colors hover:bg-gray-50"
+      style={{ padding: "12px 20px" }}
       data-testid={`spreadsheet-list-item-${spreadsheet.id}`}
     >
+      {/* Spreadsheet icon */}
+      <svg
+        width="16"
+        height="20"
+        viewBox="0 0 18 22"
+        fill="none"
+        className="flex-shrink-0"
+      >
+        <path
+          d="M1 3a2 2 0 012-2h8l6 6v12a2 2 0 01-2 2H3a2 2 0 01-2-2V3z"
+          fill="#0f9d58"
+        />
+        <path d="M11 1l6 6h-4a2 2 0 01-2-2V1z" fill="#87ceab" />
+        <rect
+          x="4"
+          y="10"
+          width="10"
+          height="1.5"
+          rx="0.5"
+          fill="white"
+          opacity="0.7"
+        />
+        <rect
+          x="4"
+          y="13"
+          width="10"
+          height="1.5"
+          rx="0.5"
+          fill="white"
+          opacity="0.7"
+        />
+        <rect
+          x="4"
+          y="16"
+          width="6"
+          height="1.5"
+          rx="0.5"
+          fill="white"
+          opacity="0.7"
+        />
+      </svg>
+
       {/* Star */}
       <button
         onClick={() => onToggleStar(spreadsheet.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-yellow-500"
+        className="flex-shrink-0 text-gray-300 transition-colors hover:text-yellow-500"
         data-testid={`list-star-btn-${spreadsheet.id}`}
       >
         {spreadsheet.isStarred ? (
@@ -117,13 +160,13 @@ export function SpreadsheetListItem({
       )}
 
       {/* Actions */}
-      <div className="flex flex-shrink-0 items-center gap-1">
+      <div className="flex flex-shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
         <button
           onClick={(e) => {
             e.stopPropagation();
             setIsRenaming(true);
           }}
-          className="rounded p-1 text-gray-400 hover:bg-gray-200"
+          className="rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
           title="Rename"
           data-testid={`list-rename-btn-${spreadsheet.id}`}
         >
@@ -146,7 +189,7 @@ export function SpreadsheetListItem({
             e.stopPropagation();
             onDuplicate(spreadsheet.id);
           }}
-          className="rounded p-1 text-gray-400 hover:bg-gray-200"
+          className="rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
           title="Duplicate"
           data-testid={`list-duplicate-btn-${spreadsheet.id}`}
         >
@@ -170,7 +213,7 @@ export function SpreadsheetListItem({
               e.stopPropagation();
               onDelete(spreadsheet.id);
             }}
-            className="rounded p-1 text-gray-400 hover:bg-red-100 hover:text-red-600"
+            className="rounded-full p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
             title="Delete"
             data-testid={`list-delete-btn-${spreadsheet.id}`}
           >

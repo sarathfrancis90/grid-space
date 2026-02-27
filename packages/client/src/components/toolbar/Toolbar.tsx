@@ -57,7 +57,12 @@ function useSelectionFormat(): CellFormat | undefined {
 
 /** Thin vertical divider between toolbar groups */
 function Divider() {
-  return <div className="mx-0.5 h-5 w-px bg-gray-300" />;
+  return (
+    <div
+      className="mx-1.5 h-5 w-px bg-gray-300"
+      style={{ margin: "0 6px", height: "20px", minWidth: "1px" }}
+    />
+  );
 }
 
 export function Toolbar() {
@@ -239,7 +244,8 @@ export function Toolbar() {
   return (
     <div
       data-testid="toolbar"
-      className="flex items-center gap-0.5 px-2 py-0.5 bg-gray-50 border-b border-gray-200 flex-wrap"
+      className="flex items-center gap-0.5 px-2 py-1 bg-[#f3f3f3] border-b border-gray-200 flex-wrap"
+      style={{ padding: "4px 8px" }}
     >
       {/* Undo / Redo */}
       <button

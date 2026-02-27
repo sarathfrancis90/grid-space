@@ -252,11 +252,29 @@ export const CommandPalette: React.FC = () => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/20"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        paddingTop: "80px",
+        background: "rgba(0,0,0,0.2)",
+      }}
       data-testid="command-palette-overlay"
       onClick={() => close(false)}
     >
       <div
         className="bg-white rounded-lg shadow-xl w-96 max-h-96 overflow-hidden"
+        style={{
+          backgroundColor: "white",
+          borderRadius: "8px",
+          width: "384px",
+          maxHeight: "384px",
+          overflow: "hidden",
+          boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
+        }}
         data-testid="command-palette"
         onClick={(e) => e.stopPropagation()}
       >
@@ -264,13 +282,23 @@ export const CommandPalette: React.FC = () => {
           ref={inputRef}
           type="text"
           className="w-full px-4 py-3 border-b text-sm outline-none"
+          style={{
+            width: "100%",
+            padding: "12px 16px",
+            borderBottom: "1px solid #e5e7eb",
+            fontSize: "14px",
+            outline: "none",
+          }}
           placeholder="Search commands..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           data-testid="command-palette-input"
         />
-        <div className="max-h-72 overflow-y-auto">
+        <div
+          className="max-h-72 overflow-y-auto"
+          style={{ maxHeight: "288px", overflowY: "auto" }}
+        >
           {filtered.map((cmd, idx) => (
             <button
               key={cmd.id}
@@ -279,6 +307,14 @@ export const CommandPalette: React.FC = () => {
                   ? "bg-blue-50 text-blue-700"
                   : "hover:bg-gray-50"
               }`}
+              style={{
+                width: "100%",
+                textAlign: "left",
+                padding: "8px 16px",
+                fontSize: "14px",
+                display: "flex",
+                justifyContent: "space-between",
+              }}
               data-testid={`cmd-${cmd.id}`}
               onClick={() => {
                 cmd.action();
@@ -287,11 +323,23 @@ export const CommandPalette: React.FC = () => {
               onMouseEnter={() => setSelectedIndex(idx)}
             >
               <span>{cmd.label}</span>
-              <span className="text-xs text-gray-400">{cmd.category}</span>
+              <span
+                className="text-xs text-gray-400"
+                style={{ fontSize: "12px", color: "#9ca3af" }}
+              >
+                {cmd.category}
+              </span>
             </button>
           ))}
           {filtered.length === 0 && (
-            <div className="px-4 py-3 text-sm text-gray-400">
+            <div
+              className="px-4 py-3 text-sm text-gray-400"
+              style={{
+                padding: "12px 16px",
+                fontSize: "14px",
+                color: "#9ca3af",
+              }}
+            >
               No commands found
             </div>
           )}

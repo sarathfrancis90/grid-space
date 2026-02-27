@@ -110,16 +110,18 @@ export function SheetTabs() {
   return (
     <div
       data-testid="sheet-tabs-container"
-      className="flex items-center h-8 bg-gray-100 border-t border-gray-300 pl-1 overflow-hidden select-none"
+      className="flex items-center h-9 bg-[#f0f0f0] border-t border-gray-300 pl-2 overflow-hidden select-none"
+      style={{ height: "36px", paddingLeft: "8px" }}
     >
       <button
         data-testid="add-sheet-btn"
         onClick={() => addSheet()}
-        className="w-7 h-7 border border-gray-300 rounded bg-white cursor-pointer text-base leading-7 mr-1 flex items-center justify-center hover:bg-gray-50"
+        className="w-7 h-7 rounded hover:bg-gray-200 cursor-pointer text-lg text-gray-600 mr-1 flex items-center justify-center transition-colors"
+        style={{ width: "28px", height: "28px", marginRight: "4px" }}
       >
         +
       </button>
-      <div className="flex gap-px overflow-x-auto flex-1">
+      <div className="flex gap-px overflow-x-auto flex-1 items-end h-full">
         {sheets.map((sheet, idx) => (
           <div
             key={sheet.id}
@@ -131,15 +133,26 @@ export function SheetTabs() {
             onClick={() => handleTabClick(sheet.id)}
             onDoubleClick={() => handleDoubleClick(sheet.id, sheet.name)}
             onContextMenu={(e) => handleContextMenu(e, sheet.id)}
-            className={`px-3 py-1 cursor-pointer text-xs whitespace-nowrap min-w-[60px] text-center border-l border-r border-gray-300 ${
+            className={`px-4 cursor-pointer text-xs whitespace-nowrap min-w-[60px] text-center transition-colors ${
               sheet.id === activeSheetId
-                ? "bg-white border-t-2 border-t-blue-600"
-                : "bg-gray-200 border-t-2 border-t-transparent"
+                ? "bg-white text-gray-800 font-medium rounded-t border-l border-r border-t border-gray-300"
+                : "bg-transparent text-gray-600 hover:bg-gray-200/60 rounded-t border border-transparent"
             }`}
             style={{
+              padding: "6px 16px",
               borderBottom: sheet.tabColor
                 ? `3px solid ${sheet.tabColor}`
-                : "3px solid transparent",
+                : sheet.id === activeSheetId
+                  ? "none"
+                  : "3px solid transparent",
+              ...(sheet.id === activeSheetId
+                ? {
+                    borderTop: "3px solid #1a73e8",
+                    backgroundColor: "#fff",
+                    marginBottom: "-1px",
+                    paddingBottom: "7px",
+                  }
+                : { borderTop: "3px solid transparent" }),
             }}
           >
             {editingTabId === sheet.id ? (

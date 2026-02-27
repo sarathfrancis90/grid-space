@@ -18,6 +18,23 @@ interface SpreadsheetCardProps {
   onRename: (id: string, title: string) => Promise<void>;
 }
 
+const PREVIEW_PALETTES = [
+  { accent: "#4285f4", light: "#e8f0fe" }, // Blue
+  { accent: "#0f9d58", light: "#e6f4ea" }, // Green
+  { accent: "#f4b400", light: "#fef7e0" }, // Amber
+  { accent: "#db4437", light: "#fce8e6" }, // Red
+  { accent: "#ab47bc", light: "#f3e8f4" }, // Purple
+  { accent: "#00acc1", light: "#e0f7fa" }, // Teal
+];
+
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
 export function SpreadsheetCard({
   spreadsheet,
   onOpen,
@@ -38,69 +55,338 @@ export function SpreadsheetCard({
   };
 
   const timeAgo = formatTimeAgo(spreadsheet.updatedAt);
+  const palette =
+    PREVIEW_PALETTES[hashString(spreadsheet.id) % PREVIEW_PALETTES.length];
 
   return (
     <div
       className="group relative rounded-xl border border-gray-200 bg-white transition-all hover:shadow-lg hover:border-gray-300"
       data-testid={`spreadsheet-card-${spreadsheet.id}`}
     >
-      {/* Preview area */}
+      {/* Preview area — mini spreadsheet visualization */}
       <div
-        className="flex h-36 cursor-pointer items-center justify-center rounded-t-xl bg-gradient-to-br from-gray-50 to-gray-100"
+        className="cursor-pointer overflow-hidden rounded-t-xl"
+        style={{ height: 140, backgroundColor: palette.light }}
         onClick={() => onOpen(spreadsheet.id)}
         data-testid={`open-spreadsheet-${spreadsheet.id}`}
       >
         <svg
-          className="h-12 w-12 text-gray-300"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+          width="100%"
+          height="100%"
+          viewBox="0 0 200 140"
+          preserveAspectRatio="xMidYMid slice"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1}
-            d="M3 10h18M3 14h18M3 6h18M3 18h18"
+          {/* Colored header row */}
+          <rect
+            x="0"
+            y="0"
+            width="200"
+            height="26"
+            fill={palette.accent}
+            opacity="0.13"
+          />
+          <rect
+            x="14"
+            y="7"
+            width="36"
+            height="11"
+            rx="2"
+            fill={palette.accent}
+            opacity="0.32"
+          />
+          <rect
+            x="60"
+            y="7"
+            width="28"
+            height="11"
+            rx="2"
+            fill={palette.accent}
+            opacity="0.22"
+          />
+          <rect
+            x="98"
+            y="7"
+            width="34"
+            height="11"
+            rx="2"
+            fill={palette.accent}
+            opacity="0.22"
+          />
+          <rect
+            x="142"
+            y="7"
+            width="40"
+            height="11"
+            rx="2"
+            fill={palette.accent}
+            opacity="0.22"
+          />
+          {/* Horizontal grid lines */}
+          <line
+            x1="0"
+            y1="26"
+            x2="200"
+            y2="26"
+            stroke={palette.accent}
+            strokeWidth="0.6"
+            opacity="0.18"
+          />
+          {[50, 74, 98, 122].map((y) => (
+            <line
+              key={y}
+              x1="0"
+              y1={y}
+              x2="200"
+              y2={y}
+              stroke="#d1d5db"
+              strokeWidth="0.5"
+              opacity="0.6"
+            />
+          ))}
+          {/* Vertical grid lines */}
+          {[52, 90, 134].map((x) => (
+            <line
+              key={x}
+              x1={x}
+              y1="0"
+              x2={x}
+              y2="140"
+              stroke="#d1d5db"
+              strokeWidth="0.5"
+              opacity="0.5"
+            />
+          ))}
+          {/* Row data — row 1 */}
+          <rect
+            x="14"
+            y="33"
+            width="26"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.3"
+          />
+          <rect
+            x="60"
+            y="33"
+            width="20"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.25"
+          />
+          <rect
+            x="98"
+            y="33"
+            width="28"
+            height="9"
+            rx="1.5"
+            fill={palette.accent}
+            opacity="0.14"
+          />
+          <rect
+            x="142"
+            y="33"
+            width="18"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.22"
+          />
+          {/* Row data — row 2 */}
+          <rect
+            x="14"
+            y="57"
+            width="30"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.28"
+          />
+          <rect
+            x="60"
+            y="57"
+            width="16"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.22"
+          />
+          <rect
+            x="98"
+            y="57"
+            width="24"
+            height="9"
+            rx="1.5"
+            fill={palette.accent}
+            opacity="0.12"
+          />
+          <rect
+            x="142"
+            y="57"
+            width="24"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.25"
+          />
+          {/* Row data — row 3 */}
+          <rect
+            x="14"
+            y="81"
+            width="22"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.25"
+          />
+          <rect
+            x="60"
+            y="81"
+            width="24"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.2"
+          />
+          <rect
+            x="98"
+            y="81"
+            width="20"
+            height="9"
+            rx="1.5"
+            fill={palette.accent}
+            opacity="0.16"
+          />
+          <rect
+            x="142"
+            y="81"
+            width="30"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.2"
+          />
+          {/* Row data — row 4 */}
+          <rect
+            x="14"
+            y="105"
+            width="34"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.22"
+          />
+          <rect
+            x="60"
+            y="105"
+            width="18"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.18"
+          />
+          <rect
+            x="98"
+            y="105"
+            width="22"
+            height="9"
+            rx="1.5"
+            fill={palette.accent}
+            opacity="0.1"
+          />
+          <rect
+            x="142"
+            y="105"
+            width="14"
+            height="9"
+            rx="1.5"
+            fill="#9ca3af"
+            opacity="0.18"
           />
         </svg>
       </div>
 
       {/* Card body */}
-      <div className="p-4">
-        {/* Title */}
-        {isRenaming ? (
-          <input
-            type="text"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleRename();
-              if (e.key === "Escape") setIsRenaming(false);
-            }}
-            autoFocus
-            className="w-full rounded border border-[#1a73e8] px-1.5 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#1a73e8]/30"
-            data-testid={`rename-input-${spreadsheet.id}`}
-          />
-        ) : (
-          <h3
-            className="cursor-pointer truncate text-sm font-medium text-gray-900"
-            onClick={() => onOpen(spreadsheet.id)}
-            title={spreadsheet.title}
+      <div className="px-4 py-3" style={{ padding: "12px 16px" }}>
+        <div className="flex items-start gap-2.5">
+          {/* Green spreadsheet icon */}
+          <svg
+            width="18"
+            height="22"
+            viewBox="0 0 18 22"
+            fill="none"
+            className="mt-0.5 flex-shrink-0"
           >
-            {spreadsheet.title}
-          </h3>
-        )}
-
-        {/* Metadata */}
-        <p className="mt-1.5 flex items-center text-xs text-gray-400">
-          {timeAgo}
-          {spreadsheet.role !== "owner" && (
-            <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-              {spreadsheet.role}
-            </span>
-          )}
-        </p>
+            <path
+              d="M1 3a2 2 0 012-2h8l6 6v12a2 2 0 01-2 2H3a2 2 0 01-2-2V3z"
+              fill="#0f9d58"
+            />
+            <path d="M11 1l6 6h-4a2 2 0 01-2-2V1z" fill="#87ceab" />
+            <rect
+              x="4"
+              y="10"
+              width="10"
+              height="1.5"
+              rx="0.5"
+              fill="white"
+              opacity="0.7"
+            />
+            <rect
+              x="4"
+              y="13"
+              width="10"
+              height="1.5"
+              rx="0.5"
+              fill="white"
+              opacity="0.7"
+            />
+            <rect
+              x="4"
+              y="16"
+              width="6"
+              height="1.5"
+              rx="0.5"
+              fill="white"
+              opacity="0.7"
+            />
+          </svg>
+          <div className="min-w-0 flex-1">
+            {/* Title */}
+            {isRenaming ? (
+              <input
+                type="text"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onBlur={handleRename}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleRename();
+                  if (e.key === "Escape") setIsRenaming(false);
+                }}
+                autoFocus
+                className="w-full rounded border border-[#1a73e8] px-1.5 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#1a73e8]/30"
+                data-testid={`rename-input-${spreadsheet.id}`}
+              />
+            ) : (
+              <h3
+                className="cursor-pointer truncate text-sm font-medium text-gray-900"
+                onClick={() => onOpen(spreadsheet.id)}
+                title={spreadsheet.title}
+              >
+                {spreadsheet.title}
+              </h3>
+            )}
+            {/* Metadata */}
+            <p className="mt-1 flex items-center text-xs text-gray-400">
+              {timeAgo}
+              {spreadsheet.role !== "owner" && (
+                <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                  {spreadsheet.role}
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Star button */}

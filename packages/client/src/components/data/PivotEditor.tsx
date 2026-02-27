@@ -90,6 +90,7 @@ export function PivotEditor() {
   return (
     <div
       data-testid="pivot-editor"
+      className="fixed right-0 top-0 w-[300px] h-screen bg-white border-l border-gray-300 shadow-lg z-[200] flex flex-col overflow-auto"
       style={{
         position: "fixed",
         right: 0,
@@ -106,6 +107,7 @@ export function PivotEditor() {
       }}
     >
       <div
+        className="flex items-center justify-between p-3 border-b border-gray-300"
         style={{
           padding: "12px 16px",
           borderBottom: "1px solid #dadce0",
@@ -114,29 +116,38 @@ export function PivotEditor() {
           alignItems: "center",
         }}
       >
-        <h3 style={{ margin: 0, fontSize: 14 }}>Pivot Table Editor</h3>
+        <h3
+          className="text-sm font-semibold"
+          style={{ margin: 0, fontSize: "14px", fontWeight: 600 }}
+        >
+          Pivot Table Editor
+        </h3>
         <button
           data-testid="pivot-editor-close"
           onClick={closeEditor}
+          className="text-lg hover:bg-gray-100 rounded"
           style={{
             border: "none",
             background: "none",
             cursor: "pointer",
-            fontSize: 18,
+            fontSize: "18px",
+            padding: "2px 6px",
+            borderRadius: "4px",
           }}
         >
           &#10005;
         </button>
       </div>
 
-      <div style={{ padding: 16, flex: 1 }}>
+      <div className="p-4 flex-1" style={{ padding: "16px", flex: 1 }}>
         {/* Available columns */}
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-4" style={{ marginBottom: "16px" }}>
           <div
+            className="text-xs font-semibold mb-2 text-gray-600"
             style={{
-              fontSize: 12,
+              fontSize: "12px",
               fontWeight: 600,
-              marginBottom: 8,
+              marginBottom: "8px",
               color: "#444",
             }}
           >
@@ -146,25 +157,29 @@ export function PivotEditor() {
             <div
               key={col}
               data-testid={`pivot-field-${col}`}
+              className="flex items-center gap-1 border border-gray-200 rounded mb-1 px-2 py-1 text-xs"
               style={{
                 padding: "4px 8px",
-                fontSize: 12,
+                fontSize: "12px",
                 border: "1px solid #e2e2e2",
-                borderRadius: 4,
-                marginBottom: 4,
+                borderRadius: "4px",
+                marginBottom: "4px",
                 display: "flex",
-                gap: 4,
+                gap: "4px",
               }}
             >
-              <span style={{ flex: 1 }}>{label}</span>
+              <span className="flex-1" style={{ flex: 1 }}>
+                {label}
+              </span>
               <button
                 data-testid={`pivot-add-row-${col}`}
                 onClick={() => handleAddRowField(col, label)}
+                className="text-blue-600 hover:text-blue-800"
                 style={{
                   border: "none",
                   background: "none",
                   cursor: "pointer",
-                  fontSize: 10,
+                  fontSize: "10px",
                   color: "#1a73e8",
                 }}
               >
@@ -173,11 +188,12 @@ export function PivotEditor() {
               <button
                 data-testid={`pivot-add-col-${col}`}
                 onClick={() => handleAddColField(col, label)}
+                className="text-blue-600 hover:text-blue-800"
                 style={{
                   border: "none",
                   background: "none",
                   cursor: "pointer",
-                  fontSize: 10,
+                  fontSize: "10px",
                   color: "#1a73e8",
                 }}
               >
@@ -186,11 +202,12 @@ export function PivotEditor() {
               <button
                 data-testid={`pivot-add-value-${col}`}
                 onClick={() => handleAddValueField(col, label, "SUM")}
+                className="text-blue-600 hover:text-blue-800"
                 style={{
                   border: "none",
                   background: "none",
                   cursor: "pointer",
-                  fontSize: 10,
+                  fontSize: "10px",
                   color: "#1a73e8",
                 }}
               >
@@ -201,12 +218,13 @@ export function PivotEditor() {
         </div>
 
         {/* Row fields */}
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-4" style={{ marginBottom: "16px" }}>
           <div
+            className="text-xs font-semibold mb-1 text-gray-600"
             style={{
-              fontSize: 12,
+              fontSize: "12px",
               fontWeight: 600,
-              marginBottom: 4,
+              marginBottom: "4px",
               color: "#444",
             }}
           >
@@ -215,12 +233,13 @@ export function PivotEditor() {
           {pivot.rowFields.map((f, i) => (
             <div
               key={i}
+              className="flex items-center justify-between bg-blue-50 rounded mb-0.5 px-2 py-1 text-xs"
               style={{
                 padding: "4px 8px",
-                fontSize: 12,
+                fontSize: "12px",
                 background: "#e8f0fe",
-                borderRadius: 4,
-                marginBottom: 2,
+                borderRadius: "4px",
+                marginBottom: "2px",
                 display: "flex",
                 justifyContent: "space-between",
               }}
@@ -228,11 +247,12 @@ export function PivotEditor() {
               {f.label}
               <button
                 onClick={() => handleRemoveRowField(i)}
+                className="hover:text-red-500"
                 style={{
                   border: "none",
                   background: "none",
                   cursor: "pointer",
-                  fontSize: 10,
+                  fontSize: "10px",
                 }}
               >
                 &#10005;
@@ -240,19 +260,23 @@ export function PivotEditor() {
             </div>
           ))}
           {pivot.rowFields.length === 0 && (
-            <div style={{ fontSize: 11, color: "#999", padding: "4px 8px" }}>
+            <div
+              className="text-xs text-gray-400 px-2 py-1"
+              style={{ fontSize: "11px", color: "#999", padding: "4px 8px" }}
+            >
               Drag fields here
             </div>
           )}
         </div>
 
         {/* Column fields */}
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-4" style={{ marginBottom: "16px" }}>
           <div
+            className="text-xs font-semibold mb-1 text-gray-600"
             style={{
-              fontSize: 12,
+              fontSize: "12px",
               fontWeight: 600,
-              marginBottom: 4,
+              marginBottom: "4px",
               color: "#444",
             }}
           >
@@ -261,12 +285,13 @@ export function PivotEditor() {
           {pivot.colFields.map((f, i) => (
             <div
               key={i}
+              className="flex items-center justify-between bg-red-50 rounded mb-0.5 px-2 py-1 text-xs"
               style={{
                 padding: "4px 8px",
-                fontSize: 12,
+                fontSize: "12px",
                 background: "#fce8e6",
-                borderRadius: 4,
-                marginBottom: 2,
+                borderRadius: "4px",
+                marginBottom: "2px",
                 display: "flex",
                 justifyContent: "space-between",
               }}
@@ -274,11 +299,12 @@ export function PivotEditor() {
               {f.label}
               <button
                 onClick={() => handleRemoveColField(i)}
+                className="hover:text-red-500"
                 style={{
                   border: "none",
                   background: "none",
                   cursor: "pointer",
-                  fontSize: 10,
+                  fontSize: "10px",
                 }}
               >
                 &#10005;
@@ -286,19 +312,23 @@ export function PivotEditor() {
             </div>
           ))}
           {pivot.colFields.length === 0 && (
-            <div style={{ fontSize: 11, color: "#999", padding: "4px 8px" }}>
+            <div
+              className="text-xs text-gray-400 px-2 py-1"
+              style={{ fontSize: "11px", color: "#999", padding: "4px 8px" }}
+            >
               Drag fields here
             </div>
           )}
         </div>
 
         {/* Value fields */}
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-4" style={{ marginBottom: "16px" }}>
           <div
+            className="text-xs font-semibold mb-1 text-gray-600"
             style={{
-              fontSize: 12,
+              fontSize: "12px",
               fontWeight: 600,
-              marginBottom: 4,
+              marginBottom: "4px",
               color: "#444",
             }}
           >
@@ -307,12 +337,13 @@ export function PivotEditor() {
           {pivot.valueFields.map((f, i) => (
             <div
               key={i}
+              className="flex items-center justify-between bg-green-50 rounded mb-0.5 px-2 py-1 text-xs"
               style={{
                 padding: "4px 8px",
-                fontSize: 12,
+                fontSize: "12px",
                 background: "#e6f4ea",
-                borderRadius: 4,
-                marginBottom: 2,
+                borderRadius: "4px",
+                marginBottom: "2px",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
@@ -323,11 +354,12 @@ export function PivotEditor() {
               </span>
               <button
                 onClick={() => handleRemoveValueField(i)}
+                className="hover:text-red-500"
                 style={{
                   border: "none",
                   background: "none",
                   cursor: "pointer",
-                  fontSize: 10,
+                  fontSize: "10px",
                 }}
               >
                 &#10005;
@@ -335,7 +367,10 @@ export function PivotEditor() {
             </div>
           ))}
           {pivot.valueFields.length === 0 && (
-            <div style={{ fontSize: 11, color: "#999", padding: "4px 8px" }}>
+            <div
+              className="text-xs text-gray-400 px-2 py-1"
+              style={{ fontSize: "11px", color: "#999", padding: "4px 8px" }}
+            >
               Drag fields here
             </div>
           )}

@@ -22,9 +22,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div
+      className="flex min-h-screen"
+      style={{ display: "flex", minHeight: "100vh" }}
+    >
       {/* Left Panel — Branding */}
-      <div className="hidden md:flex md:w-1/2 flex-col justify-between bg-gradient-to-br from-[#1a237e] to-[#0d47a1] p-12 relative overflow-hidden">
+      <div
+        className="hidden md:flex md:w-1/2 flex-col justify-between bg-gradient-to-br from-[#1a237e] to-[#0d47a1] p-12 relative overflow-hidden"
+        style={{
+          padding: "48px",
+          background: "linear-gradient(to bottom right, #1a237e, #0d47a1)",
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
         {/* Subtle grid pattern overlay */}
         <div
           className="absolute inset-0 opacity-[0.07]"
@@ -143,27 +154,69 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel — Login Form */}
-      <div className="flex w-full flex-col items-center justify-center bg-white px-6 py-12 md:w-1/2">
-        <div className="w-full max-w-md">
+      <div
+        className="flex w-full flex-col items-center justify-center bg-white px-6 py-12 md:w-1/2"
+        style={{
+          display: "flex",
+          width: "100%",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#fff",
+          padding: "48px 24px",
+        }}
+      >
+        <div
+          className="w-full max-w-md"
+          style={{ width: "100%", maxWidth: "448px" }}
+        >
           {/* Mobile logo */}
-          <div className="mb-8 flex items-center justify-center gap-2 md:hidden">
+          <div
+            className="mb-8 flex items-center justify-center gap-2 md:hidden"
+            style={{
+              marginBottom: "32px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+            }}
+          >
             <GridSpaceLogo size={36} />
-            <span className="text-2xl font-bold text-[#1a73e8]">GridSpace</span>
+            <span
+              className="text-2xl font-bold text-[#1a73e8]"
+              style={{ fontSize: "24px", fontWeight: 700, color: "#1a73e8" }}
+            >
+              GridSpace
+            </span>
           </div>
 
-          <div className="mb-8">
+          <div className="mb-8" style={{ marginBottom: "32px" }}>
             <h1
               className="text-3xl font-bold text-gray-900"
+              style={{ fontSize: "30px", fontWeight: 700, color: "#111827" }}
               data-testid="login-title"
             >
               Welcome back
             </h1>
-            <p className="mt-2 text-gray-500">Sign in to your account</p>
+            <p
+              className="mt-2 text-gray-500"
+              style={{ marginTop: "8px", fontSize: "16px", color: "#6b7280" }}
+            >
+              Sign in to your account
+            </p>
           </div>
 
           {error && (
             <div
               className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700"
+              style={{
+                marginBottom: "24px",
+                borderRadius: "8px",
+                backgroundColor: "#fef2f2",
+                padding: "16px",
+                fontSize: "14px",
+                color: "#b91c1c",
+              }}
               data-testid="login-error"
               onClick={clearError}
             >
@@ -171,11 +224,21 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-5"
+            style={{ display: "flex", flexDirection: "column", gap: "20px" }}
+          >
             <div>
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
+                style={{
+                  display: "block",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#374151",
+                }}
               >
                 Email address
               </label>
@@ -196,6 +259,12 @@ export default function LoginPage() {
               <label
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700"
+                style={{
+                  display: "block",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#374151",
+                }}
               >
                 Password
               </label>
@@ -253,17 +322,47 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2">
+            <div
+              className="flex items-center justify-between"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <label
+                className="flex items-center gap-2"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
                 <input
                   type="checkbox"
                   className="h-4 w-4 rounded border-gray-300 text-[#1a73e8] focus:ring-[#1a73e8]"
+                  style={{
+                    width: "16px",
+                    height: "16px",
+                    borderRadius: "4px",
+                  }}
                 />
-                <span className="text-sm text-gray-600">Remember me</span>
+                <span
+                  className="text-sm text-gray-600"
+                  style={{ fontSize: "14px", color: "#4b5563" }}
+                >
+                  Remember me
+                </span>
               </label>
               <Link
                 to="/forgot-password"
                 className="text-sm font-medium text-[#1a73e8] hover:text-[#1557b0] transition-colors"
+                style={{
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#1a73e8",
+                  textDecoration: "none",
+                }}
                 data-testid="login-forgot-link"
               >
                 Forgot password?
@@ -275,25 +374,76 @@ export default function LoginPage() {
               disabled={isLoading}
               data-testid="login-submit"
               className="w-full rounded-lg bg-[#1a73e8] px-4 py-3 text-white font-semibold transition-colors hover:bg-[#1557b0] focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:ring-offset-2 disabled:opacity-50"
-              style={{ padding: "12px 16px" }}
+              style={{
+                padding: "12px 16px",
+                borderRadius: "8px",
+                backgroundColor: "#1a73e8",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: "14px",
+                border: "none",
+                cursor: isLoading ? "not-allowed" : "pointer",
+                opacity: isLoading ? 0.5 : 1,
+              }}
             >
               {isLoading ? "Signing in..." : "Sign in"}
             </button>
           </form>
 
-          <div className="mt-8 space-y-4">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+          <div
+            className="mt-8 space-y-4"
+            style={{
+              marginTop: "32px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+            }}
+          >
+            <div className="relative" style={{ position: "relative" }}>
+              <div
+                className="absolute inset-0 flex items-center"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <div
+                  className="w-full border-t border-gray-200"
+                  style={{ width: "100%", borderTop: "1px solid #e5e7eb" }}
+                />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-4 text-gray-400">
+              <div
+                className="relative flex justify-center text-sm"
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  justifyContent: "center",
+                  fontSize: "14px",
+                }}
+              >
+                <span
+                  className="bg-white px-4 text-gray-400"
+                  style={{
+                    backgroundColor: "#fff",
+                    padding: "0 16px",
+                    color: "#9ca3af",
+                  }}
+                >
                   Or continue with
                 </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div
+              className="grid grid-cols-2 gap-3"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "12px",
+              }}
+            >
               <button
                 type="button"
                 onClick={() => {
@@ -301,7 +451,13 @@ export default function LoginPage() {
                 }}
                 data-testid="login-google"
                 className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:ring-offset-2"
-                style={{ padding: "12px 16px" }}
+                style={{
+                  padding: "12px 16px",
+                  borderRadius: "8px",
+                  border: "1px solid #d1d5db",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path
@@ -330,7 +486,15 @@ export default function LoginPage() {
                 }}
                 data-testid="login-github"
                 className="flex items-center justify-center gap-2 rounded-lg bg-[#24292e] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1b1f23] focus:outline-none focus:ring-2 focus:ring-[#24292e] focus:ring-offset-2"
-                style={{ padding: "12px 16px" }}
+                style={{
+                  padding: "12px 16px",
+                  borderRadius: "8px",
+                  backgroundColor: "#24292e",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#fff",
+                  border: "none",
+                }}
               >
                 <svg
                   width="18"
@@ -345,11 +509,24 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <p className="mt-8 text-center text-sm text-gray-500">
+          <p
+            className="mt-8 text-center text-sm text-gray-500"
+            style={{
+              marginTop: "32px",
+              textAlign: "center",
+              fontSize: "14px",
+              color: "#6b7280",
+            }}
+          >
             Don&apos;t have an account?{" "}
             <Link
               to="/register"
               className="font-medium text-[#1a73e8] hover:text-[#1557b0] transition-colors"
+              style={{
+                fontWeight: 500,
+                color: "#1a73e8",
+                textDecoration: "none",
+              }}
               data-testid="login-register-link"
             >
               Sign up

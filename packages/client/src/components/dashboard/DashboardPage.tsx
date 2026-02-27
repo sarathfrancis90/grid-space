@@ -192,15 +192,24 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Template Gallery — full-width gray band */}
-      <div className="border-b border-gray-200 bg-gray-50">
-        <div className="mx-auto max-w-7xl px-6 py-6">
+      {/* Template Gallery — full-width warm-gray band */}
+      <div
+        className="border-b border-gray-200 bg-[#f1f3f4]"
+        style={{ backgroundColor: "#f1f3f4" }}
+      >
+        <div
+          className="mx-auto max-w-7xl px-6 py-8"
+          style={{ padding: "32px 24px" }}
+        >
           <TemplateGallery />
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
-        {/* Create + View Toggle */}
+      <main
+        className="mx-auto max-w-7xl px-6 py-8"
+        style={{ padding: "32px 24px" }}
+      >
+        {/* Section header + Create + View Toggle */}
         <div className="mb-6 flex items-center gap-4">
           <button
             onClick={handleCreate}
@@ -273,9 +282,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Section heading */}
+        <h2 className="mb-3 text-base font-medium text-gray-700">
+          Recent spreadsheets
+        </h2>
+
         {/* Filter Tabs */}
-        <div className="mb-4 flex items-center border-b border-gray-200">
-          <div className="flex items-center gap-1">
+        <div className="mb-5 flex items-center border-b border-gray-200">
+          <div className="flex items-center">
             {filters.map((f) => (
               <button
                 key={f.value}
@@ -445,7 +459,7 @@ export default function DashboardPage() {
           <>
             {viewMode === "grid" ? (
               <div
-                className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
                 data-testid="spreadsheet-grid"
               >
                 {spreadsheets.map((s) => (
@@ -462,20 +476,39 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div
-                className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm"
+                className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
                 data-testid="spreadsheet-list"
               >
-                {spreadsheets.map((s) => (
-                  <SpreadsheetListItem
-                    key={s.id}
-                    spreadsheet={s}
-                    onOpen={handleOpen}
-                    onDelete={handleDelete}
-                    onDuplicate={handleDuplicate}
-                    onToggleStar={handleToggleStar}
-                    onRename={handleRename}
-                  />
-                ))}
+                {/* Column header */}
+                <div
+                  className="flex items-center gap-4 border-b border-gray-100 bg-gray-50/80 px-5 py-2"
+                  style={{ padding: "8px 20px" }}
+                >
+                  <span className="w-4 flex-shrink-0" />
+                  <span className="w-4 flex-shrink-0" />
+                  <span className="min-w-0 flex-1 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Name
+                  </span>
+                  <span className="flex-shrink-0 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Owner
+                  </span>
+                  <span className="flex-shrink-0 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Modified
+                  </span>
+                </div>
+                <div className="divide-y divide-gray-100">
+                  {spreadsheets.map((s) => (
+                    <SpreadsheetListItem
+                      key={s.id}
+                      spreadsheet={s}
+                      onOpen={handleOpen}
+                      onDelete={handleDelete}
+                      onDuplicate={handleDuplicate}
+                      onToggleStar={handleToggleStar}
+                      onRename={handleRename}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 

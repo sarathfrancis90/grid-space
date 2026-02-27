@@ -45,22 +45,52 @@ export const PrintDialog: React.FC = () => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(0,0,0,0.3)",
+      }}
       data-testid="print-dialog-overlay"
       onClick={() => close(false)}
     >
       <div
         className="bg-white rounded-lg shadow-xl p-6 w-96"
+        style={{
+          backgroundColor: "white",
+          borderRadius: "8px",
+          padding: "24px",
+          width: "384px",
+          boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
+        }}
         data-testid="print-dialog"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold mb-4">Print Settings</h2>
+        <h2
+          className="text-lg font-semibold mb-4"
+          style={{ fontSize: "18px", fontWeight: 600, marginBottom: "16px" }}
+        >
+          Print Settings
+        </h2>
 
         {/* Orientation */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Orientation</label>
-          <div className="flex gap-4">
+        <div className="mb-4" style={{ marginBottom: "16px" }}>
+          <label
+            className="block text-sm font-medium mb-1"
+            style={{ marginBottom: "4px" }}
+          >
+            Orientation
+          </label>
+          <div className="flex gap-4" style={{ display: "flex", gap: "16px" }}>
             {(["portrait", "landscape"] as const).map((o) => (
-              <label key={o} className="flex items-center gap-1 cursor-pointer">
+              <label
+                key={o}
+                className="flex items-center gap-1 cursor-pointer"
+                style={{ display: "flex", alignItems: "center", gap: "4px" }}
+              >
                 <input
                   type="radio"
                   name="orientation"
@@ -77,10 +107,21 @@ export const PrintDialog: React.FC = () => {
         </div>
 
         {/* Margins */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Margins</label>
+        <div className="mb-4" style={{ marginBottom: "16px" }}>
+          <label
+            className="block text-sm font-medium mb-1"
+            style={{ marginBottom: "4px" }}
+          >
+            Margins
+          </label>
           <select
-            className="w-full border rounded px-2 py-1 text-sm"
+            className="w-full border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            style={{
+              padding: "4px 8px",
+              border: "1px solid #d1d5db",
+              borderRadius: "4px",
+              width: "100%",
+            }}
             value={settings.margins}
             onChange={(e) =>
               setSettings((s) => ({
@@ -97,8 +138,11 @@ export const PrintDialog: React.FC = () => {
         </div>
 
         {/* Page Breaks Preview */}
-        <div className="mb-4">
-          <label className="flex items-center gap-2 cursor-pointer">
+        <div className="mb-4" style={{ marginBottom: "16px" }}>
+          <label
+            className="flex items-center gap-2 cursor-pointer"
+            style={{ display: "flex", alignItems: "center", gap: "8px" }}
+          >
             <input
               type="checkbox"
               checked={settings.showPageBreaks}
@@ -112,11 +156,22 @@ export const PrintDialog: React.FC = () => {
         </div>
 
         {/* Header */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Header</label>
+        <div className="mb-4" style={{ marginBottom: "16px" }}>
+          <label
+            className="block text-sm font-medium mb-1"
+            style={{ marginBottom: "4px" }}
+          >
+            Header
+          </label>
           <input
             type="text"
-            className="w-full border rounded px-2 py-1 text-sm"
+            className="w-full border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            style={{
+              padding: "4px 8px",
+              border: "1px solid #d1d5db",
+              borderRadius: "4px",
+              width: "100%",
+            }}
             placeholder="e.g., Page &P of &N"
             value={settings.headerText}
             onChange={(e) =>
@@ -127,11 +182,22 @@ export const PrintDialog: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Footer</label>
+        <div className="mb-4" style={{ marginBottom: "16px" }}>
+          <label
+            className="block text-sm font-medium mb-1"
+            style={{ marginBottom: "4px" }}
+          >
+            Footer
+          </label>
           <input
             type="text"
-            className="w-full border rounded px-2 py-1 text-sm"
+            className="w-full border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            style={{
+              padding: "4px 8px",
+              border: "1px solid #d1d5db",
+              borderRadius: "4px",
+              width: "100%",
+            }}
             placeholder="e.g., Confidential"
             value={settings.footerText}
             onChange={(e) =>
@@ -141,9 +207,23 @@ export const PrintDialog: React.FC = () => {
           />
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div
+          className="flex justify-end gap-2 mt-6"
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "8px",
+            marginTop: "24px",
+          }}
+        >
           <button
             className="px-4 py-2 text-sm border rounded hover:bg-gray-50"
+            style={{
+              padding: "8px 16px",
+              fontSize: "14px",
+              border: "1px solid #d1d5db",
+              borderRadius: "4px",
+            }}
             data-testid="print-cancel"
             onClick={() => close(false)}
           >
@@ -151,6 +231,13 @@ export const PrintDialog: React.FC = () => {
           </button>
           <button
             className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+            style={{
+              padding: "8px 16px",
+              fontSize: "14px",
+              backgroundColor: "#2563eb",
+              color: "white",
+              borderRadius: "4px",
+            }}
             data-testid="print-submit"
             onClick={handlePrint}
           >

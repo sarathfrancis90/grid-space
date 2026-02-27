@@ -44,12 +44,14 @@ function TemplateCard({
   return (
     <button
       onClick={() => onUse(template.id)}
-      className="group/card flex min-w-[160px] flex-col items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-5 transition-all hover:border-[#1a73e8] hover:shadow-md hover:scale-[1.02] cursor-pointer text-center"
+      className="group/card flex min-w-[140px] flex-col items-center gap-3 rounded-xl border border-gray-200/80 bg-white px-5 py-5 transition-all hover:border-[#1a73e8]/40 hover:shadow-lg hover:scale-[1.02] cursor-pointer text-center"
+      style={{ padding: "20px", minWidth: 140 }}
       data-testid={`template-card-${template.id}`}
       type="button"
     >
       <div
-        className={`flex h-12 w-12 items-center justify-center rounded-full text-xl font-bold ${colors.bg} ${colors.text}`}
+        className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl font-bold ${colors.bg} ${colors.text} transition-transform group-hover/card:scale-110`}
+        style={{ height: 56, width: 56, fontSize: 22 }}
       >
         {icon}
       </div>

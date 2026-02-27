@@ -105,17 +105,22 @@ export default function SpreadsheetEditorPage() {
       data-testid="spreadsheet-editor"
     >
       {/* Title bar */}
-      <div className="flex items-center gap-2 bg-white px-3 py-1">
+      <div
+        className="flex items-center gap-3 bg-white px-4 py-2 border-b border-gray-100"
+        style={{ padding: "8px 16px", gap: "12px" }}
+      >
         <button
           onClick={() => navigate("/dashboard")}
-          className="rounded p-0.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 flex-shrink-0"
+          style={{ padding: "4px" }}
           data-testid="back-to-dashboard"
           title="Back to dashboard"
         >
           <svg
-            className="h-5 w-5 text-[#0F9D58]"
+            className="h-6 w-6 text-[#0F9D58]"
             viewBox="0 0 24 24"
             fill="currentColor"
+            style={{ width: "24px", height: "24px" }}
           >
             <rect x="3" y="3" width="7" height="7" rx="1" />
             <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -124,62 +129,71 @@ export default function SpreadsheetEditorPage() {
           </svg>
         </button>
 
-        {isRenaming ? (
-          <input
-            type="text"
-            value={titleInput}
-            onChange={(e) => setTitleInput(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleRename();
-              if (e.key === "Escape") setIsRenaming(false);
-            }}
-            autoFocus
-            className="rounded border border-blue-500 px-2 py-0.5 text-sm font-medium"
-            data-testid="editor-title-input"
-          />
-        ) : (
-          <h2
-            className="cursor-pointer truncate text-sm font-medium text-gray-800 hover:text-blue-600 hover:underline decoration-blue-300 underline-offset-2"
-            onClick={() => {
-              setTitleInput(currentSpreadsheet.title);
-              setIsRenaming(true);
-            }}
-            data-testid="editor-title"
-          >
-            {currentSpreadsheet.title}
-          </h2>
-        )}
+        <div className="flex items-center gap-1.5 min-w-0">
+          {isRenaming ? (
+            <input
+              type="text"
+              value={titleInput}
+              onChange={(e) => setTitleInput(e.target.value)}
+              onBlur={handleRename}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleRename();
+                if (e.key === "Escape") setIsRenaming(false);
+              }}
+              autoFocus
+              className="rounded border border-blue-400 px-2 py-0.5 text-base font-medium outline-none"
+              style={{ padding: "2px 8px", fontSize: "16px" }}
+              data-testid="editor-title-input"
+            />
+          ) : (
+            <h2
+              className="cursor-pointer truncate text-base font-medium text-gray-800 hover:text-gray-600"
+              style={{ fontSize: "16px", lineHeight: "24px" }}
+              onClick={() => {
+                setTitleInput(currentSpreadsheet.title);
+                setIsRenaming(true);
+              }}
+              data-testid="editor-title"
+            >
+              {currentSpreadsheet.title}
+            </h2>
+          )}
 
-        <button
-          onClick={handleToggleStar}
-          className="rounded p-0.5 hover:bg-gray-100"
-          data-testid="star-toggle"
-          title={
-            currentSpreadsheet.isStarred
-              ? "Remove from starred"
-              : "Add to starred"
-          }
+          <button
+            onClick={handleToggleStar}
+            className="rounded p-1 hover:bg-gray-100 flex-shrink-0"
+            style={{ padding: "4px" }}
+            data-testid="star-toggle"
+            title={
+              currentSpreadsheet.isStarred
+                ? "Remove from starred"
+                : "Add to starred"
+            }
+          >
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill={currentSpreadsheet.isStarred ? "#FBBC04" : "none"}
+              stroke={currentSpreadsheet.isStarred ? "#FBBC04" : "#9CA3AF"}
+              strokeWidth="2"
+            >
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          </button>
+
+          <SaveIndicator />
+        </div>
+
+        <div
+          className="ml-auto flex items-center gap-3"
+          style={{ gap: "12px" }}
         >
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill={currentSpreadsheet.isStarred ? "#FBBC04" : "none"}
-            stroke={currentSpreadsheet.isStarred ? "#FBBC04" : "#9CA3AF"}
-            strokeWidth="2"
-          >
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-        </button>
-
-        <SaveIndicator />
-
-        <div className="ml-auto flex items-center gap-2">
           <ConnectionStatus />
           <CollaboratorAvatars />
           <button
             onClick={handleShare}
-            className="rounded-full bg-blue-500 px-4 py-1 text-sm font-medium text-white hover:bg-blue-600"
+            className="rounded-full bg-[#1a73e8] px-5 py-1.5 text-sm font-medium text-white hover:bg-[#1765cc] transition-colors shadow-sm"
+            style={{ padding: "6px 20px", fontSize: "14px" }}
             data-testid="share-button"
           >
             Share
@@ -217,8 +231,11 @@ export default function SpreadsheetEditorPage() {
       <SheetTabs />
 
       {/* Status bar + zoom */}
-      <div className="flex h-6 items-center border-t border-gray-200 bg-gray-50">
-        <div className="ml-auto flex flex-1 items-center justify-end">
+      <div
+        className="flex h-7 items-center border-t border-gray-200 bg-[#f8f9fa]"
+        style={{ height: "28px" }}
+      >
+        <div className="flex flex-1 items-center justify-end">
           <StatusBar />
         </div>
         <ZoomControls />

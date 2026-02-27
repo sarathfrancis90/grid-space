@@ -67,7 +67,8 @@ export function StatusBar() {
     return (
       <div
         data-testid="status-bar"
-        className="flex items-center px-3 text-xs text-gray-500"
+        className="flex items-center px-4 text-xs text-gray-500"
+        style={{ padding: "0 16px", fontSize: "12px" }}
       >
         <span>Ready</span>
       </div>
@@ -82,9 +83,16 @@ export function StatusBar() {
   return (
     <div
       data-testid="status-bar"
-      className="flex items-center px-3 text-xs text-gray-500 gap-4"
+      className="flex items-center px-4 text-xs text-gray-600 gap-5"
+      style={{ padding: "0 16px", gap: "20px", fontSize: "12px" }}
     >
-      <span data-testid="status-sum">SUM: {fmt(stats.sum)}</span>
+      <span
+        data-testid="status-sum"
+        className="font-medium"
+        style={{ fontWeight: 500 }}
+      >
+        SUM: {fmt(stats.sum)}
+      </span>
       <span data-testid="status-average">AVG: {fmt(stats.avg)}</span>
       <span data-testid="status-count">COUNT: {stats.count}</span>
       <span data-testid="status-min">MIN: {fmt(stats.min)}</span>

@@ -74,56 +74,109 @@ export function HyperlinkDialog() {
     <div
       data-testid="hyperlink-dialog-overlay"
       className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(0,0,0,0.3)",
+      }}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) handleClose();
       }}
     >
       <div
         data-testid="hyperlink-dialog"
-        className="bg-white rounded-lg shadow-xl w-96 p-5"
+        className="bg-white rounded-lg shadow-xl w-96 p-6"
+        style={{
+          backgroundColor: "white",
+          borderRadius: "8px",
+          padding: "24px",
+          width: "384px",
+          boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
+        }}
       >
-        <h2 className="text-lg font-semibold mb-4">Insert Link</h2>
+        <h2
+          className="text-lg font-semibold mb-4"
+          style={{ fontSize: "18px", fontWeight: 600, marginBottom: "16px" }}
+        >
+          Insert Link
+        </h2>
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              className="block text-sm font-medium text-gray-700 mb-1"
+              style={{ marginBottom: "4px" }}
+            >
               Text to display
             </label>
             <input
               data-testid="hyperlink-label"
               type="text"
-              className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
+              className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              style={{
+                padding: "6px 12px",
+                border: "1px solid #d1d5db",
+                borderRadius: "4px",
+                width: "100%",
+              }}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Link text"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              className="block text-sm font-medium text-gray-700 mb-1"
+              style={{ marginBottom: "4px" }}
+            >
               URL
             </label>
             <input
               data-testid="hyperlink-url"
               type="url"
-              className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
+              className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              style={{
+                padding: "6px 12px",
+                border: "1px solid #d1d5db",
+                borderRadius: "4px",
+                width: "100%",
+              }}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com"
             />
           </div>
         </div>
-        <div className="flex justify-between mt-5">
+        <div
+          className="flex justify-between mt-6"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "24px",
+          }}
+        >
           <button
             data-testid="hyperlink-remove"
             className="text-sm text-red-500 hover:underline"
+            style={{ fontSize: "14px" }}
             onClick={handleRemove}
             type="button"
           >
             Remove link
           </button>
-          <div className="flex gap-2">
+          <div className="flex gap-2" style={{ display: "flex", gap: "8px" }}>
             <button
               data-testid="hyperlink-cancel"
-              className="px-4 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
+              className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+              style={{
+                padding: "8px 16px",
+                fontSize: "14px",
+                border: "1px solid #d1d5db",
+                borderRadius: "4px",
+              }}
               onClick={handleClose}
               type="button"
             >
@@ -131,7 +184,14 @@ export function HyperlinkDialog() {
             </button>
             <button
               data-testid="hyperlink-apply"
-              className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              style={{
+                padding: "8px 16px",
+                fontSize: "14px",
+                backgroundColor: "#2563eb",
+                color: "white",
+                borderRadius: "4px",
+              }}
               onClick={handleApply}
               disabled={!url.trim()}
               type="button"

@@ -116,6 +116,7 @@ export function FindReplace() {
   return (
     <div
       data-testid="find-replace-dialog"
+      className="absolute top-2 right-4 z-[100] bg-white border border-gray-300 rounded-lg shadow-lg"
       style={{
         position: "absolute",
         top: 8,
@@ -123,13 +124,16 @@ export function FindReplace() {
         zIndex: 100,
         background: "white",
         border: "1px solid #dadce0",
-        borderRadius: 8,
+        borderRadius: "8px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
         padding: "12px 16px",
         minWidth: 320,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div
+        className="flex items-center gap-2"
+        style={{ display: "flex", alignItems: "center", gap: "8px" }}
+      >
         <input
           ref={searchRef}
           data-testid="find-input"
@@ -138,18 +142,20 @@ export function FindReplace() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={handleSearchKeyDown}
+          className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           style={{
             flex: 1,
             padding: "6px 8px",
             border: "1px solid #dadce0",
-            borderRadius: 4,
-            fontSize: 13,
+            borderRadius: "4px",
+            fontSize: "13px",
             outline: "none",
           }}
         />
         <span
           data-testid="find-match-info"
-          style={{ fontSize: 12, color: "#666", minWidth: 60 }}
+          className="text-xs text-gray-500"
+          style={{ fontSize: "12px", color: "#666", minWidth: 60 }}
         >
           {matchInfo}
         </span>
@@ -157,12 +163,14 @@ export function FindReplace() {
           data-testid="find-prev-btn"
           onClick={handleFindPrev}
           title="Previous (Shift+Enter)"
+          className="text-base hover:bg-gray-100 rounded"
           style={{
             border: "none",
             background: "none",
             cursor: "pointer",
-            fontSize: 16,
+            fontSize: "16px",
             padding: "2px 6px",
+            borderRadius: "4px",
           }}
         >
           &#9650;
@@ -171,12 +179,14 @@ export function FindReplace() {
           data-testid="find-next-btn"
           onClick={handleFindNext}
           title="Next (Enter)"
+          className="text-base hover:bg-gray-100 rounded"
           style={{
             border: "none",
             background: "none",
             cursor: "pointer",
-            fontSize: 16,
+            fontSize: "16px",
             padding: "2px 6px",
+            borderRadius: "4px",
           }}
         >
           &#9660;
@@ -185,12 +195,14 @@ export function FindReplace() {
           data-testid="find-close-btn"
           onClick={close}
           title="Close (Escape)"
+          className="text-base hover:bg-gray-100 rounded"
           style={{
             border: "none",
             background: "none",
             cursor: "pointer",
-            fontSize: 16,
+            fontSize: "16px",
             padding: "2px 6px",
+            borderRadius: "4px",
           }}
         >
           &#10005;
@@ -199,11 +211,12 @@ export function FindReplace() {
 
       {showReplace && (
         <div
+          className="flex items-center gap-2 mt-2"
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
-            marginTop: 8,
+            gap: "8px",
+            marginTop: "8px",
           }}
         >
           <input
@@ -218,25 +231,27 @@ export function FindReplace() {
                 close();
               }
             }}
+            className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             style={{
               flex: 1,
               padding: "6px 8px",
               border: "1px solid #dadce0",
-              borderRadius: 4,
-              fontSize: 13,
+              borderRadius: "4px",
+              fontSize: "13px",
               outline: "none",
             }}
           />
           <button
             data-testid="replace-btn"
             onClick={handleReplaceCurrent}
+            className="px-2.5 py-1 border border-gray-300 rounded text-xs hover:bg-gray-50"
             style={{
               padding: "4px 10px",
               border: "1px solid #dadce0",
-              borderRadius: 4,
+              borderRadius: "4px",
               background: "white",
               cursor: "pointer",
-              fontSize: 12,
+              fontSize: "12px",
             }}
           >
             Replace
@@ -244,13 +259,14 @@ export function FindReplace() {
           <button
             data-testid="replace-all-btn"
             onClick={handleReplaceAll}
+            className="px-2.5 py-1 border border-gray-300 rounded text-xs hover:bg-gray-50"
             style={{
               padding: "4px 10px",
               border: "1px solid #dadce0",
-              borderRadius: 4,
+              borderRadius: "4px",
               background: "white",
               cursor: "pointer",
-              fontSize: 12,
+              fontSize: "12px",
             }}
           >
             All
@@ -259,15 +275,19 @@ export function FindReplace() {
       )}
 
       <div
+        className="flex gap-3 mt-2 text-xs text-gray-600"
         style={{
           display: "flex",
-          gap: 12,
-          marginTop: 8,
-          fontSize: 12,
+          gap: "12px",
+          marginTop: "8px",
+          fontSize: "12px",
           color: "#444",
         }}
       >
-        <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <label
+          className="flex items-center gap-1"
+          style={{ display: "flex", alignItems: "center", gap: "4px" }}
+        >
           <input
             data-testid="find-regex-toggle"
             type="checkbox"
@@ -276,7 +296,10 @@ export function FindReplace() {
           />
           Regex
         </label>
-        <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <label
+          className="flex items-center gap-1"
+          style={{ display: "flex", alignItems: "center", gap: "4px" }}
+        >
           <input
             data-testid="find-case-toggle"
             type="checkbox"
@@ -285,7 +308,10 @@ export function FindReplace() {
           />
           Match case
         </label>
-        <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <label
+          className="flex items-center gap-1"
+          style={{ display: "flex", alignItems: "center", gap: "4px" }}
+        >
           <input
             data-testid="find-entire-cell-toggle"
             type="checkbox"
@@ -298,11 +324,12 @@ export function FindReplace() {
           <button
             data-testid="show-replace-btn"
             onClick={() => open(true)}
+            className="text-blue-600 hover:text-blue-800"
             style={{
               border: "none",
               background: "none",
               cursor: "pointer",
-              fontSize: 12,
+              fontSize: "12px",
               color: "#1a73e8",
               padding: 0,
             }}
