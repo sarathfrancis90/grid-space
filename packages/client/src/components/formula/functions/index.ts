@@ -7,4 +7,6 @@ export { statisticalFunctions } from "./statisticalFunctions";
 export { financialFunctions } from "./financialFunctions";
 export { infoFunctions } from "./infoFunctions";
 export { arrayFunctions } from "./arrayFunctions";
+export { regexFunctions } from "./regexFunctions";
+export { queryFunctions } from "./queryFunctions";
 export type { FormulaFunction } from "./helpers";

@@ -56,6 +56,12 @@ interface UIState {
   showFormulaBar: boolean;
   isHyperlinkDialogOpen: boolean;
   isImageDialogOpen: boolean;
+  isBandedRowsDialogOpen: boolean;
+  isProtectionDialogOpen: boolean;
+  isRemoveDuplicatesDialogOpen: boolean;
+  isTextToColumnsDialogOpen: boolean;
+  isGoalSeekDialogOpen: boolean;
+  isSlicerDialogOpen: boolean;
   /** S2-001: whether user is in formula editing mode (started typing "=") */
   isFormulaMode: boolean;
   /** S2-004: colored references parsed from the current formula */
@@ -77,6 +83,12 @@ interface UIState {
   setShowFormulaBar: (show: boolean) => void;
   setHyperlinkDialogOpen: (open: boolean) => void;
   setImageDialogOpen: (open: boolean) => void;
+  setBandedRowsDialogOpen: (open: boolean) => void;
+  setProtectionDialogOpen: (open: boolean) => void;
+  setRemoveDuplicatesDialogOpen: (open: boolean) => void;
+  setTextToColumnsDialogOpen: (open: boolean) => void;
+  setGoalSeekDialogOpen: (open: boolean) => void;
+  setSlicerDialogOpen: (open: boolean) => void;
   /** S2-001: enter/exit formula mode */
   setFormulaMode: (active: boolean) => void;
   /** S2-003: insert a cell reference at the cursor in the formula */
@@ -101,6 +113,12 @@ export const useUIStore = create<UIState>()(
     showFormulaBar: true,
     isHyperlinkDialogOpen: false,
     isImageDialogOpen: false,
+    isBandedRowsDialogOpen: false,
+    isProtectionDialogOpen: false,
+    isRemoveDuplicatesDialogOpen: false,
+    isTextToColumnsDialogOpen: false,
+    isGoalSeekDialogOpen: false,
+    isSlicerDialogOpen: false,
     isFormulaMode: false,
     formulaReferences: [],
 
@@ -231,6 +249,42 @@ export const useUIStore = create<UIState>()(
     setImageDialogOpen: (open: boolean) => {
       set((state) => {
         state.isImageDialogOpen = open;
+      });
+    },
+
+    setBandedRowsDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isBandedRowsDialogOpen = open;
+      });
+    },
+
+    setProtectionDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isProtectionDialogOpen = open;
+      });
+    },
+
+    setRemoveDuplicatesDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isRemoveDuplicatesDialogOpen = open;
+      });
+    },
+
+    setTextToColumnsDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isTextToColumnsDialogOpen = open;
+      });
+    },
+
+    setGoalSeekDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isGoalSeekDialogOpen = open;
+      });
+    },
+
+    setSlicerDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isSlicerDialogOpen = open;
       });
     },
 

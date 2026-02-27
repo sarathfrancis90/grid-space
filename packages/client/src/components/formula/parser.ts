@@ -154,6 +154,21 @@ class Parser {
         right: { type: "number", value: 100 },
       };
     }
+    // Handle immediate invocation: LAMBDA(...)(args) or any expression followed by (args)
+    while (this.current().type === "PAREN_OPEN") {
+      this.advance();
+      const callArgs: ASTNode[] = [];
+      if (this.current().type !== "PAREN_CLOSE") {
+        callArgs.push(this.expression());
+        while (this.current().type === "COMMA") {
+          this.advance();
+          callArgs.push(this.expression());
+        }
+      }
+      this.expect("PAREN_CLOSE");
+      // Encode as __CALL__(callee, arg1, arg2, ...)
+      node = { type: "function", name: "__CALL__", args: [node, ...callArgs] };
+    }
     return node;
   }
 
@@ -178,8 +193,13 @@ class Parser {
       return { type: "boolean", value: token.value === "TRUE" };
     }
 
-    // Function call
+    // Function call or bare identifier (for LET/LAMBDA variable names)
     if (token.type === "FUNCTION_NAME") {
+      // Check if followed by '(' — if not, treat as bare identifier
+      if (this.tokens[this.pos + 1]?.type !== "PAREN_OPEN") {
+        this.advance();
+        return { type: "function", name: token.value, args: [] };
+      }
       return this.functionCall();
     }
 

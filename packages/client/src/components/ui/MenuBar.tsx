@@ -11,6 +11,8 @@ import { useGridStore } from "../../stores/gridStore";
 import { useFormatStore } from "../../stores/formatStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useChartStore } from "../../stores/chartStore";
+import { exportXLSX, downloadFile } from "../../utils/fileOps";
+import { exportToPDF } from "../../utils/pdfExport";
 
 interface MenuItemDef {
   label: string;
@@ -128,9 +130,42 @@ export function MenuBar() {
           action: () => setOpenMenu(null),
         },
         {
+          label: "Download as XLSX",
+          testId: "menu-file-download-xlsx",
+          action: () => {
+            const sid = useSpreadsheetStore.getState().activeSheetId;
+            const sheets = useSpreadsheetStore.getState().sheets;
+            const cellStore = useCellStore.getState();
+            const sheetsData = sheets.map((s) => ({
+              name: s.name,
+              cells: cellStore.cells.get(s.id) ?? new Map(),
+            }));
+            exportXLSX(sheetsData).then((buf) => {
+              downloadFile(
+                buf,
+                "spreadsheet.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              );
+            });
+            void sid;
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Download as PDF",
+          testId: "menu-file-download-pdf",
+          action: () => {
+            const sid = useSpreadsheetStore.getState().activeSheetId;
+            const cells = useCellStore.getState().cells.get(sid) ?? new Map();
+            exportToPDF(cells, { title: "Spreadsheet" });
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Print",
           testId: "menu-file-print",
           shortcut: "Ctrl+P",
+          separator: true,
           action: () => {
             useUIStore.getState().setPrintDialogOpen(true);
             setOpenMenu(null);
@@ -360,6 +395,15 @@ export function MenuBar() {
             setOpenMenu(null);
           },
         },
+        {
+          label: "Alternating colors",
+          testId: "menu-format-alternating-colors",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setBandedRowsDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
       ],
     },
     {
@@ -390,6 +434,48 @@ export function MenuBar() {
           label: "Named ranges",
           testId: "menu-data-named-ranges",
           action: () => setOpenMenu(null),
+        },
+        {
+          label: "Protected ranges",
+          testId: "menu-data-protection",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setProtectionDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Remove duplicates",
+          testId: "menu-data-remove-duplicates",
+          action: () => {
+            useUIStore.getState().setRemoveDuplicatesDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Text to columns",
+          testId: "menu-data-text-to-columns",
+          action: () => {
+            useUIStore.getState().setTextToColumnsDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Insert slicer",
+          testId: "menu-data-slicer",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setSlicerDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Goal seek",
+          testId: "menu-data-goal-seek",
+          action: () => {
+            useUIStore.getState().setGoalSeekDialogOpen(true);
+            setOpenMenu(null);
+          },
         },
       ],
     },

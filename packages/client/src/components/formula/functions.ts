@@ -13,6 +13,8 @@ import { statisticalFunctions } from "./functions/statisticalFunctions";
 import { financialFunctions } from "./functions/financialFunctions";
 import { infoFunctions } from "./functions/infoFunctions";
 import { arrayFunctions } from "./functions/arrayFunctions";
+import { regexFunctions } from "./functions/regexFunctions";
+import { queryFunctions } from "./functions/queryFunctions";
 
 type FormulaFunction = (...args: FormulaValue[]) => FormulaValue;
 
@@ -271,6 +273,23 @@ function compareValues(a: FormulaValue, b: FormulaValue): number {
   return 0;
 }
 
+// --- Special functions handled by evaluator (stubs for registry presence) ---
+
+function fnARRAYFORMULA(...args: FormulaValue[]): FormulaValue {
+  // Actual implementation is in evaluator.ts — this is a stub for the registry
+  return args[0] ?? null;
+}
+
+function fnLET(...args: FormulaValue[]): FormulaValue {
+  // Actual implementation is in evaluator.ts — this is a stub for the registry
+  return args[args.length - 1] ?? null;
+}
+
+function fnLAMBDA(..._args: FormulaValue[]): FormulaValue {
+  // Actual implementation is in evaluator.ts — this is a stub for the registry
+  return "#VALUE!" as FormulaError;
+}
+
 // --- Merged registry ---
 
 const FUNCTION_REGISTRY: Record<string, FormulaFunction> = {
@@ -295,6 +314,10 @@ const FUNCTION_REGISTRY: Record<string, FormulaFunction> = {
   IMPORTDATA: fnIMPORTDATA,
   IMPORTRANGE: fnIMPORTRANGE,
   IMAGE: fnIMAGE,
+  ARRAYFORMULA: fnARRAYFORMULA,
+  LET: fnLET,
+  LAMBDA: fnLAMBDA,
+  __CALL__: fnLAMBDA, // stub — actual handling is in evaluator
   // Domain modules
   ...mathFunctions,
   ...textFunctions,
@@ -305,6 +328,8 @@ const FUNCTION_REGISTRY: Record<string, FormulaFunction> = {
   ...financialFunctions,
   ...infoFunctions,
   ...arrayFunctions,
+  ...regexFunctions,
+  ...queryFunctions,
 };
 
 export function getFunction(name: string): FormulaFunction | null {

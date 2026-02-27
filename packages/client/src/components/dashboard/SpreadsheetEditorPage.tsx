@@ -31,6 +31,12 @@ import { ConnectionStatus } from "../realtime/ConnectionStatus";
 import { CollaboratorAvatars } from "../realtime/CollaboratorAvatars";
 import { NotificationCenter } from "../notifications/NotificationCenter";
 import { ShareDialog } from "../sharing/ShareDialog";
+import { BandedRowsDialog } from "../data/BandedRowsDialog";
+import { ProtectionDialog } from "../data/ProtectionDialog";
+import { RemoveDuplicatesDialog } from "../data/RemoveDuplicatesDialog";
+import { TextToColumnsDialog } from "../data/TextToColumnsDialog";
+import { GoalSeekDialog } from "../data/GoalSeekDialog";
+import { SlicerControl } from "../data/SlicerControl";
 import { SaveIndicator } from "./SaveIndicator";
 import { SpreadsheetLoader } from "./SpreadsheetLoader";
 
@@ -42,6 +48,12 @@ const VersionHistorySidebar = lazy(() =>
     default: m.VersionHistorySidebar,
   })),
 );
+
+function BandedRowsDialogWrapper() {
+  const isOpen = useUIStore((s) => s.isBandedRowsDialogOpen);
+  const close = useUIStore((s) => s.setBandedRowsDialogOpen);
+  return <BandedRowsDialog isOpen={isOpen} onClose={() => close(false)} />;
+}
 
 export default function SpreadsheetEditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -250,6 +262,12 @@ export default function SpreadsheetEditorPage() {
       <HyperlinkDialog />
       <ImageDialog />
       <ShareDialog spreadsheetId={id ?? ""} />
+      <BandedRowsDialogWrapper />
+      <ProtectionDialog />
+      <RemoveDuplicatesDialog />
+      <TextToColumnsDialog />
+      <GoalSeekDialog />
+      <SlicerControl />
       <OfflineIndicator />
       <Suspense fallback={null}>
         <ChartOverlay />

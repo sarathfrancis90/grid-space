@@ -8,7 +8,8 @@ export type FormulaError =
   | "#N/A"
   | "#NUM!"
   | "#NULL!"
-  | "#REF!";
+  | "#REF!"
+  | "#SPILL!";
 
 const FORMULA_ERRORS: ReadonlySet<string> = new Set([
   "#DIV/0!",
@@ -18,6 +19,7 @@ const FORMULA_ERRORS: ReadonlySet<string> = new Set([
   "#NUM!",
   "#NULL!",
   "#REF!",
+  "#SPILL!",
 ]);
 
 export function isFormulaError(value: unknown): value is FormulaError {

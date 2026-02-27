@@ -12,7 +12,7 @@ import { useCellStore } from "../stores/cellStore";
 import { useSpreadsheetStore } from "../stores/spreadsheetStore";
 import { useFindReplaceStore } from "../stores/findReplaceStore";
 import { useVersionStore } from "../stores/versionStore";
-import { getCellKey } from "../utils/coordinates";
+import { runFlashFill } from "../utils/flashFill";
 
 export interface ShortcutHandlers {
   onPrint?: () => void;
@@ -152,6 +152,11 @@ export function useKeyboardShortcuts(handlers?: ShortcutHandlers): void {
             if (inInput && !isCellEditor) return;
             e.preventDefault();
             performPaste();
+            return;
+          }
+          case "e": {
+            e.preventDefault();
+            performFlashFill();
             return;
           }
           case "f": {
@@ -366,7 +371,21 @@ function performPaste(): void {
 
 export type PasteSpecialMode = "values" | "format" | "formula";
 
-export function performPasteSpecial(mode: PasteSpecialMode): void {
+export interface PasteSpecialOptions {
+  mode: PasteSpecialMode;
+  transpose: boolean;
+}
+
+export function performPasteSpecial(
+  modeOrOptions: PasteSpecialMode | PasteSpecialOptions,
+): void {
+  const options: PasteSpecialOptions =
+    typeof modeOrOptions === "string"
+      ? { mode: modeOrOptions, transpose: false }
+      : modeOrOptions;
+
+  const { mode, transpose } = options;
+
   const ui = useUIStore.getState();
   const sheetId = useSpreadsheetStore.getState().activeSheetId;
   if (!sheetId || !ui.selectedCell) return;
@@ -389,10 +408,16 @@ export function performPasteSpecial(mode: PasteSpecialMode): void {
 
   for (const [key, srcData] of clipState.cells) {
     const [r, c] = key.split(",").map(Number);
-    const newRow = r - minRow + ui.selectedCell.row;
-    const newCol = c - minCol + ui.selectedCell.col;
-    const targetKey = getCellKey(newRow, newCol);
-    void targetKey;
+    const offsetRow = r - minRow;
+    const offsetCol = c - minCol;
+
+    // When transposing, swap row/col offsets
+    const newRow = transpose
+      ? offsetCol + ui.selectedCell.row
+      : offsetRow + ui.selectedCell.row;
+    const newCol = transpose
+      ? offsetRow + ui.selectedCell.col
+      : offsetCol + ui.selectedCell.col;
 
     const existing = cellStore.getCell(sheetId, newRow, newCol);
 
@@ -420,6 +445,46 @@ export function performPasteSpecial(mode: PasteSpecialMode): void {
           comment: existing?.comment,
         });
         break;
+    }
+  }
+}
+
+function performFlashFill(): void {
+  const ui = useUIStore.getState();
+  const sheetId = useSpreadsheetStore.getState().activeSheetId;
+  if (!sheetId || !ui.selectedCell) return;
+
+  const cellStore = useCellStore.getState();
+  const lastPos = cellStore.getLastDataPosition(sheetId);
+  const targetCol = ui.selectedCell.col;
+  const sourceCol = targetCol - 1;
+
+  if (sourceCol < 0) return;
+
+  // Gather input column (source) and output column (target) values
+  const maxRow = Math.max(lastPos.row, 50);
+  const inputs: string[] = [];
+  const outputs: string[] = [];
+
+  for (let r = 0; r <= maxRow; r++) {
+    const srcCell = cellStore.getCell(sheetId, r, sourceCol);
+    const tgtCell = cellStore.getCell(sheetId, r, targetCol);
+    inputs.push(String(srcCell?.value ?? ""));
+    outputs.push(String(tgtCell?.value ?? ""));
+  }
+
+  const suggestions = runFlashFill(inputs, outputs);
+  if (!suggestions) return;
+
+  useHistoryStore.getState().pushUndo();
+
+  // Fill empty cells with suggestions
+  for (let r = 0; r <= maxRow; r++) {
+    const existing = cellStore.getCell(sheetId, r, targetCol);
+    if (!existing?.value && existing?.value !== 0 && suggestions[r]) {
+      cellStore.setCell(sheetId, r, targetCol, {
+        value: suggestions[r],
+      });
     }
   }
 }

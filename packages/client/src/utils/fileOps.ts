@@ -220,9 +220,86 @@ export async function importXLSX(buffer: ArrayBuffer): Promise<XLSXSheet[]> {
   return sheets;
 }
 
-/** Export cell data to XLSX ArrayBuffer */
+/** Convert a hex color like #ff0000 to an XLSX-compatible RGB object */
+function hexToXlsxColor(hex: string): { rgb: string } {
+  const clean = hex.replace("#", "").toUpperCase();
+  return { rgb: clean.length === 6 ? clean : "000000" };
+}
+
+/** Build a SheetJS style object from a CellFormat */
+function buildXlsxStyle(fmt: CellFormat): Record<string, unknown> {
+  const style: Record<string, unknown> = {};
+
+  // Font
+  const font: Record<string, unknown> = {};
+  if (fmt.bold) font.bold = true;
+  if (fmt.italic) font.italic = true;
+  if (fmt.underline) font.underline = true;
+  if (fmt.strikethrough) font.strike = true;
+  if (fmt.fontFamily) font.name = fmt.fontFamily;
+  if (fmt.fontSize) font.sz = fmt.fontSize;
+  if (fmt.textColor) font.color = hexToXlsxColor(fmt.textColor);
+  if (Object.keys(font).length > 0) style.font = font;
+
+  // Fill (background color)
+  if (fmt.backgroundColor && fmt.backgroundColor !== "#ffffff") {
+    style.fill = {
+      patternType: "solid",
+      fgColor: hexToXlsxColor(fmt.backgroundColor),
+    };
+  }
+
+  // Alignment
+  const alignment: Record<string, unknown> = {};
+  if (fmt.horizontalAlign) alignment.horizontal = fmt.horizontalAlign;
+  if (fmt.verticalAlign) alignment.vertical = fmt.verticalAlign;
+  if (fmt.wrapText === "wrap") alignment.wrapText = true;
+  if (fmt.textRotation) alignment.textRotation = fmt.textRotation;
+  if (fmt.indent) alignment.indent = fmt.indent;
+  if (Object.keys(alignment).length > 0) style.alignment = alignment;
+
+  // Number format
+  if (fmt.numberFormat && fmt.numberFormat !== "General") {
+    style.numFmt = fmt.numberFormat;
+  }
+
+  // Borders
+  if (fmt.borders) {
+    const border: Record<string, unknown> = {};
+    const mapBorderSide = (
+      side: { style: string; color: string } | undefined,
+    ): Record<string, unknown> | undefined => {
+      if (!side) return undefined;
+      return { style: side.style, color: hexToXlsxColor(side.color) };
+    };
+    if (fmt.borders.top) border.top = mapBorderSide(fmt.borders.top);
+    if (fmt.borders.bottom) border.bottom = mapBorderSide(fmt.borders.bottom);
+    if (fmt.borders.left) border.left = mapBorderSide(fmt.borders.left);
+    if (fmt.borders.right) border.right = mapBorderSide(fmt.borders.right);
+    if (Object.keys(border).length > 0) style.border = border;
+  }
+
+  return style;
+}
+
+interface ExportXLSXOptions {
+  columnWidths?: Map<number, number>;
+  rowHeights?: Map<number, number>;
+  mergedRegions?: Array<{
+    startRow: number;
+    startCol: number;
+    endRow: number;
+    endCol: number;
+  }>;
+}
+
+/** Export cell data to XLSX ArrayBuffer with full formatting */
 export async function exportXLSX(
-  sheetsData: Array<{ name: string; cells: Map<string, CellData> }>,
+  sheetsData: Array<{
+    name: string;
+    cells: Map<string, CellData>;
+    options?: ExportXLSXOptions;
+  }>,
 ): Promise<ArrayBuffer> {
   const XLSX = await import("xlsx");
   const workbook = XLSX.utils.book_new();
@@ -242,22 +319,65 @@ export async function exportXLSX(
 
     const ws = XLSX.utils.aoa_to_sheet(aoa);
 
-    // Write formulas back
+    // Write formulas and formatting back
     for (const [key, cell] of sheet.cells) {
-      if (!cell.formula) continue;
       const [r, c] = key.split(",").map(Number);
       const addr = XLSX.utils.encode_cell({ r, c });
-      if (ws[addr]) {
+
+      if (!ws[addr]) continue;
+
+      // Formula
+      if (cell.formula) {
         ws[addr].f = cell.formula.startsWith("=")
           ? cell.formula.slice(1)
           : cell.formula;
       }
+
+      // Style/formatting
+      if (cell.format && Object.keys(cell.format).length > 0) {
+        ws[addr].s = buildXlsxStyle(cell.format);
+      }
+    }
+
+    // Column widths
+    if (sheet.options?.columnWidths) {
+      const cols: Array<{ wch: number }> = [];
+      for (let c = 0; c <= maxCol; c++) {
+        const w = sheet.options.columnWidths.get(c);
+        cols.push({ wch: w ? Math.round(w / 7) : 10 });
+      }
+      ws["!cols"] = cols;
+    }
+
+    // Row heights
+    if (sheet.options?.rowHeights) {
+      const rows: Array<{ hpt: number }> = [];
+      for (let r = 0; r <= maxRow; r++) {
+        const h = sheet.options.rowHeights.get(r);
+        rows.push({ hpt: h ?? 20 });
+      }
+      ws["!rows"] = rows;
+    }
+
+    // Merged cells
+    if (
+      sheet.options?.mergedRegions &&
+      sheet.options.mergedRegions.length > 0
+    ) {
+      ws["!merges"] = sheet.options.mergedRegions.map((m) => ({
+        s: { r: m.startRow, c: m.startCol },
+        e: { r: m.endRow, c: m.endCol },
+      }));
     }
 
     XLSX.utils.book_append_sheet(workbook, ws, sheet.name);
   }
 
-  const buf = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
+  const buf = XLSX.write(workbook, {
+    type: "array",
+    bookType: "xlsx",
+    cellStyles: true,
+  });
   return buf as ArrayBuffer;
 }
 

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useUIStore } from "../../stores/uiStore";
 import { useGridStore } from "../../stores/gridStore";
+import { useDataStore } from "../../stores/dataStore";
+import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 
 interface CellEditorProps {
   onCommit: (value: string, direction: "down" | "right" | "none") => void;
@@ -22,13 +24,26 @@ export function CellEditor({ onCommit, onCancel }: CellEditorProps) {
   const rowHeaderWidth = useGridStore((s) => s.rowHeaderWidth);
   const colHeaderHeight = useGridStore((s) => s.colHeaderHeight);
 
+  // Check cell protection
+  const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
+  const isCellProtected = editingCell
+    ? useDataStore
+        .getState()
+        .isCellProtected(sheetId, editingCell.row, editingCell.col)
+    : false;
+
   useEffect(() => {
+    if (isEditing && isCellProtected) {
+      // Cancel editing for protected cells
+      onCancel();
+      return;
+    }
     if (isEditing && textareaRef.current) {
       textareaRef.current.focus();
       const len = textareaRef.current.value.length;
       textareaRef.current.setSelectionRange(len, len);
     }
-  }, [isEditing]);
+  }, [isEditing, isCellProtected, onCancel]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

@@ -9,11 +9,12 @@ export const PasteSpecialDialog: React.FC = () => {
   const isOpen = useUIStore((s) => s.isPasteSpecialOpen);
   const close = useUIStore((s) => s.setPasteSpecialOpen);
   const [mode, setMode] = useState<PasteSpecialMode>("values");
+  const [transpose, setTranspose] = useState(false);
 
   if (!isOpen) return null;
 
   const handleApply = () => {
-    performPasteSpecial(mode);
+    performPasteSpecial({ mode, transpose });
     close(false);
   };
 
@@ -51,7 +52,7 @@ export const PasteSpecialDialog: React.FC = () => {
           Paste Special
         </h2>
 
-        <div className="space-y-2 mb-6" style={{ marginBottom: "24px" }}>
+        <div className="space-y-2 mb-4" style={{ marginBottom: "16px" }}>
           {(["values", "format", "formula"] as const).map((opt) => (
             <label
               key={opt}
@@ -82,12 +83,38 @@ export const PasteSpecialDialog: React.FC = () => {
         </div>
 
         <div
-          className="flex justify-end gap-2 mt-6"
+          className="border-t border-gray-200 pt-3 mb-4"
+          style={{
+            borderTop: "1px solid #e5e7eb",
+            paddingTop: "12px",
+            marginBottom: "16px",
+          }}
+        >
+          <label
+            className="flex items-center gap-2 cursor-pointer"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={transpose}
+              onChange={(e) => setTranspose(e.target.checked)}
+              data-testid="paste-special-transpose"
+            />
+            <span className="text-sm">Transpose</span>
+          </label>
+        </div>
+
+        <div
+          className="flex justify-end gap-2"
           style={{
             display: "flex",
             justifyContent: "flex-end",
             gap: "8px",
-            marginTop: "24px",
           }}
         >
           <button

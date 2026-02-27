@@ -4,10 +4,12 @@ import { useUIStore } from "../../stores/uiStore";
 import { useCellStore } from "../../stores/cellStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useClipboardStore } from "../../stores/clipboardStore";
-import { useFormatStore } from "../../stores/formatStore";
+import { useFormatStore, evaluateColorScale } from "../../stores/formatStore";
 import { useFormulaStore } from "../../stores/formulaStore";
 import { useFindReplaceStore } from "../../stores/findReplaceStore";
-import { colToLetter } from "../../utils/coordinates";
+import { useValidationStore } from "../../stores/validationStore";
+import { useDataStore } from "../../stores/dataStore";
+import { colToLetter, getCellKey } from "../../utils/coordinates";
 import { cellId, parseCellId } from "../formula/cellUtils";
 import type { CellValueGetter } from "../../types/formula";
 import { generateFillValues } from "../../utils/fillHandle";
@@ -29,6 +31,9 @@ const BUFFER_ROWS = 10;
 const BUFFER_COLS = 5;
 const FILL_HANDLE_SIZE = 6;
 const RESIZE_HANDLE_WIDTH = 5;
+const CHECKBOX_SIZE = 14;
+const HYPERLINK_COLOR = "#1a73e8";
+const GROUP_BTN_SIZE = 12;
 
 type DragMode = "none" | "select" | "resize-col" | "resize-row" | "fill-handle";
 
@@ -44,6 +49,7 @@ export function Grid() {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const rafIdRef = useRef<number>(0);
+  const imageCacheRef = useRef<Map<string, HTMLImageElement>>(new Map());
 
   const dragModeRef = useRef<DragMode>("none");
   const dragStartRef = useRef<CellPosition | null>(null);
@@ -250,6 +256,54 @@ export function Grid() {
     }
     endRow = Math.min(gs.totalRows - 1, endRow + BUFFER_ROWS);
 
+    // Get validation rules and data groups for rendering
+    const vs = useValidationStore.getState();
+    const ds = useDataStore.getState();
+    const fs = useFormatStore.getState();
+    const validationRules = vs.rules.get(activeSheetId);
+    const rowGroups = ds.getRowGroups(activeSheetId);
+    const colGroups = ds.getColGroups(activeSheetId);
+    const conditionalRules = fs.getConditionalRules(activeSheetId);
+
+    // Build set of rows/cols hidden by collapsed groups
+    const groupCollapsedRows = new Set<number>();
+    for (const g of rowGroups) {
+      if (g.collapsed) {
+        for (let r = g.start; r <= g.end; r++) groupCollapsedRows.add(r);
+      }
+    }
+    const groupCollapsedCols = new Set<number>();
+    for (const g of colGroups) {
+      if (g.collapsed) {
+        for (let c = g.start; c <= g.end; c++) groupCollapsedCols.add(c);
+      }
+    }
+
+    // Collect numeric values for conditional format data bars and color scales
+    const condRangeStats = new Map<string, { min: number; max: number }>();
+    for (const rule of conditionalRules) {
+      if (
+        rule.type === "colorScale" ||
+        rule.condition === "dataBar" ||
+        rule.condition === "iconSet"
+      ) {
+        const key = rule.id;
+        let min = Infinity;
+        let max = -Infinity;
+        for (let r = rule.range.startRow; r <= rule.range.endRow; r++) {
+          for (let c = rule.range.startCol; c <= rule.range.endCol; c++) {
+            const cd = sheetCells?.get(`${r},${c}`);
+            const num = cd?.value != null ? Number(cd.value) : NaN;
+            if (!isNaN(num)) {
+              if (num < min) min = num;
+              if (num > max) max = num;
+            }
+          }
+        }
+        if (min !== Infinity) condRangeStats.set(key, { min, max });
+      }
+    }
+
     // Draw cell backgrounds and content
     ctx.save();
     ctx.beginPath();
@@ -257,9 +311,9 @@ export function Grid() {
     ctx.clip();
 
     for (let r = visStartRow; r <= endRow; r++) {
-      if (gs.hiddenRows.has(r)) continue;
+      if (gs.hiddenRows.has(r) || groupCollapsedRows.has(r)) continue;
       for (let c = visStartCol; c <= endCol; c++) {
-        if (gs.hiddenCols.has(c)) continue;
+        if (gs.hiddenCols.has(c) || groupCollapsedCols.has(c)) continue;
         const cellX = gs.getColumnX(c) - gs.scrollLeft + rhw;
         const cellY = gs.getRowY(r) - gs.scrollTop + chh;
         const cellW = gs.columnWidths.get(c) ?? gs.defaultColWidth;
@@ -267,6 +321,9 @@ export function Grid() {
 
         const cellKey = `${r},${c}`;
         const cellData = sheetCells?.get(cellKey);
+        const cellValue = cellData?.value;
+
+        // Cell background
         if (cellData?.format?.backgroundColor) {
           ctx.fillStyle = cellData.format.backgroundColor;
           ctx.fillRect(
@@ -277,8 +334,211 @@ export function Grid() {
           );
         }
 
-        if (cellData?.value != null && cellData.value !== "") {
-          const fmt = cellData.format;
+        // Conditional format: color scale background
+        for (const rule of conditionalRules) {
+          if (rule.type !== "colorScale") continue;
+          const { range: rng } = rule;
+          if (
+            r < rng.startRow ||
+            r > rng.endRow ||
+            c < rng.startCol ||
+            c > rng.endCol
+          )
+            continue;
+          const num = cellValue != null ? Number(cellValue) : NaN;
+          if (isNaN(num)) continue;
+          const stats = condRangeStats.get(rule.id);
+          if (!stats) continue;
+          const bgColor = evaluateColorScale(rule, num, stats.min, stats.max);
+          if (bgColor) {
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(
+              Math.round(cellX),
+              Math.round(cellY),
+              Math.round(cellW),
+              Math.round(cellH),
+            );
+          }
+        }
+
+        // Conditional format: data bars
+        for (const rule of conditionalRules) {
+          if (rule.condition !== "dataBar") continue;
+          const { range: rng } = rule;
+          if (
+            r < rng.startRow ||
+            r > rng.endRow ||
+            c < rng.startCol ||
+            c > rng.endCol
+          )
+            continue;
+          const num = cellValue != null ? Number(cellValue) : NaN;
+          if (isNaN(num)) continue;
+          const stats = condRangeStats.get(rule.id);
+          if (!stats || stats.max === stats.min) continue;
+          const ratio = (num - stats.min) / (stats.max - stats.min);
+          const barW = Math.round(cellW * ratio);
+          ctx.fillStyle = rule.values[0] ?? "#4285f4";
+          ctx.globalAlpha = 0.3;
+          ctx.fillRect(
+            Math.round(cellX),
+            Math.round(cellY),
+            barW,
+            Math.round(cellH),
+          );
+          ctx.globalAlpha = 1.0;
+        }
+
+        // Check for checkbox validation type
+        const valRule = validationRules?.get(getCellKey(r, c));
+        if (valRule?.type === "checkbox") {
+          const cx = Math.round(cellX + cellW / 2);
+          const cy = Math.round(cellY + cellH / 2);
+          const half = CHECKBOX_SIZE / 2;
+          // Draw checkbox box
+          ctx.strokeStyle = "#5f6368";
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(cx - half, cy - half, CHECKBOX_SIZE, CHECKBOX_SIZE);
+          // Fill if checked
+          const checked =
+            cellValue === true ||
+            cellValue === "TRUE" ||
+            cellValue === "true" ||
+            cellValue === 1;
+          if (checked) {
+            ctx.fillStyle = HYPERLINK_COLOR;
+            ctx.fillRect(cx - half, cy - half, CHECKBOX_SIZE, CHECKBOX_SIZE);
+            // Draw checkmark
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - 3, cy);
+            ctx.lineTo(cx - 1, cy + 3);
+            ctx.lineTo(cx + 4, cy - 3);
+            ctx.stroke();
+          }
+          continue;
+        }
+
+        // Check for sparkline
+        const strValue = cellValue != null ? String(cellValue) : "";
+        if (
+          typeof cellValue === "string" &&
+          strValue.startsWith("__SPARKLINE__")
+        ) {
+          try {
+            const json = strValue.slice("__SPARKLINE__".length);
+            const sparkData = JSON.parse(json) as {
+              data: number[];
+              type?: string;
+            };
+            const data = sparkData.data;
+            if (data && data.length > 1) {
+              const pad = 3;
+              const sparkX = Math.round(cellX) + pad;
+              const sparkY = Math.round(cellY) + pad;
+              const sparkW = Math.round(cellW) - pad * 2;
+              const sparkH = Math.round(cellH) - pad * 2;
+              const minV = Math.min(...data);
+              const maxV = Math.max(...data);
+              const range = maxV - minV || 1;
+
+              ctx.save();
+              ctx.beginPath();
+              ctx.rect(
+                Math.round(cellX),
+                Math.round(cellY),
+                Math.round(cellW),
+                Math.round(cellH),
+              );
+              ctx.clip();
+
+              if (sparkData.type === "bar") {
+                const barWidth = sparkW / data.length;
+                for (let i = 0; i < data.length; i++) {
+                  const barH = ((data[i] - minV) / range) * sparkH;
+                  ctx.fillStyle = "#4285f4";
+                  ctx.fillRect(
+                    sparkX + i * barWidth + 1,
+                    sparkY + sparkH - barH,
+                    Math.max(barWidth - 2, 1),
+                    barH,
+                  );
+                }
+              } else {
+                // line sparkline
+                ctx.strokeStyle = "#4285f4";
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                for (let i = 0; i < data.length; i++) {
+                  const px = sparkX + (i / (data.length - 1)) * sparkW;
+                  const py =
+                    sparkY + sparkH - ((data[i] - minV) / range) * sparkH;
+                  if (i === 0) ctx.moveTo(px, py);
+                  else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+              }
+              ctx.restore();
+            }
+          } catch {
+            // Invalid sparkline data, skip
+          }
+          continue;
+        }
+
+        // Check for image
+        if (cellData?.image) {
+          const imgUrl = cellData.image.url;
+          const cache = imageCacheRef.current;
+          let img = cache.get(imgUrl);
+          if (!img) {
+            img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = imgUrl;
+            cache.set(imgUrl, img);
+            img.onload = () => scheduleRedraw();
+          }
+          if (img.complete && img.naturalWidth > 0) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(
+              Math.round(cellX),
+              Math.round(cellY),
+              Math.round(cellW),
+              Math.round(cellH),
+            );
+            ctx.clip();
+            const imgAspect = img.naturalWidth / img.naturalHeight;
+            const cellAspect = cellW / cellH;
+            let drawW: number, drawH: number, drawX: number, drawY: number;
+            if (imgAspect > cellAspect) {
+              drawW = cellW - 4;
+              drawH = drawW / imgAspect;
+              drawX = cellX + 2;
+              drawY = cellY + (cellH - drawH) / 2;
+            } else {
+              drawH = cellH - 4;
+              drawW = drawH * imgAspect;
+              drawX = cellX + (cellW - drawW) / 2;
+              drawY = cellY + 2;
+            }
+            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+            ctx.restore();
+          }
+          continue;
+        }
+
+        // Draw text content
+        if (cellValue != null && cellValue !== "") {
+          const fmt = cellData?.format;
+          // Check for hyperlink
+          const isHyperlink =
+            !!cellData?.hyperlink ||
+            (typeof cellValue === "string" &&
+              (strValue.startsWith("http://") ||
+                strValue.startsWith("https://")));
+
           // Build font string from format properties
           const fontParts: string[] = [];
           if (fmt?.italic) fontParts.push("italic");
@@ -289,7 +549,9 @@ export function Grid() {
           fontParts.push(fontFamily);
           ctx.font = fontParts.join(" ");
 
-          ctx.fillStyle = fmt?.textColor ?? "#000000";
+          ctx.fillStyle = isHyperlink
+            ? HYPERLINK_COLOR
+            : (fmt?.textColor ?? "#000000");
 
           // Vertical alignment
           const vAlign = fmt?.verticalAlign ?? "middle";
@@ -304,17 +566,19 @@ export function Grid() {
           const hAlign = fmt?.horizontalAlign ?? "left";
           ctx.textAlign = hAlign;
 
-          const displayValue = formatCellValue(
-            cellData.value,
-            fmt?.numberFormat,
-          );
+          const displayValue =
+            isHyperlink && cellData?.hyperlink?.label
+              ? cellData.hyperlink.label
+              : formatCellValue(cellValue, fmt?.numberFormat);
           const pad = 4;
+          // Offset for icon set icons
+          let iconOffset = 0;
           const textX =
             hAlign === "center"
               ? Math.round(cellX + cellW / 2)
               : hAlign === "right"
                 ? Math.round(cellX + cellW - pad)
-                : Math.round(cellX + pad);
+                : Math.round(cellX + pad + iconOffset);
           const textY =
             vAlign === "top"
               ? Math.round(cellY + pad)
@@ -331,20 +595,81 @@ export function Grid() {
             Math.round(cellH),
           );
           ctx.clip();
-          ctx.fillText(displayValue, textX, textY);
 
-          // Underline
-          if (fmt?.underline) {
+          // Conditional format: icon sets (draw icon before text)
+          for (const rule of conditionalRules) {
+            if (rule.condition !== "iconSet") continue;
+            const { range: rng } = rule;
+            if (
+              r < rng.startRow ||
+              r > rng.endRow ||
+              c < rng.startCol ||
+              c > rng.endCol
+            )
+              continue;
+            const num = cellValue != null ? Number(cellValue) : NaN;
+            if (isNaN(num)) continue;
+            const stats = condRangeStats.get(rule.id);
+            if (!stats || stats.max === stats.min) continue;
+            const ratio = (num - stats.min) / (stats.max - stats.min);
+            // Pick icon based on thirds
+            let icon: string;
+            let iconColor: string;
+            if (ratio >= 0.67) {
+              icon = "\u25B2"; // ▲ up arrow
+              iconColor = "#34a853";
+            } else if (ratio >= 0.33) {
+              icon = "\u25B6"; // ▶ right arrow
+              iconColor = "#fbbc04";
+            } else {
+              icon = "\u25BC"; // ▼ down arrow
+              iconColor = "#ea4335";
+            }
+            ctx.fillStyle = iconColor;
+            ctx.font = "10px Arial, sans-serif";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            ctx.fillText(
+              icon,
+              Math.round(cellX + 2),
+              Math.round(cellY + cellH / 2),
+            );
+            iconOffset = 14;
+            // Restore font/color for text
+            ctx.font = fontParts.join(" ");
+            ctx.fillStyle = isHyperlink
+              ? HYPERLINK_COLOR
+              : (fmt?.textColor ?? "#000000");
+            ctx.textAlign = hAlign;
+            ctx.textBaseline =
+              vAlign === "top"
+                ? "top"
+                : vAlign === "bottom"
+                  ? "bottom"
+                  : "middle";
+            break;
+          }
+
+          const finalTextX =
+            iconOffset > 0 && hAlign === "left"
+              ? Math.round(cellX + pad + iconOffset)
+              : textX;
+          ctx.fillText(displayValue, finalTextX, textY);
+
+          // Underline (always for hyperlinks, or if format says so)
+          if (fmt?.underline || isHyperlink) {
             const metrics = ctx.measureText(displayValue);
             const lineY = textY + 2;
             const lineStartX =
               hAlign === "center"
-                ? textX - metrics.width / 2
+                ? finalTextX - metrics.width / 2
                 : hAlign === "right"
-                  ? textX - metrics.width
-                  : textX;
+                  ? finalTextX - metrics.width
+                  : finalTextX;
             ctx.beginPath();
-            ctx.strokeStyle = fmt.textColor ?? "#000000";
+            ctx.strokeStyle = isHyperlink
+              ? HYPERLINK_COLOR
+              : (fmt?.textColor ?? "#000000");
             ctx.lineWidth = 1;
             ctx.moveTo(lineStartX, lineY);
             ctx.lineTo(lineStartX + metrics.width, lineY);
@@ -362,10 +687,10 @@ export function Grid() {
                   : textY;
             const lineStartX =
               hAlign === "center"
-                ? textX - metrics.width / 2
+                ? finalTextX - metrics.width / 2
                 : hAlign === "right"
-                  ? textX - metrics.width
-                  : textX;
+                  ? finalTextX - metrics.width
+                  : finalTextX;
             ctx.beginPath();
             ctx.strokeStyle = fmt.textColor ?? "#000000";
             ctx.lineWidth = 1;
@@ -547,6 +872,82 @@ export function Grid() {
     ctx.fillRect(0, 0, rhw, chh);
     ctx.strokeStyle = HEADER_BORDER;
     ctx.strokeRect(0, 0, rhw, chh);
+
+    // Draw row grouping +/- buttons in row header area
+    for (const group of rowGroups) {
+      const groupStartY = gs.getRowY(group.start) - gs.scrollTop + chh;
+      const btnX = 2;
+      const btnY = Math.round(groupStartY + 2);
+      // Draw bracket line
+      if (!group.collapsed) {
+        const groupEndY =
+          gs.getRowY(group.end) -
+          gs.scrollTop +
+          chh +
+          (gs.rowHeights.get(group.end) ?? gs.defaultRowHeight);
+        ctx.strokeStyle = "#999";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(btnX + GROUP_BTN_SIZE / 2, btnY + GROUP_BTN_SIZE);
+        ctx.lineTo(btnX + GROUP_BTN_SIZE / 2, groupEndY - 2);
+        ctx.lineTo(btnX + GROUP_BTN_SIZE, groupEndY - 2);
+        ctx.stroke();
+      }
+      // Draw button background
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(btnX, btnY, GROUP_BTN_SIZE, GROUP_BTN_SIZE);
+      ctx.strokeStyle = "#999";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(btnX, btnY, GROUP_BTN_SIZE, GROUP_BTN_SIZE);
+      // Draw +/- text
+      ctx.fillStyle = "#333";
+      ctx.font = "10px Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(
+        group.collapsed ? "+" : "\u2212",
+        btnX + GROUP_BTN_SIZE / 2,
+        btnY + GROUP_BTN_SIZE / 2,
+      );
+    }
+
+    // Draw column grouping +/- buttons in column header area
+    for (const group of colGroups) {
+      const groupStartX = gs.getColumnX(group.start) - gs.scrollLeft + rhw;
+      const btnX = Math.round(groupStartX + 2);
+      const btnY = 2;
+      // Draw bracket line
+      if (!group.collapsed) {
+        const groupEndX =
+          gs.getColumnX(group.end) -
+          gs.scrollLeft +
+          rhw +
+          (gs.columnWidths.get(group.end) ?? gs.defaultColWidth);
+        ctx.strokeStyle = "#999";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(btnX + GROUP_BTN_SIZE, btnY + GROUP_BTN_SIZE / 2);
+        ctx.lineTo(groupEndX - 2, btnY + GROUP_BTN_SIZE / 2);
+        ctx.lineTo(groupEndX - 2, btnY + GROUP_BTN_SIZE);
+        ctx.stroke();
+      }
+      // Draw button background
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(btnX, btnY, GROUP_BTN_SIZE, GROUP_BTN_SIZE);
+      ctx.strokeStyle = "#999";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(btnX, btnY, GROUP_BTN_SIZE, GROUP_BTN_SIZE);
+      // Draw +/- text
+      ctx.fillStyle = "#333";
+      ctx.font = "10px Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(
+        group.collapsed ? "+" : "\u2212",
+        btnX + GROUP_BTN_SIZE / 2,
+        btnY + GROUP_BTN_SIZE / 2,
+      );
+    }
   }, [getActiveSheetId]);
 
   const scheduleRedraw = useCallback(() => {
@@ -561,6 +962,9 @@ export function Grid() {
       useUIStore.subscribe(scheduleRedraw),
       useCellStore.subscribe(scheduleRedraw),
       useSpreadsheetStore.subscribe(scheduleRedraw),
+      useValidationStore.subscribe(scheduleRedraw),
+      useDataStore.subscribe(scheduleRedraw),
+      useFormatStore.subscribe(scheduleRedraw),
     ];
     scheduleRedraw();
     return () => {
@@ -965,6 +1369,48 @@ export function Grid() {
         return;
       }
 
+      // Check row group toggle buttons
+      if (x < gs.rowHeaderWidth && y > gs.colHeaderHeight) {
+        const activeSheetId = getActiveSheetId();
+        const rowGroups = useDataStore.getState().getRowGroups(activeSheetId);
+        for (const group of rowGroups) {
+          const groupStartY =
+            gs.getRowY(group.start) - gs.scrollTop + gs.colHeaderHeight;
+          const btnX = 2;
+          const btnY = Math.round(groupStartY + 2);
+          if (
+            x >= btnX &&
+            x <= btnX + GROUP_BTN_SIZE &&
+            y >= btnY &&
+            y <= btnY + GROUP_BTN_SIZE
+          ) {
+            useDataStore.getState().toggleRowGroup(activeSheetId, group.start);
+            return;
+          }
+        }
+      }
+
+      // Check column group toggle buttons
+      if (y < gs.colHeaderHeight && x > gs.rowHeaderWidth) {
+        const activeSheetId = getActiveSheetId();
+        const colGroups = useDataStore.getState().getColGroups(activeSheetId);
+        for (const group of colGroups) {
+          const groupStartX =
+            gs.getColumnX(group.start) - gs.scrollLeft + gs.rowHeaderWidth;
+          const btnX = Math.round(groupStartX + 2);
+          const btnY = 2;
+          if (
+            x >= btnX &&
+            x <= btnX + GROUP_BTN_SIZE &&
+            y >= btnY &&
+            y <= btnY + GROUP_BTN_SIZE
+          ) {
+            useDataStore.getState().toggleColGroup(activeSheetId, group.start);
+            return;
+          }
+        }
+      }
+
       // Row header click
       if (x < gs.rowHeaderWidth && y > gs.colHeaderHeight) {
         const gridY = y - gs.colHeaderHeight + gs.scrollTop;
@@ -1004,6 +1450,51 @@ export function Grid() {
       const pos = screenToGrid(x, y);
       if (!pos) return;
 
+      const activeSheetId = getActiveSheetId();
+
+      // Check for hyperlink Ctrl+Click
+      if (e.ctrlKey || e.metaKey) {
+        const cellData = useCellStore
+          .getState()
+          .getCell(activeSheetId, pos.row, pos.col);
+        if (cellData) {
+          let url: string | null = null;
+          if (cellData.hyperlink) {
+            url = cellData.hyperlink.url;
+          } else if (
+            typeof cellData.value === "string" &&
+            (cellData.value.startsWith("http://") ||
+              cellData.value.startsWith("https://"))
+          ) {
+            url = cellData.value;
+          }
+          if (url) {
+            window.open(url, "_blank", "noopener,noreferrer");
+            return;
+          }
+        }
+      }
+
+      // Check for checkbox cell — single click toggles value
+      const vs = useValidationStore.getState();
+      const valRule = vs.getRule(activeSheetId, pos.row, pos.col);
+      if (valRule?.type === "checkbox") {
+        const cs = useCellStore.getState();
+        const existing = cs.getCell(activeSheetId, pos.row, pos.col);
+        const currentVal = existing?.value;
+        const checked =
+          currentVal === true ||
+          currentVal === "TRUE" ||
+          currentVal === "true" ||
+          currentVal === 1;
+        cs.setCell(activeSheetId, pos.row, pos.col, {
+          ...existing,
+          value: checked ? "FALSE" : "TRUE",
+        });
+        setSelectedCell(pos);
+        return;
+      }
+
       const ui = useUIStore.getState();
       if (ui.isEditing) {
         handleCommitEdit(ui.editValue, "none");
@@ -1031,6 +1522,7 @@ export function Grid() {
       setSelectedCell,
       setSelections,
       handleCommitEdit,
+      getActiveSheetId,
     ],
   );
 
@@ -1051,7 +1543,23 @@ export function Grid() {
         } else if (getResizeRow(x, y) >= 0) {
           scrollContainer.style.cursor = "row-resize";
         } else {
-          scrollContainer.style.cursor = "cell";
+          // Check if hovering over a hyperlink cell
+          const pos = screenToGrid(x, y);
+          let isHyperlink = false;
+          if (pos) {
+            const activeSheetId = getActiveSheetId();
+            const cellData = useCellStore
+              .getState()
+              .getCell(activeSheetId, pos.row, pos.col);
+            if (cellData) {
+              isHyperlink =
+                !!cellData.hyperlink ||
+                (typeof cellData.value === "string" &&
+                  (String(cellData.value).startsWith("http://") ||
+                    String(cellData.value).startsWith("https://")));
+            }
+          }
+          scrollContainer.style.cursor = isHyperlink ? "pointer" : "cell";
         }
       }
 
@@ -1075,7 +1583,14 @@ export function Grid() {
         }
       }
     },
-    [screenToGrid, setSelections, isOnFillHandle, getResizeCol, getResizeRow],
+    [
+      screenToGrid,
+      setSelections,
+      isOnFillHandle,
+      getResizeCol,
+      getResizeRow,
+      getActiveSheetId,
+    ],
   );
 
   const handleMouseUp = useCallback(() => {
