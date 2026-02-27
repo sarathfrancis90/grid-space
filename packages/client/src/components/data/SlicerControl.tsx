@@ -9,6 +9,7 @@ import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useCellStore } from "../../stores/cellStore";
 import { useUIStore } from "../../stores/uiStore";
 import { colToLetter } from "../../utils/coordinates";
+import type { SlicerConfig } from "../../types/grid";
 
 /** Dialog for inserting a new slicer (shown when Insert Slicer menu is clicked) */
 function SlicerInsertDialog() {
@@ -146,7 +147,7 @@ function SlicerInsertDialog() {
 
 /** Individual slicer panel */
 function SlicerPanel({ slicerId }: { slicerId: string }) {
-  const slicer = useDataStore((s) => s.getSlicer(slicerId));
+  const slicer = useDataStore((s) => s.slicers.get(slicerId));
   const removeSlicer = useDataStore((s) => s.removeSlicer);
   const updateSelection = useDataStore((s) => s.updateSlicerSelection);
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
@@ -315,12 +316,19 @@ function SlicerPanel({ slicerId }: { slicerId: string }) {
   );
 }
 
+const EMPTY_SLICERS: SlicerConfig[] = [];
+
 /** Render all slicers for the active sheet + insert dialog */
 export function SlicerControl() {
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
-  const slicers = useDataStore((s) =>
-    sheetId ? s.getSlicersForSheet(sheetId) : [],
-  );
+  const slicersMap = useDataStore((s) => s.slicers);
+  const slicers = useMemo(() => {
+    if (!sheetId) return EMPTY_SLICERS;
+    const result = Array.from(slicersMap.values()).filter(
+      (s) => s.sheetId === sheetId,
+    );
+    return result.length > 0 ? result : EMPTY_SLICERS;
+  }, [sheetId, slicersMap]);
 
   return (
     <>

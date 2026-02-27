@@ -3,11 +3,13 @@
  * conditional formatting rules per sheet.
  * S6-023: Conditional format manager
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useFormatStore } from "../../stores/formatStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useUIStore } from "../../stores/uiStore";
 import type { ConditionalRule, CellFormat } from "../../types/grid";
+
+const EMPTY_RULES: ConditionalRule[] = [];
 
 const RULE_TYPES = [
   { value: "value", label: "Value" },
@@ -59,7 +61,12 @@ export function ConditionalFormatManager({
   onClose,
 }: ConditionalFormatManagerProps) {
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
-  const rules = useFormatStore((s) => s.getConditionalRules(sheetId));
+  const conditionalRulesMap = useFormatStore((s) => s.conditionalRules);
+  const rules = useMemo(
+    () =>
+      sheetId ? (conditionalRulesMap.get(sheetId) ?? EMPTY_RULES) : EMPTY_RULES,
+    [sheetId, conditionalRulesMap],
+  );
   const addRule = useFormatStore((s) => s.addConditionalRule);
   const removeRule = useFormatStore((s) => s.removeConditionalRule);
   const reorderRules = useFormatStore((s) => s.reorderConditionalRules);

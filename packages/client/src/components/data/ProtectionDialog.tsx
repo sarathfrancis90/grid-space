@@ -2,19 +2,26 @@
  * ProtectionDialog — manage protected ranges for the current sheet.
  * List existing ranges, add new ones by range reference, remove them.
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useUIStore } from "../../stores/uiStore";
 import { useDataStore } from "../../stores/dataStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { cellRefToPosition, positionToCellRef } from "../../utils/coordinates";
 import type { ProtectedRange } from "../../types/grid";
 
+const EMPTY_RANGES: ProtectedRange[] = [];
+
 export function ProtectionDialog() {
   const isOpen = useUIStore((s) => s.isProtectionDialogOpen);
   const close = useUIStore((s) => s.setProtectionDialogOpen);
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
-  const ranges = useDataStore((s) =>
-    sheetId ? s.getProtectedRanges(sheetId) : [],
+  const protectedRangesMap = useDataStore((s) => s.protectedRanges);
+  const ranges = useMemo(
+    () =>
+      sheetId
+        ? (protectedRangesMap.get(sheetId) ?? EMPTY_RANGES)
+        : EMPTY_RANGES,
+    [sheetId, protectedRangesMap],
   );
 
   const [rangeInput, setRangeInput] = useState("");
