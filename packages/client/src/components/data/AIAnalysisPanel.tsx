@@ -78,8 +78,6 @@ export function AIAnalysisPanel() {
   const close = useUIStore((s) => s.setAIAnalysisOpen);
   const selections = useUIStore((s) => s.selections);
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
-  const getCell = useCellStore((s) => s.getCell);
-  const createChart = useChartStore((s) => s.createChartFromSelection);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const sel = selections.length > 0 ? selections[0] : null;
@@ -92,26 +90,18 @@ export function AIAnalysisPanel() {
 
   const analysis = useMemo<AnalysisResult | null>(() => {
     if (!hasRange) return null;
+    const cellGetter = useCellStore.getState().getCell;
     return analyzeSelection(startRow, endRow, startCol, endCol, (r, c) =>
-      getCell(sheetId, r, c),
+      cellGetter(sheetId, r, c),
     );
     // refreshKey forces recomputation on demand
-  }, [
-    hasRange,
-    startRow,
-    endRow,
-    startCol,
-    endCol,
-    sheetId,
-    getCell,
-    refreshKey,
-  ]);
+  }, [hasRange, startRow, endRow, startCol, endCol, sheetId, refreshKey]);
 
   if (!isOpen) return null;
 
   const handleCreateChart = (type: ChartType) => {
     if (!sel) return;
-    createChart(sheetId, type, sel);
+    useChartStore.getState().createChartFromSelection(sheetId, type, sel);
   };
 
   const numericCols = analysis?.columns.filter((c) => c.statistics) ?? [];

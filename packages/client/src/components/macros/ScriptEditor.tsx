@@ -10,8 +10,6 @@ export function ScriptEditor() {
   const isOpen = useUIStore((s) => s.isScriptEditorOpen);
   const closeEditor = useUIStore((s) => s.setScriptEditorOpen);
   const selectedMacroId = useMacroStore((s) => s.selectedMacroId);
-  const getMacroScript = useMacroStore((s) => s.getMacroScript);
-  const runMacro = useMacroStore((s) => s.runMacro);
   const macros = useMacroStore((s) => s.macros);
 
   const [copied, setCopied] = useState(false);
@@ -23,8 +21,8 @@ export function ScriptEditor() {
 
   const script = useMemo(() => {
     if (!selectedMacroId) return "";
-    return getMacroScript(selectedMacroId);
-  }, [selectedMacroId, getMacroScript]);
+    return useMacroStore.getState().getMacroScript(selectedMacroId);
+  }, [selectedMacroId, macros]);
 
   const handleClose = useCallback(() => {
     closeEditor(false);
@@ -42,10 +40,10 @@ export function ScriptEditor() {
 
   const handleRun = useCallback(() => {
     if (selectedMacroId) {
-      runMacro(selectedMacroId);
+      useMacroStore.getState().runMacro(selectedMacroId);
       handleClose();
     }
-  }, [selectedMacroId, runMacro, handleClose]);
+  }, [selectedMacroId, handleClose]);
 
   if (!isOpen) return null;
 

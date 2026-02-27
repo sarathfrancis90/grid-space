@@ -36,8 +36,6 @@ export function KanbanView() {
   const setConfig = useViewStore((s) => s.setKanbanConfig);
   const setActiveView = useViewStore((s) => s.setActiveView);
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
-  const setCell = useCellStore((s) => s.setCell);
-  const getCell = useCellStore((s) => s.getCell);
   const { headers, rows } = useSheetData();
 
   const [dragRow, setDragRow] = useState<number | null>(null);
@@ -95,6 +93,7 @@ export function KanbanView() {
       e.preventDefault();
       if (dragRow === null || !config) return;
 
+      const { getCell, setCell } = useCellStore.getState();
       const currentCell = getCell(sheetId, dragRow, config.statusCol);
       const currentStatus =
         currentCell?.value != null ? String(currentCell.value) : "";
@@ -109,7 +108,7 @@ export function KanbanView() {
       });
       setDragRow(null);
     },
-    [dragRow, config, sheetId, setCell, getCell],
+    [dragRow, config, sheetId],
   );
 
   const handleSetup = useCallback(
