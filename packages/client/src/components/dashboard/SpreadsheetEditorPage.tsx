@@ -37,6 +37,13 @@ import { RemoveDuplicatesDialog } from "../data/RemoveDuplicatesDialog";
 import { TextToColumnsDialog } from "../data/TextToColumnsDialog";
 import { GoalSeekDialog } from "../data/GoalSeekDialog";
 import { SlicerControl } from "../data/SlicerControl";
+import { useViewStore } from "../../stores/viewStore";
+import { ViewSwitcher, KanbanView, TimelineView, CalendarView } from "../views";
+import { MacroRecorderBar } from "../macros/MacroRecorderBar";
+import { MacroManagerDialog } from "../macros/MacroManagerDialog";
+import { ScriptEditor } from "../macros/ScriptEditor";
+import { AIAnalysisPanel } from "../data/AIAnalysisPanel";
+import { useMacroRecorder } from "../../hooks/useMacroRecorder";
 import { SaveIndicator } from "./SaveIndicator";
 import { SpreadsheetLoader } from "./SpreadsheetLoader";
 
@@ -69,6 +76,9 @@ export default function SpreadsheetEditorPage() {
   const showFormulaBar = useUIStore((s) => s.showFormulaBar);
   const user = useAuthStore((s) => s.user);
   const openShareDialog = useSharingStore((s) => s.openDialog);
+  const activeView = useViewStore((s) => s.activeView);
+
+  useMacroRecorder();
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [titleInput, setTitleInput] = useState("");
@@ -214,6 +224,9 @@ export default function SpreadsheetEditorPage() {
         </div>
       </div>
 
+      {/* Macro recording bar */}
+      <MacroRecorderBar />
+
       {/* Menu bar */}
       <MenuBar />
 
@@ -223,13 +236,19 @@ export default function SpreadsheetEditorPage() {
       {/* Formula bar */}
       {showFormulaBar && <FormulaBar />}
 
-      {/* Main content area: grid + sidebars */}
+      {/* View switcher */}
+      <ViewSwitcher />
+
+      {/* Main content area: grid/views + sidebars */}
       <div
         className="relative flex flex-1 overflow-hidden"
         data-testid="grid-wrapper"
       >
         <div className="flex-1 overflow-hidden">
-          <Grid />
+          {activeView === "grid" && <Grid />}
+          {activeView === "kanban" && <KanbanView />}
+          {activeView === "timeline" && <TimelineView />}
+          {activeView === "calendar" && <CalendarView />}
         </div>
 
         {/* Sidebars render beside the grid */}
@@ -237,6 +256,7 @@ export default function SpreadsheetEditorPage() {
           <VersionHistorySidebar spreadsheetId={id ?? ""} />
         </Suspense>
         <CommentsSidebar currentUserId={user?.id} />
+        <AIAnalysisPanel />
       </div>
 
       {/* Sheet tabs */}
@@ -268,6 +288,8 @@ export default function SpreadsheetEditorPage() {
       <TextToColumnsDialog />
       <GoalSeekDialog />
       <SlicerControl />
+      <MacroManagerDialog />
+      <ScriptEditor />
       <OfflineIndicator />
       <Suspense fallback={null}>
         <ChartOverlay />

@@ -12,6 +12,7 @@ import { useCellStore } from "../stores/cellStore";
 import { useSpreadsheetStore } from "../stores/spreadsheetStore";
 import { useFindReplaceStore } from "../stores/findReplaceStore";
 import { useVersionStore } from "../stores/versionStore";
+import { useMacroStore } from "../stores/macroStore";
 import { runFlashFill } from "../utils/flashFill";
 
 export interface ShortcutHandlers {
@@ -278,6 +279,20 @@ export function useKeyboardShortcuts(handlers?: ShortcutHandlers): void {
             });
             return;
           }
+        }
+      }
+
+      // --- Ctrl+Shift+<number> — macro shortcuts (7–9 range available) ---
+      if (ctrl && shift && !alt) {
+        const macroShortcutKey = `Ctrl+Shift+${key}`;
+        const macroState = useMacroStore.getState();
+        const matchedMacro = macroState.macros.find(
+          (m) => m.shortcut === macroShortcutKey,
+        );
+        if (matchedMacro) {
+          e.preventDefault();
+          macroState.runMacro(matchedMacro.id);
+          return;
         }
       }
 

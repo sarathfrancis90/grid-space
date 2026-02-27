@@ -11,6 +11,7 @@ import { useGridStore } from "../../stores/gridStore";
 import { useFormatStore } from "../../stores/formatStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useChartStore } from "../../stores/chartStore";
+import { useMacroStore } from "../../stores/macroStore";
 import { exportXLSX, downloadFile } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
 
@@ -34,6 +35,7 @@ export function MenuBar() {
   const menuRef = useRef<HTMLDivElement>(null);
   const showGridlines = useUIStore((s) => s.showGridlines);
   const showFormulaBar = useUIStore((s) => s.showFormulaBar);
+  const macroIsRecording = useMacroStore((s) => s.isRecording);
 
   const handleMenuClick = useCallback(
     (menu: string) => {
@@ -492,6 +494,49 @@ export function MenuBar() {
           label: "Notifications",
           testId: "menu-tools-notifications",
           action: () => setOpenMenu(null),
+        },
+        ...(macroIsRecording
+          ? [
+              {
+                label: "Stop Recording",
+                testId: "menu-tools-stop-recording",
+                separator: true,
+                action: () => {
+                  useMacroStore.getState().stopRecording();
+                  setOpenMenu(null);
+                },
+              },
+            ]
+          : [
+              {
+                label: "Record Macro...",
+                testId: "menu-tools-record-macro",
+                separator: true,
+                action: () => {
+                  const name = prompt("Enter macro name:");
+                  if (name?.trim()) {
+                    useMacroStore.getState().startRecording(name.trim());
+                  }
+                  setOpenMenu(null);
+                },
+              },
+            ]),
+        {
+          label: "Manage Macros...",
+          testId: "menu-tools-manage-macros",
+          action: () => {
+            useUIStore.getState().setMacroManagerOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Explore data",
+          testId: "menu-tools-explore",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setAIAnalysisOpen(true);
+            setOpenMenu(null);
+          },
         },
       ],
     },

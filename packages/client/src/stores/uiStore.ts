@@ -62,6 +62,9 @@ interface UIState {
   isTextToColumnsDialogOpen: boolean;
   isGoalSeekDialogOpen: boolean;
   isSlicerDialogOpen: boolean;
+  isMacroManagerOpen: boolean;
+  isScriptEditorOpen: boolean;
+  isAIAnalysisOpen: boolean;
   /** S2-001: whether user is in formula editing mode (started typing "=") */
   isFormulaMode: boolean;
   /** S2-004: colored references parsed from the current formula */
@@ -89,6 +92,9 @@ interface UIState {
   setTextToColumnsDialogOpen: (open: boolean) => void;
   setGoalSeekDialogOpen: (open: boolean) => void;
   setSlicerDialogOpen: (open: boolean) => void;
+  setMacroManagerOpen: (open: boolean) => void;
+  setScriptEditorOpen: (open: boolean) => void;
+  setAIAnalysisOpen: (open: boolean) => void;
   /** S2-001: enter/exit formula mode */
   setFormulaMode: (active: boolean) => void;
   /** S2-003: insert a cell reference at the cursor in the formula */
@@ -119,6 +125,9 @@ export const useUIStore = create<UIState>()(
     isTextToColumnsDialogOpen: false,
     isGoalSeekDialogOpen: false,
     isSlicerDialogOpen: false,
+    isMacroManagerOpen: false,
+    isScriptEditorOpen: false,
+    isAIAnalysisOpen: false,
     isFormulaMode: false,
     formulaReferences: [],
 
@@ -285,6 +294,24 @@ export const useUIStore = create<UIState>()(
     setSlicerDialogOpen: (open: boolean) => {
       set((state) => {
         state.isSlicerDialogOpen = open;
+      });
+    },
+
+    setMacroManagerOpen: (open: boolean) => {
+      set((state) => {
+        state.isMacroManagerOpen = open;
+      });
+    },
+
+    setScriptEditorOpen: (open: boolean) => {
+      set((state) => {
+        state.isScriptEditorOpen = open;
+      });
+    },
+
+    setAIAnalysisOpen: (open: boolean) => {
+      set((state) => {
+        state.isAIAnalysisOpen = open;
       });
     },
 
