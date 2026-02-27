@@ -68,6 +68,7 @@ export function FormulaBar() {
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
         e.preventDefault();
+        e.stopPropagation();
         const val = nameBoxValue.trim().toUpperCase();
         // Try to navigate to cell reference
         try {

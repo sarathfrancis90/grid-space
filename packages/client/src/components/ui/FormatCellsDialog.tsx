@@ -46,7 +46,7 @@ export const FormatCellsDialog: React.FC = () => {
         <h2 className="text-lg font-semibold mb-4">Format Cells</h2>
 
         {/* Tabs */}
-        <div className="flex border-b mb-4">
+        <div className="flex border-b mb-4" style={{ gap: "4px" }}>
           {(["number", "alignment", "font", "border"] as const).map((tab) => (
             <button
               key={tab}
@@ -55,6 +55,7 @@ export const FormatCellsDialog: React.FC = () => {
                   ? "border-b-2 border-blue-600 text-blue-600"
                   : "text-gray-600 hover:text-gray-900"
               }`}
+              style={{ padding: "8px 12px" }}
               data-testid={`format-tab-${tab}`}
               onClick={() => setActiveTab(tab)}
             >

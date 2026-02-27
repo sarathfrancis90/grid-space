@@ -2,12 +2,13 @@
  * Main toolbar — formatting buttons, font/size/color pickers, alignment, number formats.
  * Includes undo/redo, merge, borders, word wrap, decimal adjust, paint format, clear formatting.
  */
-import { useCallback, useState, useRef, useEffect } from "react";
+import { useCallback, useState, useRef, useEffect, useMemo } from "react";
 import { useFormatStore } from "../../stores/formatStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useCellStore } from "../../stores/cellStore";
 import { useHistoryStore } from "../../stores/historyStore";
+import { getCellKey } from "../../utils/coordinates";
 import { ColorPicker } from "./ColorPicker";
 import { NUMBER_FORMATS } from "../../utils/numberFormat";
 import type { NumberFormatKey } from "../../utils/numberFormat";
@@ -26,15 +27,32 @@ const FONT_FAMILIES = [
 
 const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36, 48, 72];
 
+/** Imperative read for event handlers (non-reactive) */
 function getSelectionFormat(): CellFormat | undefined {
   const ui = useUIStore.getState();
   const sheetId = useSpreadsheetStore.getState().activeSheetId;
   if (!sheetId || ui.selections.length === 0) return undefined;
   const sel = ui.selections[ui.selections.length - 1];
-  const cell = useCellStore
-    .getState()
-    .getCell(sheetId, sel.start.row, sel.start.col);
+  const sheetCells = useCellStore.getState().cells.get(sheetId);
+  if (!sheetCells) return undefined;
+  const cell = sheetCells.get(getCellKey(sel.start.row, sel.start.col));
   return cell?.format;
+}
+
+/** Hook that reactively reads the selected cell's format */
+function useSelectionFormat(): CellFormat | undefined {
+  const selections = useUIStore((s) => s.selections);
+  const activeSheetId = useSpreadsheetStore((s) => s.activeSheetId);
+  const cells = useCellStore((s) => s.cells);
+
+  return useMemo(() => {
+    if (!activeSheetId || selections.length === 0) return undefined;
+    const sel = selections[selections.length - 1];
+    const sheetCells = cells.get(activeSheetId);
+    if (!sheetCells) return undefined;
+    const cell = sheetCells.get(getCellKey(sel.start.row, sel.start.col));
+    return cell?.format;
+  }, [activeSheetId, selections, cells]);
 }
 
 /** Thin vertical divider between toolbar groups */
@@ -216,7 +234,7 @@ export function Toolbar() {
     [setBordersOnSelection, setBordersAllOnSelection, clearBordersOnSelection],
   );
 
-  const currentFormat = getSelectionFormat();
+  const currentFormat = useSelectionFormat();
 
   return (
     <div
@@ -330,8 +348,13 @@ export function Toolbar() {
       <button
         data-testid="bold-button"
         className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs font-bold hover:bg-gray-100 ${
-          currentFormat?.bold ? "bg-gray-200" : ""
+          currentFormat?.bold ? "bg-blue-100 text-blue-700" : ""
         }`}
+        style={
+          currentFormat?.bold
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
+            : undefined
+        }
         onClick={handleBold}
         title="Bold (Ctrl+B)"
         type="button"
@@ -341,8 +364,13 @@ export function Toolbar() {
       <button
         data-testid="italic-button"
         className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs italic hover:bg-gray-100 ${
-          currentFormat?.italic ? "bg-gray-200" : ""
+          currentFormat?.italic ? "bg-blue-100 text-blue-700" : ""
         }`}
+        style={
+          currentFormat?.italic
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
+            : undefined
+        }
         onClick={handleItalic}
         title="Italic (Ctrl+I)"
         type="button"
@@ -352,8 +380,13 @@ export function Toolbar() {
       <button
         data-testid="underline-button"
         className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs underline hover:bg-gray-100 ${
-          currentFormat?.underline ? "bg-gray-200" : ""
+          currentFormat?.underline ? "bg-blue-100 text-blue-700" : ""
         }`}
+        style={
+          currentFormat?.underline
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
+            : undefined
+        }
         onClick={handleUnderline}
         title="Underline (Ctrl+U)"
         type="button"
@@ -363,8 +396,13 @@ export function Toolbar() {
       <button
         data-testid="strikethrough-button"
         className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs line-through hover:bg-gray-100 ${
-          currentFormat?.strikethrough ? "bg-gray-200" : ""
+          currentFormat?.strikethrough ? "bg-blue-100 text-blue-700" : ""
         }`}
+        style={
+          currentFormat?.strikethrough
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
+            : undefined
+        }
         onClick={handleStrikethrough}
         title="Strikethrough"
         type="button"
@@ -466,8 +504,13 @@ export function Toolbar() {
       <button
         data-testid="align-left-button"
         className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
-          currentFormat?.horizontalAlign === "left" ? "bg-gray-200" : ""
+          currentFormat?.horizontalAlign === "left" ? "bg-blue-100" : ""
         }`}
+        style={
+          currentFormat?.horizontalAlign === "left"
+            ? { backgroundColor: "#dbeafe" }
+            : undefined
+        }
         onClick={() => handleHAlign("left")}
         title="Align left"
         type="button"
@@ -489,8 +532,13 @@ export function Toolbar() {
       <button
         data-testid="align-center-button"
         className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
-          currentFormat?.horizontalAlign === "center" ? "bg-gray-200" : ""
+          currentFormat?.horizontalAlign === "center" ? "bg-blue-100" : ""
         }`}
+        style={
+          currentFormat?.horizontalAlign === "center"
+            ? { backgroundColor: "#dbeafe" }
+            : undefined
+        }
         onClick={() => handleHAlign("center")}
         title="Align center"
         type="button"
@@ -512,8 +560,13 @@ export function Toolbar() {
       <button
         data-testid="align-right-button"
         className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
-          currentFormat?.horizontalAlign === "right" ? "bg-gray-200" : ""
+          currentFormat?.horizontalAlign === "right" ? "bg-blue-100" : ""
         }`}
+        style={
+          currentFormat?.horizontalAlign === "right"
+            ? { backgroundColor: "#dbeafe" }
+            : undefined
+        }
         onClick={() => handleHAlign("right")}
         title="Align right"
         type="button"
@@ -539,8 +592,13 @@ export function Toolbar() {
       <button
         data-testid="valign-top-button"
         className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
-          currentFormat?.verticalAlign === "top" ? "bg-gray-200" : ""
+          currentFormat?.verticalAlign === "top" ? "bg-blue-100" : ""
         }`}
+        style={
+          currentFormat?.verticalAlign === "top"
+            ? { backgroundColor: "#dbeafe" }
+            : undefined
+        }
         onClick={() => handleVAlign("top")}
         title="Align top"
         type="button"
@@ -561,8 +619,13 @@ export function Toolbar() {
       <button
         data-testid="valign-middle-button"
         className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
-          currentFormat?.verticalAlign === "middle" ? "bg-gray-200" : ""
+          currentFormat?.verticalAlign === "middle" ? "bg-blue-100" : ""
         }`}
+        style={
+          currentFormat?.verticalAlign === "middle"
+            ? { backgroundColor: "#dbeafe" }
+            : undefined
+        }
         onClick={() => handleVAlign("middle")}
         title="Align middle"
         type="button"
@@ -583,8 +646,13 @@ export function Toolbar() {
       <button
         data-testid="valign-bottom-button"
         className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
-          currentFormat?.verticalAlign === "bottom" ? "bg-gray-200" : ""
+          currentFormat?.verticalAlign === "bottom" ? "bg-blue-100" : ""
         }`}
+        style={
+          currentFormat?.verticalAlign === "bottom"
+            ? { backgroundColor: "#dbeafe" }
+            : undefined
+        }
         onClick={() => handleVAlign("bottom")}
         title="Align bottom"
         type="button"
@@ -609,8 +677,13 @@ export function Toolbar() {
       <button
         data-testid="word-wrap-button"
         className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
-          currentFormat?.wrapText === "wrap" ? "bg-gray-200" : ""
+          currentFormat?.wrapText === "wrap" ? "bg-blue-100" : ""
         }`}
+        style={
+          currentFormat?.wrapText === "wrap"
+            ? { backgroundColor: "#dbeafe" }
+            : undefined
+        }
         onClick={handleWrapText}
         title="Word wrap"
         type="button"
