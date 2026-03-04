@@ -44,6 +44,8 @@ import { MacroManagerDialog } from "../macros/MacroManagerDialog";
 import { ScriptEditor } from "../macros/ScriptEditor";
 import { AIAnalysisPanel } from "../data/AIAnalysisPanel";
 import { useMacroRecorder } from "../../hooks/useMacroRecorder";
+import { useAutoSave } from "../../hooks/useAutoSave";
+import { useHydrateFromServer } from "../../hooks/useHydrateFromServer";
 import { SaveIndicator } from "./SaveIndicator";
 import { SpreadsheetLoader } from "./SpreadsheetLoader";
 
@@ -79,6 +81,8 @@ export default function SpreadsheetEditorPage() {
   const activeView = useViewStore((s) => s.activeView);
 
   useMacroRecorder();
+  useHydrateFromServer();
+  useAutoSave(id);
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [titleInput, setTitleInput] = useState("");

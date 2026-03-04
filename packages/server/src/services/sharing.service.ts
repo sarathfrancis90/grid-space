@@ -271,17 +271,44 @@ export async function getShareLink(
 }
 
 /** Access spreadsheet via share link token */
-export async function accessViaShareLink(shareToken: string): Promise<{
+export async function accessViaShareLink(
+  shareToken: string,
+  userId?: string,
+): Promise<{
   spreadsheetId: string;
   role: string;
 }> {
   const ss = await prisma.spreadsheet.findFirst({
     where: { shareLink: shareToken },
-    select: { id: true, shareLinkRole: true },
+    select: { id: true, shareLinkRole: true, ownerId: true },
   });
 
   if (!ss || !ss.shareLinkRole) {
     throw new NotFoundError("Invalid or expired share link");
+  }
+
+  // If authenticated user is accessing via share link, grant them access
+  if (userId && userId !== ss.ownerId) {
+    const existing = await prisma.spreadsheetAccess.findUnique({
+      where: {
+        spreadsheetId_userId: { spreadsheetId: ss.id, userId },
+      },
+    });
+
+    if (!existing) {
+      await prisma.spreadsheetAccess.create({
+        data: {
+          spreadsheetId: ss.id,
+          userId,
+          role: ss.shareLinkRole,
+        },
+      });
+
+      logger.info(
+        { userId, spreadsheetId: ss.id, role: ss.shareLinkRole },
+        "Access granted via share link",
+      );
+    }
   }
 
   return { spreadsheetId: ss.id, role: ss.shareLinkRole };
