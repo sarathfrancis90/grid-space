@@ -109,8 +109,8 @@ publishRouter.delete("/", writeLimiter, unpublishFromWeb);
 // ─── Public access routes (no auth required) ─────────────────
 export const publicShareRouter = Router();
 
-// GET /api/share/:token — access via share link
-publicShareRouter.get("/:token", accessViaShareLink);
+// GET /api/share/:token — access via share link (optionalAuth to capture userId)
+publicShareRouter.get("/:token", optionalAuth, accessViaShareLink);
 
 // Separate router for published spreadsheets
 export const publicPublishedRouter = Router();

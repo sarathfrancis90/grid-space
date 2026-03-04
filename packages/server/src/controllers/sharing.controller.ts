@@ -181,7 +181,9 @@ export async function accessViaShareLink(
     const token = paramStr(req.params.token);
     if (!token) throw new AppError(400, "Share token is required");
 
-    const result = await sharingService.accessViaShareLink(token);
+    // Pass userId if authenticated (optional auth on this route)
+    const userId = (req as AuthRequest).user?.id;
+    const result = await sharingService.accessViaShareLink(token, userId);
 
     res.json(apiSuccess(result));
   } catch (err) {

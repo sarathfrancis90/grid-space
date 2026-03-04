@@ -28,16 +28,19 @@ vi.mock("../models/prisma", () => {
 });
 
 // Mock auth for token verification
-vi.mock("../services/auth.service", async (importOriginal) => {
-  const actual = (await importOriginal()) as Record<string, unknown>;
-  return {
-    ...actual,
-    verifyAccessToken: vi.fn().mockReturnValue({
-      userId: "user-1",
-      email: "test@example.com",
-    }),
-  };
-});
+vi.mock(
+  "../services/auth.service",
+  async (importOriginal: () => Promise<Record<string, unknown>>) => {
+    const actual = await importOriginal();
+    return {
+      ...actual,
+      verifyAccessToken: vi.fn().mockReturnValue({
+        userId: "user-1",
+        email: "test@example.com",
+      }),
+    };
+  },
+);
 
 import prisma from "../models/prisma";
 
@@ -307,6 +310,16 @@ describe("Sharing Routes", () => {
       mockPrisma.spreadsheet.findFirst.mockResolvedValue({
         id: "ss-1",
         shareLinkRole: "viewer",
+        ownerId: "other-user",
+      });
+
+      // Mock access record check and creation
+      mockPrisma.spreadsheetAccess.findUnique.mockResolvedValue(null);
+      mockPrisma.spreadsheetAccess.create.mockResolvedValue({
+        id: "access-new",
+        spreadsheetId: "ss-1",
+        userId: "user-1",
+        role: "viewer",
       });
 
       const res = await request(app)
@@ -316,6 +329,27 @@ describe("Sharing Routes", () => {
       expect(res.status).toBe(200);
       expect(res.body.data.spreadsheetId).toBe("ss-1");
       expect(res.body.data.role).toBe("viewer");
+    });
+
+    it("returns spreadsheet without creating duplicate access", async () => {
+      mockPrisma.spreadsheet.findFirst.mockResolvedValue({
+        id: "ss-1",
+        shareLinkRole: "editor",
+        ownerId: "other-user",
+      });
+
+      // User already has access
+      mockPrisma.spreadsheetAccess.findUnique.mockResolvedValue({
+        id: "existing-access",
+        role: "viewer",
+      });
+
+      const res = await request(app)
+        .get("/api/share/validtoken123")
+        .set(authHeader);
+
+      expect(res.status).toBe(200);
+      expect(mockPrisma.spreadsheetAccess.create).not.toHaveBeenCalled();
     });
 
     it("returns 404 for invalid token", async () => {

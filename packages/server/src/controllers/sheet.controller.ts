@@ -18,8 +18,15 @@ export async function listSheets(
     if (!req.user) {
       throw new AppError(401, "Authentication required");
     }
-    // Stub: return empty list (full implementation in future)
-    res.json(apiSuccess([]));
+
+    const id = paramStr(req.params.id);
+    if (!id) {
+      throw new AppError(400, "Spreadsheet ID is required");
+    }
+
+    const sheets = await sheetService.listSheets(id, req.user.id);
+
+    res.json(apiSuccess(sheets));
   } catch (err) {
     next(err);
   }
@@ -34,11 +41,16 @@ export async function getSheet(
     if (!req.user) {
       throw new AppError(401, "Authentication required");
     }
-    const { sheetId } = req.params;
-    if (!sheetId) {
-      throw new AppError(400, "Sheet ID is required");
+
+    const id = paramStr(req.params.id);
+    const sheetId = paramStr(req.params.sheetId);
+    if (!id || !sheetId) {
+      throw new AppError(400, "Spreadsheet ID and Sheet ID are required");
     }
-    res.json(apiSuccess({ id: sheetId }));
+
+    const sheet = await sheetService.getSheet(id, sheetId, req.user.id);
+
+    res.json(apiSuccess(sheet));
   } catch (err) {
     next(err);
   }
@@ -53,7 +65,17 @@ export async function createSheet(
     if (!req.user) {
       throw new AppError(401, "Authentication required");
     }
-    res.status(201).json(apiSuccess({ message: "Not implemented" }));
+
+    const id = paramStr(req.params.id);
+    if (!id) {
+      throw new AppError(400, "Spreadsheet ID is required");
+    }
+
+    const { name, color } = req.body;
+
+    const sheet = await sheetService.createSheet(id, req.user.id, name, color);
+
+    res.status(201).json(apiSuccess(sheet));
   } catch (err) {
     next(err);
   }
@@ -68,11 +90,24 @@ export async function updateSheet(
     if (!req.user) {
       throw new AppError(401, "Authentication required");
     }
-    const { sheetId } = req.params;
-    if (!sheetId) {
-      throw new AppError(400, "Sheet ID is required");
+
+    const id = paramStr(req.params.id);
+    const sheetId = paramStr(req.params.sheetId);
+    if (!id || !sheetId) {
+      throw new AppError(400, "Spreadsheet ID and Sheet ID are required");
     }
-    res.json(apiSuccess({ id: sheetId, message: "Not implemented" }));
+
+    const { name, color, isHidden, frozenRows, frozenCols } = req.body;
+
+    const sheet = await sheetService.updateSheet(id, sheetId, req.user.id, {
+      name,
+      color,
+      isHidden,
+      frozenRows,
+      frozenCols,
+    });
+
+    res.json(apiSuccess(sheet));
   } catch (err) {
     next(err);
   }
@@ -87,10 +122,15 @@ export async function deleteSheet(
     if (!req.user) {
       throw new AppError(401, "Authentication required");
     }
-    const { sheetId } = req.params;
-    if (!sheetId) {
-      throw new AppError(400, "Sheet ID is required");
+
+    const id = paramStr(req.params.id);
+    const sheetId = paramStr(req.params.sheetId);
+    if (!id || !sheetId) {
+      throw new AppError(400, "Spreadsheet ID and Sheet ID are required");
     }
+
+    await sheetService.deleteSheet(id, sheetId, req.user.id);
+
     res.status(204).send();
   } catch (err) {
     next(err);
