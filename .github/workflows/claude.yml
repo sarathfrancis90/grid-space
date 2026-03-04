@@ -35,17 +35,18 @@ jobs:
 
       - name: Update Kanban to In Progress
         if: github.event_name == 'issues'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
-          if [ -n "$GH_TOKEN" ]; then
-            chmod +x .github/scripts/update-kanban.sh
-            .github/scripts/update-kanban.sh \
-              --issue ${{ github.event.issue.number }} \
-              --status "In Progress"
-          else
-            echo "PROJECT_TOKEN not set, skipping Kanban update"
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::PROJECT_TOKEN not set, skipping Kanban update"
+            exit 0
           fi
+          chmod +x .github/scripts/update-kanban.sh
+          .github/scripts/update-kanban.sh \
+            --issue ${{ github.event.issue.number }} \
+            --status "In Progress"
 
       - name: Run Claude Code
         id: claude
