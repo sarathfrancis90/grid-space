@@ -245,6 +245,123 @@ describe("formatStore", () => {
     });
   });
 
+  // Multi-cell selection formatting
+  describe("Multi-cell selection formatting", () => {
+    it("toggles bold on all cells in a multi-cell selection", () => {
+      useUIStore.setState({
+        selectedCell: { row: 0, col: 0 },
+        selections: [{ start: { row: 0, col: 0 }, end: { row: 2, col: 2 } }],
+      });
+
+      const store = useFormatStore.getState();
+      store.toggleFormatOnSelection("bold");
+
+      for (let r = 0; r <= 2; r++) {
+        for (let c = 0; c <= 2; c++) {
+          expect(store.getFormat(SHEET_ID, r, c)?.bold).toBe(true);
+        }
+      }
+    });
+
+    it("applies setFormatOnSelection to all cells in range", () => {
+      useUIStore.setState({
+        selectedCell: { row: 0, col: 0 },
+        selections: [{ start: { row: 0, col: 0 }, end: { row: 2, col: 2 } }],
+      });
+
+      const store = useFormatStore.getState();
+      store.setFormatOnSelection({ fontSize: 24, textColor: "#ff0000" });
+
+      for (let r = 0; r <= 2; r++) {
+        for (let c = 0; c <= 2; c++) {
+          const fmt = store.getFormat(SHEET_ID, r, c);
+          expect(fmt?.fontSize).toBe(24);
+          expect(fmt?.textColor).toBe("#ff0000");
+        }
+      }
+    });
+
+    it("toggles italic on multi-cell selection and back", () => {
+      useUIStore.setState({
+        selectedCell: { row: 1, col: 1 },
+        selections: [{ start: { row: 1, col: 1 }, end: { row: 3, col: 3 } }],
+      });
+
+      const store = useFormatStore.getState();
+      store.toggleFormatOnSelection("italic");
+
+      for (let r = 1; r <= 3; r++) {
+        for (let c = 1; c <= 3; c++) {
+          expect(store.getFormat(SHEET_ID, r, c)?.italic).toBe(true);
+        }
+      }
+
+      // Toggle off
+      store.toggleFormatOnSelection("italic");
+      for (let r = 1; r <= 3; r++) {
+        for (let c = 1; c <= 3; c++) {
+          expect(store.getFormat(SHEET_ID, r, c)?.italic).toBe(false);
+        }
+      }
+    });
+
+    it("preserves existing cell values when formatting a range", () => {
+      const cellStore = useCellStore.getState();
+      cellStore.setCell(SHEET_ID, 0, 0, { value: "Hello", formula: undefined });
+      cellStore.setCell(SHEET_ID, 0, 1, { value: 42, formula: undefined });
+      cellStore.setCell(SHEET_ID, 1, 0, { value: "World", formula: undefined });
+
+      useUIStore.setState({
+        selectedCell: { row: 0, col: 0 },
+        selections: [{ start: { row: 0, col: 0 }, end: { row: 1, col: 1 } }],
+      });
+
+      useFormatStore.getState().setFormatOnSelection({ bold: true });
+
+      const cs = useCellStore.getState();
+      expect(cs.getCell(SHEET_ID, 0, 0)?.value).toBe("Hello");
+      expect(cs.getCell(SHEET_ID, 0, 0)?.format?.bold).toBe(true);
+      expect(cs.getCell(SHEET_ID, 0, 1)?.value).toBe(42);
+      expect(cs.getCell(SHEET_ID, 0, 1)?.format?.bold).toBe(true);
+      expect(cs.getCell(SHEET_ID, 1, 0)?.value).toBe("World");
+      expect(cs.getCell(SHEET_ID, 1, 0)?.format?.bold).toBe(true);
+    });
+
+    it("clears formatting on all cells in selection", () => {
+      useUIStore.setState({
+        selectedCell: { row: 0, col: 0 },
+        selections: [{ start: { row: 0, col: 0 }, end: { row: 1, col: 1 } }],
+      });
+
+      const cellStore = useCellStore.getState();
+      cellStore.setCell(SHEET_ID, 0, 0, {
+        value: "A",
+        formula: undefined,
+        format: { bold: true, italic: true },
+      });
+      cellStore.setCell(SHEET_ID, 0, 1, {
+        value: "B",
+        formula: undefined,
+        format: { bold: true, fontSize: 24 },
+      });
+      cellStore.setCell(SHEET_ID, 1, 0, {
+        value: "C",
+        formula: undefined,
+        format: { underline: true },
+      });
+
+      useFormatStore.getState().clearFormattingOnSelection();
+
+      const cs = useCellStore.getState();
+      expect(cs.getCell(SHEET_ID, 0, 0)?.format).toBeUndefined();
+      expect(cs.getCell(SHEET_ID, 0, 0)?.value).toBe("A");
+      expect(cs.getCell(SHEET_ID, 0, 1)?.format).toBeUndefined();
+      expect(cs.getCell(SHEET_ID, 0, 1)?.value).toBe("B");
+      expect(cs.getCell(SHEET_ID, 1, 0)?.format).toBeUndefined();
+      expect(cs.getCell(SHEET_ID, 1, 0)?.value).toBe("C");
+    });
+  });
+
   // Number format on cells
   describe("Number format on cells (S3-011 to S3-018)", () => {
     it("sets number format General", () => {

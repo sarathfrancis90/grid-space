@@ -7,6 +7,10 @@ interface CellState {
   cells: Map<string, Map<string, CellData>>;
   getCell: (sheetId: string, row: number, col: number) => CellData | undefined;
   setCell: (sheetId: string, row: number, col: number, data: CellData) => void;
+  setCellBatch: (
+    sheetId: string,
+    updates: Array<{ row: number; col: number; data: CellData }>,
+  ) => void;
   deleteCell: (sheetId: string, row: number, col: number) => void;
   getCellsInRange: (
     sheetId: string,
@@ -63,6 +67,22 @@ export const useCellStore = create<CellState>()(
           state.cells.set(sheetId, new Map<string, CellData>());
         }
         state.cells.get(sheetId)!.set(getCellKey(row, col), data);
+      });
+    },
+
+    setCellBatch: (
+      sheetId: string,
+      updates: Array<{ row: number; col: number; data: CellData }>,
+    ) => {
+      if (updates.length === 0) return;
+      set((state) => {
+        if (!state.cells.has(sheetId)) {
+          state.cells.set(sheetId, new Map<string, CellData>());
+        }
+        const sheetCells = state.cells.get(sheetId)!;
+        for (const { row, col, data } of updates) {
+          sheetCells.set(getCellKey(row, col), data);
+        }
       });
     },
 
