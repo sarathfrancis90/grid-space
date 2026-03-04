@@ -1,6 +1,22 @@
+import type { JsonValue } from "@prisma/client/runtime/library";
 import prisma from "../models/prisma";
 import { NotFoundError, ForbiddenError } from "../utils/AppError";
 import logger from "../utils/logger";
+
+interface SheetData {
+  id: string;
+  name: string;
+  index: number;
+  color: string | null;
+  isHidden: boolean;
+  cellData: JsonValue;
+  columnMeta: JsonValue;
+  rowMeta: JsonValue;
+  frozenRows: number;
+  frozenCols: number;
+  filterState: JsonValue | null;
+  sortState: JsonValue | null;
+}
 
 /** Check user has at least viewer access to the spreadsheet */
 async function checkViewerAccess(
@@ -71,7 +87,7 @@ const SHEET_SELECT = {
 export async function listSheets(
   spreadsheetId: string,
   userId: string,
-): Promise<unknown[]> {
+): Promise<SheetData[]> {
   await checkViewerAccess(spreadsheetId, userId);
 
   const sheets = await prisma.sheet.findMany({
@@ -88,7 +104,7 @@ export async function getSheet(
   spreadsheetId: string,
   sheetId: string,
   userId: string,
-): Promise<unknown> {
+): Promise<SheetData> {
   await checkViewerAccess(spreadsheetId, userId);
 
   const sheet = await prisma.sheet.findFirst({
@@ -109,7 +125,7 @@ export async function createSheet(
   userId: string,
   name?: string,
   color?: string,
-): Promise<unknown> {
+): Promise<SheetData> {
   await checkEditorAccess(spreadsheetId, userId);
 
   // Determine next index
@@ -158,7 +174,7 @@ export async function updateSheet(
     frozenRows?: number;
     frozenCols?: number;
   },
-): Promise<unknown> {
+): Promise<SheetData> {
   await checkEditorAccess(spreadsheetId, userId);
 
   const sheet = await prisma.sheet.findFirst({
@@ -229,9 +245,9 @@ export async function saveCellData(
   spreadsheetId: string,
   sheetId: string,
   userId: string,
-  cellData: unknown,
-  columnMeta?: unknown,
-  rowMeta?: unknown,
+  cellData: Record<string, unknown>,
+  columnMeta?: Record<string, unknown>,
+  rowMeta?: Record<string, unknown>,
 ): Promise<{ updatedAt: Date }> {
   await checkEditorAccess(spreadsheetId, userId);
 

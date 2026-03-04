@@ -20,7 +20,6 @@ export function useHydrateFromServer(): void {
     hydratedRef.current = currentSpreadsheet.id;
 
     // Hydrate spreadsheetStore with sheet tabs
-    const spreadsheetStore = useSpreadsheetStore.getState();
     const cellStore = useCellStore.getState();
 
     // Update spreadsheet metadata

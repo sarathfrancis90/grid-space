@@ -28,16 +28,19 @@ vi.mock("../models/prisma", () => {
 });
 
 // Mock auth for token verification
-vi.mock("../services/auth.service", async (importOriginal) => {
-  const actual = (await importOriginal()) as Record<string, unknown>;
-  return {
-    ...actual,
-    verifyAccessToken: vi.fn().mockReturnValue({
-      userId: "user-1",
-      email: "test@example.com",
-    }),
-  };
-});
+vi.mock(
+  "../services/auth.service",
+  async (importOriginal: () => Promise<Record<string, unknown>>) => {
+    const actual = await importOriginal();
+    return {
+      ...actual,
+      verifyAccessToken: vi.fn().mockReturnValue({
+        userId: "user-1",
+        email: "test@example.com",
+      }),
+    };
+  },
+);
 
 import prisma from "../models/prisma";
 
