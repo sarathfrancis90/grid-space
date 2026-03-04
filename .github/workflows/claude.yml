@@ -6,7 +6,7 @@ on:
   pull_request_review_comment:
     types: [created]
   issues:
-    types: [opened, assigned]
+    types: [opened, assigned, labeled]
   pull_request_review:
     types: [submitted]
 
@@ -16,8 +16,9 @@ jobs:
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && contains(github.event.issue.assignees.*.login, 'claude[bot]')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      (github.event_name == 'issues' && github.event.action == 'assigned' && github.event.assignee.login == 'claude[bot]') ||
+      (github.event_name == 'issues' && github.event.action == 'opened' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude'))) ||
+      (github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'claude-code')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -25,19 +26,74 @@ jobs:
       issues: write
       id-token: write
       actions: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
+      - name: Update Kanban to In Progress
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          if [ -n "$GH_TOKEN" ]; then
+            chmod +x .github/scripts/update-kanban.sh
+            .github/scripts/update-kanban.sh \
+              --issue ${{ github.event.issue.number }} \
+              --status "In Progress"
+          else
+            echo "PROJECT_TOKEN not set, skipping Kanban update"
+          fi
+
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-
           additional_permissions: |
             actions: read
+          prompt: |
+            You are an autonomous developer working on the GridSpace project.
+            Follow the SDLC workflow below precisely.
 
-          claude_args: "--allowedTools Bash(git:*) Bash(gh:*)"
+            ## SDLC WORKFLOW
+
+            ### Step 1: Create a Feature Branch
+            - Create a new branch from main: `claude/issue-$ISSUE_NUMBER-<short-slug>`
+            - The slug should be 2-4 words derived from the issue title (lowercase, hyphenated)
+            - Example: `claude/issue-42-add-dark-mode`
+
+            ### Step 2: Implement the Change
+            - Read the issue description carefully
+            - Read CLAUDE.md and relevant agent_docs/ for coding standards
+            - Implement the requested feature or fix
+            - Write tests (Vitest unit tests at minimum)
+
+            ### Step 3: Validate
+            - Run: `npx tsc --noEmit` — fix all type errors
+            - Run: `npx vitest run` — fix all test failures
+            - Commit your changes with a descriptive message following the convention:
+              `feat(scope): description` or `fix(scope): description`
+
+            ### Step 4: Create a Pull Request
+            - Push your branch and create a PR using `gh pr create`
+            - PR title: clear, concise description of the change
+            - PR body MUST include:
+              - `Closes #<issue-number>` to auto-link and auto-close the issue
+              - A summary of what was implemented
+              - Any notable design decisions
+
+            ### Step 5: Update Kanban Status
+            - After creating the PR, run:
+              ```
+              chmod +x .github/scripts/update-kanban.sh
+              .github/scripts/update-kanban.sh --issue <issue-number> --status "In Review"
+              ```
+
+            ## IMPORTANT RULES
+            - Always follow CLAUDE.md guidelines
+            - Never use `any` type in TypeScript
+            - Never skip writing tests
+            - Always run typecheck before committing

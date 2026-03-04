@@ -1,0 +1,76 @@
+name: Kanban Sync
+
+on:
+  pull_request:
+    types: [closed]
+  issues:
+    types: [closed, reopened]
+
+jobs:
+  sync-kanban:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: PR Merged — Move linked issue to Done
+        if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "PROJECT_TOKEN not set, skipping Kanban update"
+            exit 0
+          fi
+
+          # Extract linked issue numbers from PR body (supports "Closes #123", "Fixes #123", "Resolves #123")
+          PR_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body --jq '.body' 2>/dev/null || echo "")
+
+          ISSUE_NUMBERS=$(echo "$PR_BODY" | grep -oiP '(closes|fixes|resolves)\s+#\K[0-9]+' || true)
+
+          if [ -z "$ISSUE_NUMBERS" ]; then
+            echo "No linked issues found in PR body. Skipping Kanban update."
+            exit 0
+          fi
+
+          chmod +x .github/scripts/update-kanban.sh
+
+          for ISSUE_NUM in $ISSUE_NUMBERS; do
+            echo "Moving issue #${ISSUE_NUM} to Done..."
+            .github/scripts/update-kanban.sh --issue "$ISSUE_NUM" --status "Done" || \
+              echo "Warning: Failed to update issue #${ISSUE_NUM}"
+          done
+
+      - name: Issue Reopened — Move back to In Progress
+        if: github.event_name == 'issues' && github.event.action == 'reopened'
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "PROJECT_TOKEN not set, skipping Kanban update"
+            exit 0
+          fi
+
+          chmod +x .github/scripts/update-kanban.sh
+          .github/scripts/update-kanban.sh \
+            --issue ${{ github.event.issue.number }} \
+            --status "In Progress"
+
+      - name: Issue Closed (not via PR) — Move to Done
+        if: github.event_name == 'issues' && github.event.action == 'closed'
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "PROJECT_TOKEN not set, skipping Kanban update"
+            exit 0
+          fi
+
+          chmod +x .github/scripts/update-kanban.sh
+          .github/scripts/update-kanban.sh \
+            --issue ${{ github.event.issue.number }} \
+            --status "Done"
