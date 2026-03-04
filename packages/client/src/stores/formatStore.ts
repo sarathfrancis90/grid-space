@@ -148,21 +148,31 @@ export const useFormatStore = create<FormatState>()(
       const minC = Math.min(startCol, endCol);
       const maxC = Math.max(startCol, endCol);
       const cellStore = useCellStore.getState();
+      const sheetCells = cellStore.cells.get(sheetId);
+      const updates: Array<{
+        row: number;
+        col: number;
+        data: import("../types/grid").CellData;
+      }> = [];
       for (let r = minR; r <= maxR; r++) {
         for (let c = minC; c <= maxC; c++) {
           const key = getCellKey(r, c);
-          const sheetCells = cellStore.cells.get(sheetId);
           const existing = sheetCells?.get(key);
           const currentFormat = existing?.format ?? {};
           const merged = { ...currentFormat, ...format };
-          cellStore.setCell(sheetId, r, c, {
-            value: existing?.value ?? null,
-            formula: existing?.formula,
-            format: merged,
-            comment: existing?.comment,
+          updates.push({
+            row: r,
+            col: c,
+            data: {
+              value: existing?.value ?? null,
+              formula: existing?.formula,
+              format: merged,
+              comment: existing?.comment,
+            },
           });
         }
       }
+      cellStore.setCellBatch(sheetId, updates);
     },
 
     toggleFormatOnSelection: (prop) => {
@@ -372,19 +382,31 @@ export const useFormatStore = create<FormatState>()(
       const minC = Math.min(sel.start.col, sel.end.col);
       const maxC = Math.max(sel.start.col, sel.end.col);
       const cellStore = useCellStore.getState();
+      const sheetCells = cellStore.cells.get(sheetId);
+      const updates: Array<{
+        row: number;
+        col: number;
+        data: import("../types/grid").CellData;
+      }> = [];
       for (let r = minR; r <= maxR; r++) {
         for (let c = minC; c <= maxC; c++) {
-          const existing = cellStore.getCell(sheetId, r, c);
+          const key = getCellKey(r, c);
+          const existing = sheetCells?.get(key);
           if (existing) {
-            cellStore.setCell(sheetId, r, c, {
-              value: existing.value,
-              formula: existing.formula,
-              format: undefined,
-              comment: existing.comment,
+            updates.push({
+              row: r,
+              col: c,
+              data: {
+                value: existing.value,
+                formula: existing.formula,
+                format: undefined,
+                comment: existing.comment,
+              },
             });
           }
         }
       }
+      cellStore.setCellBatch(sheetId, updates);
     },
 
     // --- Indent ---
