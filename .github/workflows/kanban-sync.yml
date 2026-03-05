@@ -19,6 +19,7 @@ jobs:
 
       - name: PR Merged — Move linked issue to Done
         if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
@@ -47,6 +48,7 @@ jobs:
 
       - name: Issue Reopened — Move back to In Progress
         if: github.event_name == 'issues' && github.event.action == 'reopened'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
@@ -62,6 +64,7 @@ jobs:
 
       - name: Issue Closed (not via PR) — Move to Done
         if: github.event_name == 'issues' && github.event.action == 'closed'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
