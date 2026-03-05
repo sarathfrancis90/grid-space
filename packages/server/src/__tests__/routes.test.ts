@@ -13,12 +13,15 @@ describe("GET /health", () => {
 });
 
 describe("GET /api/health", () => {
-  it("returns 200 with health info in API envelope", async () => {
+  it("returns health info in API envelope", async () => {
     const res = await request(app).get("/api/health");
-    expect(res.status).toBe(200);
+    // Status may be 200 or 503 depending on DB connectivity
+    expect([200, 503]).toContain(res.status);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.status).toBe("healthy");
+    expect(["ok", "error"]).toContain(res.body.data.status);
     expect(res.body.data.timestamp).toBeDefined();
+    expect(res.body.data.uptime).toBeTypeOf("number");
+    expect(res.body.data.database).toBeDefined();
   });
 });
 
@@ -63,6 +66,7 @@ describe("Unknown routes", () => {
 describe("API response envelope", () => {
   it("health endpoint uses success envelope", async () => {
     const res = await request(app).get("/api/health");
+    // Envelope structure is present regardless of DB connectivity
     expect(res.body).toHaveProperty("success", true);
     expect(res.body).toHaveProperty("data");
   });
