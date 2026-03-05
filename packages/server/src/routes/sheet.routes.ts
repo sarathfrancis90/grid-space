@@ -36,9 +36,9 @@ const updateSheetSchema = {
 
 const saveSheetDataSchema = {
   body: z.object({
-    cellData: z.record(z.unknown()),
-    columnMeta: z.record(z.unknown()).optional(),
-    rowMeta: z.record(z.unknown()).optional(),
+    cellData: z.record(z.string(), z.unknown()),
+    columnMeta: z.record(z.string(), z.unknown()).optional(),
+    rowMeta: z.record(z.string(), z.unknown()).optional(),
   }),
 };
 
