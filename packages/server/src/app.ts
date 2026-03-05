@@ -70,11 +70,11 @@ app.use("/api/v1", publicApiRouter);
 
 // Legacy health endpoint (kept for backward compatibility)
 app.get("/health", (_req, res) => {
+  const uptime = Math.floor(process.uptime());
   res.json({
-    status: "healthy",
+    status: "ok",
+    uptime,
     timestamp: new Date().toISOString(),
-    version: env.COMMIT_SHA,
-    environment: env.NODE_ENV,
   });
 });
 

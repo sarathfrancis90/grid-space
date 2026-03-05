@@ -6,9 +6,9 @@ describe("GET /health", () => {
   it("returns 200 with health info", async () => {
     const res = await request(app).get("/health");
     expect(res.status).toBe(200);
-    expect(res.body.status).toBe("healthy");
+    expect(res.body.status).toBe("ok");
     expect(res.body.timestamp).toBeDefined();
-    expect(res.body.environment).toBeDefined();
+    expect(typeof res.body.uptime).toBe("number");
   });
 });
 
@@ -17,8 +17,9 @@ describe("GET /api/health", () => {
     const res = await request(app).get("/api/health");
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.status).toBe("healthy");
+    expect(res.body.data.status).toBe("ok");
     expect(res.body.data.timestamp).toBeDefined();
+    expect(typeof res.body.data.uptime).toBe("number");
   });
 });
 
