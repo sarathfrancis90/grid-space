@@ -3,6 +3,10 @@
 You are building GridSpace — a production-ready Google Sheets replacement.
 427 features across 16 sprints. Full-stack with real-time collaboration.
 
+This document serves as your autonomous development guide. It defines the session
+workflow, sprint structure, and key rules you must follow when implementing features.
+For detailed architecture, coding standards, and technology decisions, refer to `CLAUDE.md`.
+
 ## On every session:
 
 1. Read `CLAUDE.md` (root constitution)
