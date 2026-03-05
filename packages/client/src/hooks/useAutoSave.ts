@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useCellStore } from "../stores/cellStore";
 import { useSpreadsheetStore } from "../stores/spreadsheetStore";
+import { useGridStore } from "../stores/gridStore";
 import { useCloudStore } from "../stores/cloudStore";
 import { useAuthStore } from "../stores/authStore";
 import type { CellData } from "../types/grid";
@@ -50,7 +51,18 @@ export function useAutoSave(spreadsheetId: string | undefined): void {
       cellData[key] = value;
     }
 
-    saveSheetData(spreadsheetId, activeSheetId, cellData);
+    // Include column widths and row heights as metadata
+    const gridState = useGridStore.getState();
+    const columnMeta: Record<string, unknown> = {};
+    for (const [col, width] of gridState.columnWidths) {
+      columnMeta[String(col)] = { width };
+    }
+    const rowMeta: Record<string, unknown> = {};
+    for (const [row, height] of gridState.rowHeights) {
+      rowMeta[String(row)] = { height };
+    }
+
+    saveSheetData(spreadsheetId, activeSheetId, cellData, columnMeta, rowMeta);
   }, [
     spreadsheetId,
     activeSheetId,
