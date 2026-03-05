@@ -3,6 +3,9 @@
 You are building GridSpace — a production-ready Google Sheets replacement.
 427 features across 16 sprints. Full-stack with real-time collaboration.
 
+
+
+
 ## On every session:
 
 1. Read `CLAUDE.md` (root constitution)
