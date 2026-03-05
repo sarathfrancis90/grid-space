@@ -33,6 +33,10 @@ export function positionToCellRef(pos: CellPosition): string {
   return `${colToLetter(pos.col)}${pos.row + 1}`;
 }
 
+export function formatCellRef(row: number, col: number): string {
+  return `${colToLetter(col)}${row + 1}`;
+}
+
 export function getCellKey(row: number, col: number): string {
   return `${row},${col}`;
 }
