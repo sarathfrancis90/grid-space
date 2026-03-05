@@ -61,6 +61,8 @@ jobs:
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
+        env:
+          PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_bots: "claude[bot],github-actions[bot]"
@@ -83,7 +85,7 @@ jobs:
             2. Move the issue to "In progress" on the Kanban board:
                ```
                chmod +x .github/scripts/update-kanban.sh
-               .github/scripts/update-kanban.sh --issue <issue-number> --status "In progress"
+               GH_TOKEN="$PROJECT_TOKEN" .github/scripts/update-kanban.sh --issue <issue-number> --status "In progress"
                ```
                If this fails, continue — it's non-blocking.
 
@@ -116,7 +118,7 @@ jobs:
             - After creating the PR, run:
               ```
               chmod +x .github/scripts/update-kanban.sh
-              .github/scripts/update-kanban.sh --issue <issue-number> --status "In review"
+              GH_TOKEN="$PROJECT_TOKEN" .github/scripts/update-kanban.sh --issue <issue-number> --status "In review"
               ```
               If this fails, continue — the PR creation is what matters.
 
