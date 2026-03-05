@@ -293,15 +293,24 @@ export const useCloudStore = create<CloudStore>()(
       });
 
       try {
-        await api.put(`/spreadsheets/${spreadsheetId}/sheets/${sheetId}/save`, {
-          cellData,
-          columnMeta,
-          rowMeta,
-        });
+        const result = await api.put<{ updatedAt: string }>(
+          `/spreadsheets/${spreadsheetId}/sheets/${sheetId}/save`,
+          {
+            cellData,
+            columnMeta,
+            rowMeta,
+          },
+        );
 
         set((state) => {
           state.isSaving = false;
           state.saveStatus = "saved";
+          if (
+            state.currentSpreadsheet?.id === spreadsheetId &&
+            result?.updatedAt
+          ) {
+            state.currentSpreadsheet.updatedAt = result.updatedAt;
+          }
         });
       } catch {
         set((state) => {

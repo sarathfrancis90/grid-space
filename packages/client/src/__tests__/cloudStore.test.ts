@@ -231,4 +231,82 @@ describe("cloudStore", () => {
       .saveSheetData("ss-1", "sheet-1", { A1: { value: "test" } });
     expect(useCloudStore.getState().saveStatus).toBe("saved");
   });
+
+  it("saveSheetData updates currentSpreadsheet updatedAt on success", async () => {
+    useCloudStore.setState({
+      currentSpreadsheet: {
+        id: "ss-1",
+        title: "Test",
+        isStarred: false,
+        createdAt: "2026-01-01",
+        updatedAt: "2026-01-01",
+        owner: { id: "u-1", name: "Test", email: "t@t.com", avatarUrl: null },
+        sheets: [],
+      },
+    });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: { updatedAt: "2026-01-15T12:00:00Z" },
+      }),
+    });
+
+    await useCloudStore
+      .getState()
+      .saveSheetData("ss-1", "sheet-1", { A1: { value: "hello" } });
+
+    const state = useCloudStore.getState();
+    expect(state.saveStatus).toBe("saved");
+    expect(state.currentSpreadsheet?.updatedAt).toBe("2026-01-15T12:00:00Z");
+  });
+
+  it("saveSheetData sets error status on failure", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({
+        success: false,
+        error: { code: 500, message: "Internal error" },
+      }),
+    });
+
+    await useCloudStore
+      .getState()
+      .saveSheetData("ss-1", "sheet-1", { A1: { value: "test" } });
+
+    const state = useCloudStore.getState();
+    expect(state.saveStatus).toBe("error");
+    expect(state.isSaving).toBe(false);
+  });
+
+  it("saveSheetData sends columnMeta and rowMeta", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: { updatedAt: "2026-01-01" },
+      }),
+    });
+
+    await useCloudStore
+      .getState()
+      .saveSheetData(
+        "ss-1",
+        "sheet-1",
+        { A1: { value: "test" } },
+        { "0": { width: 150 } },
+        { "0": { height: 30 } },
+      );
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const fetchCall = mockFetch.mock.calls[0];
+    const body = JSON.parse(fetchCall[1].body);
+    expect(body.cellData).toEqual({ A1: { value: "test" } });
+    expect(body.columnMeta).toEqual({ "0": { width: 150 } });
+    expect(body.rowMeta).toEqual({ "0": { height: 30 } });
+  });
 });
