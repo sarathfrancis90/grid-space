@@ -4,6 +4,7 @@ import {
   letterToCol,
   cellRefToPosition,
   positionToCellRef,
+  formatCellRef,
   getCellKey,
 } from "../utils/coordinates";
 
@@ -110,6 +111,49 @@ describe("positionToCellRef", () => {
     const refs = ["A1", "B2", "Z100", "AA1", "AB27"];
     for (const ref of refs) {
       expect(positionToCellRef(cellRefToPosition(ref))).toBe(ref);
+    }
+  });
+});
+
+describe("formatCellRef", () => {
+  it("converts (0, 0) to A1", () => {
+    expect(formatCellRef(0, 0)).toBe("A1");
+  });
+
+  it("converts (1, 1) to B2", () => {
+    expect(formatCellRef(1, 1)).toBe("B2");
+  });
+
+  it("converts (0, 25) to Z1", () => {
+    expect(formatCellRef(0, 25)).toBe("Z1");
+  });
+
+  it("converts (0, 26) to AA1", () => {
+    expect(formatCellRef(0, 26)).toBe("AA1");
+  });
+
+  it("converts (0, 51) to AZ1", () => {
+    expect(formatCellRef(0, 51)).toBe("AZ1");
+  });
+
+  it("converts (0, 52) to BA1", () => {
+    expect(formatCellRef(0, 52)).toBe("BA1");
+  });
+
+  it("handles large indices", () => {
+    expect(formatCellRef(999, 701)).toBe("ZZ1000");
+    expect(formatCellRef(0, 702)).toBe("AAA1");
+  });
+
+  it("is consistent with positionToCellRef", () => {
+    const cases = [
+      { row: 0, col: 0 },
+      { row: 5, col: 10 },
+      { row: 99, col: 25 },
+      { row: 0, col: 26 },
+    ];
+    for (const pos of cases) {
+      expect(formatCellRef(pos.row, pos.col)).toBe(positionToCellRef(pos));
     }
   });
 });
