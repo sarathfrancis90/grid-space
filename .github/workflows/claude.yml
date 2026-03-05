@@ -45,37 +45,19 @@ jobs:
             echo "number=" >> "$GITHUB_OUTPUT"
           fi
 
-      # Add 'claude-code' label to the issue
+      # Add 'claude-code' label to the issue (only metadata — fine from github-actions)
       - name: Add claude-code label
         if: steps.issue.outputs.number != ''
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Create label if it doesn't exist yet
           gh label create "claude-code" \
             --description "Assigned to Claude Code for autonomous development" \
             --color "7C3AED" 2>/dev/null || true
-          # Add label to the issue
           gh issue edit "${{ steps.issue.outputs.number }}" --add-label "claude-code"
 
-      # Move issue to In Progress on Kanban board
-      - name: Update Kanban to In Progress
-        if: steps.issue.outputs.number != ''
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
-        run: |
-          if [ -z "$GH_TOKEN" ]; then
-            echo "::warning::PROJECT_TOKEN not set, skipping Kanban update"
-            exit 0
-          fi
-          chmod +x .github/scripts/update-kanban.sh
-          .github/scripts/update-kanban.sh \
-            --issue "${{ steps.issue.outputs.number }}" \
-            --status "In progress"
-
-      # Run Claude Code with full tool permissions
+      # Claude does EVERYTHING: acknowledge, kanban update, implement, PR
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -87,36 +69,42 @@ jobs:
           claude_args: "--allowedTools Bash Edit Read Write Glob Grep"
           prompt: |
             You are an autonomous developer working on the GridSpace project.
+            Follow every step below precisely.
 
-            ## FIRST: Post an acknowledgment comment
-            If this is triggered from an issue (not a PR review), post a comment on the issue:
-            ```
-            gh issue comment <issue-number> --body "👋 I'm picking up this issue now. I'll create a feature branch, implement the fix, run tests, and open a PR when ready.
+            ## STEP 0: Acknowledge & Update Kanban
+            If this is triggered from an issue (not a PR review):
+            1. Post an acknowledgment comment on the issue:
+               ```
+               gh issue comment <issue-number> --body "👋 I'm picking up this issue now. I'll create a feature branch, implement the fix, run tests, and open a PR when ready.
 
-            **Status:** 🔄 In Progress
-            **Branch:** \`claude/issue-<issue-number>-*\`"
-            ```
+               **Status:** 🔄 In Progress
+               **Branch:** \`claude/issue-<issue-number>-*\`"
+               ```
+            2. Move the issue to "In progress" on the Kanban board:
+               ```
+               chmod +x .github/scripts/update-kanban.sh
+               .github/scripts/update-kanban.sh --issue <issue-number> --status "In progress"
+               ```
+               If this fails, continue — it's non-blocking.
 
-            ## SDLC WORKFLOW
-
-            ### Step 1: Create a Feature Branch
-            - Create a new branch from main: `claude/issue-$ISSUE_NUMBER-<short-slug>`
+            ## STEP 1: Create a Feature Branch
+            - Create a new branch from main: `claude/issue-<ISSUE_NUMBER>-<short-slug>`
             - The slug should be 2-4 words derived from the issue title (lowercase, hyphenated)
             - Example: `claude/issue-42-add-dark-mode`
 
-            ### Step 2: Implement the Change
+            ## STEP 2: Implement the Change
             - Read the issue description carefully
             - Read CLAUDE.md and relevant agent_docs/ for coding standards
             - Implement the requested feature or fix
             - Write tests (Vitest unit tests at minimum)
 
-            ### Step 3: Validate
+            ## STEP 3: Validate
             - Run: `npx tsc --noEmit` — fix all type errors
             - Run: `npx vitest run` — fix all test failures
             - Commit your changes with a descriptive message following the convention:
               `feat(scope): description` or `fix(scope): description`
 
-            ### Step 4: Create a Pull Request
+            ## STEP 4: Create a Pull Request
             - Push your branch and create a PR using `gh pr create`
             - PR title: clear, concise description of the change
             - PR body MUST include:
@@ -124,13 +112,13 @@ jobs:
               - A summary of what was implemented
               - Any notable design decisions
 
-            ### Step 5: Update Kanban Status
+            ## STEP 5: Update Kanban to In Review
             - After creating the PR, run:
               ```
               chmod +x .github/scripts/update-kanban.sh
               .github/scripts/update-kanban.sh --issue <issue-number> --status "In review"
               ```
-              If this command fails, continue — the PR creation is what matters.
+              If this fails, continue — the PR creation is what matters.
 
             ## IF TRIGGERED FROM A PR REVIEW (fixing review feedback)
             If this was triggered by a PR review requesting changes:
