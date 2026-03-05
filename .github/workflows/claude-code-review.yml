@@ -12,6 +12,7 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
+      actions: read
 
     steps:
       - name: Checkout repository
@@ -42,6 +43,9 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          claude_args: "--allowedTools Bash Edit Read Write Glob Grep"
           prompt: |
             You are a code reviewer for the GridSpace project.
             Review PR #${{ github.event.pull_request.number }} in ${{ github.repository }} thoroughly.
@@ -78,7 +82,6 @@ jobs:
             - Be constructive and specific in feedback
             - Only request changes for real issues, not style nitpicks
             - If the PR is generally good with minor suggestions, APPROVE with comments rather than requesting changes
-          claude_args: "--allowedTools Bash(gh:*) Bash(git:*) Read Glob Grep"
 
       - name: Auto-approve on max review iterations
         if: steps.check-iterations.outputs.max_reached == 'true'
