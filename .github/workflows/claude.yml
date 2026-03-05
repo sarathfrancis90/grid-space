@@ -59,19 +59,6 @@ jobs:
           # Add label to the issue
           gh issue edit "${{ steps.issue.outputs.number }}" --add-label "claude-code"
 
-      # Post acknowledgment comment on the issue
-      - name: Acknowledge issue
-        if: steps.issue.outputs.number != '' && github.event_name == 'issues'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue comment "${{ steps.issue.outputs.number }}" \
-            --body "👋 I'm picking up this issue now. I'll create a feature branch, implement the fix, run tests, and open a PR when ready.
-
-          **Status:** 🔄 In Progress
-          **Branch:** \`claude/issue-${{ steps.issue.outputs.number }}-*\`"
-
       # Move issue to In Progress on Kanban board
       - name: Update Kanban to In Progress
         if: steps.issue.outputs.number != ''
@@ -94,12 +81,21 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "claude[bot],github-actions[bot]"
           additional_permissions: |
             actions: read
           claude_args: "--allowedTools Bash Edit Read Write Glob Grep"
           prompt: |
             You are an autonomous developer working on the GridSpace project.
-            Follow the SDLC workflow below precisely.
+
+            ## FIRST: Post an acknowledgment comment
+            If this is triggered from an issue (not a PR review), post a comment on the issue:
+            ```
+            gh issue comment <issue-number> --body "👋 I'm picking up this issue now. I'll create a feature branch, implement the fix, run tests, and open a PR when ready.
+
+            **Status:** 🔄 In Progress
+            **Branch:** \`claude/issue-<issue-number>-*\`"
+            ```
 
             ## SDLC WORKFLOW
 
@@ -135,6 +131,15 @@ jobs:
               .github/scripts/update-kanban.sh --issue <issue-number> --status "In Review"
               ```
               If this command fails, continue — the PR creation is what matters.
+
+            ## IF TRIGGERED FROM A PR REVIEW (fixing review feedback)
+            If this was triggered by a PR review requesting changes:
+            - Read the review comments to understand what needs to be fixed
+            - Checkout the PR branch (not main)
+            - Fix the issues raised in the review
+            - Run typecheck and tests
+            - Commit and push the fixes to the same branch
+            - Post a comment on the PR: "Fixed the review feedback. Ready for re-review."
 
             ## IMPORTANT RULES
             - Always follow CLAUDE.md guidelines

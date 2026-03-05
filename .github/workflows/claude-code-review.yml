@@ -70,8 +70,8 @@ jobs:
             ### Step 3: Provide Feedback
             **If issues found:**
             - Post specific, actionable review comments explaining what needs to change and why
-            - Submit the review as REQUEST_CHANGES:
-              `gh pr review ${{ github.event.pull_request.number }} --request-changes --body "Summary of issues found"`
+            - Submit the review as REQUEST_CHANGES. Include @claude in the review body so Claude can auto-fix:
+              `gh pr review ${{ github.event.pull_request.number }} --request-changes --body "@claude Please fix the issues noted above."`
 
             **If code looks good:**
             - Approve the PR:
