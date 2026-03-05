@@ -60,7 +60,7 @@ jobs:
           chmod +x .github/scripts/update-kanban.sh
           .github/scripts/update-kanban.sh \
             --issue ${{ github.event.issue.number }} \
-            --status "In Progress"
+            --status "In progress"
 
       - name: Issue Closed (not via PR) — Move to Done
         if: github.event_name == 'issues' && github.event.action == 'closed'

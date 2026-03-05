@@ -73,7 +73,7 @@ jobs:
           chmod +x .github/scripts/update-kanban.sh
           .github/scripts/update-kanban.sh \
             --issue "${{ steps.issue.outputs.number }}" \
-            --status "In Progress"
+            --status "In progress"
 
       # Run Claude Code with full tool permissions
       - name: Run Claude Code
@@ -128,7 +128,7 @@ jobs:
             - After creating the PR, run:
               ```
               chmod +x .github/scripts/update-kanban.sh
-              .github/scripts/update-kanban.sh --issue <issue-number> --status "In Review"
+              .github/scripts/update-kanban.sh --issue <issue-number> --status "In review"
               ```
               If this command fails, continue — the PR creation is what matters.
 

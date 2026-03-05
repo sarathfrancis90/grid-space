@@ -2,10 +2,10 @@
 #
 # update-kanban.sh — Move an issue between GitHub Projects v2 Kanban columns
 #
-# Usage: ./update-kanban.sh --issue 42 --status "In Progress"
+# Usage: ./update-kanban.sh --issue 42 --status "In progress"
 # Requires: GH_TOKEN with project scope (set via environment)
 #
-# Supported statuses: Backlog, Ready, In Progress, In Review, Done
+# Supported statuses: Backlog, Ready, In progress, In review, Done
 #
 
 set -euo pipefail
@@ -27,7 +27,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$ISSUE_NUMBER" || -z "$TARGET_STATUS" ]]; then
-  echo "Usage: $0 --issue <number> --status <Backlog|Ready|In Progress|In Review|Done>"
+  echo "Usage: $0 --issue <number> --status <Backlog|Ready|In progress|In review|Done>"
   exit 1
 fi
 
