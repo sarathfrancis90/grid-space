@@ -420,6 +420,20 @@ export function Grid() {
           continue;
         }
 
+        // Draw dropdown arrow for dropdown-list validation
+        if (valRule?.type === "dropdown-list") {
+          const arrowSize = 4;
+          const arrowX = Math.round(cellX + cellW - 12);
+          const arrowY = Math.round(cellY + cellH / 2);
+          ctx.beginPath();
+          ctx.moveTo(arrowX - arrowSize, arrowY - arrowSize / 2);
+          ctx.lineTo(arrowX + arrowSize, arrowY - arrowSize / 2);
+          ctx.lineTo(arrowX, arrowY + arrowSize / 2);
+          ctx.closePath();
+          ctx.fillStyle = "#5f6368";
+          ctx.fill();
+        }
+
         // Check for sparkline
         const strValue = cellValue != null ? String(cellValue) : "";
         if (
@@ -700,6 +714,20 @@ export function Grid() {
           }
 
           ctx.restore();
+
+          // Comment/note indicator — small triangle in top-right corner
+          if (cellData?.comment || cellData?.note) {
+            const triSize = 6;
+            const triX = Math.round(cellX + cellW);
+            const triY = Math.round(cellY);
+            ctx.beginPath();
+            ctx.moveTo(triX - triSize, triY);
+            ctx.lineTo(triX, triY);
+            ctx.lineTo(triX, triY + triSize);
+            ctx.closePath();
+            ctx.fillStyle = "#ff9800";
+            ctx.fill();
+          }
         }
       }
     }

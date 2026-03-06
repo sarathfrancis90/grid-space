@@ -102,6 +102,13 @@ export function useKeyboardShortcuts(handlers?: ShortcutHandlers): void {
         }
       }
 
+      // Ctrl+/ — keyboard shortcuts help
+      if (ctrl && key === "/") {
+        e.preventDefault();
+        const ks = useUIStore.getState();
+        ks.setKeyboardShortcutsOpen(!ks.isKeyboardShortcutsOpen);
+        return;
+      }
       if (!ctrl && !alt) return;
 
       // --- Ctrl+<key> shortcuts ---

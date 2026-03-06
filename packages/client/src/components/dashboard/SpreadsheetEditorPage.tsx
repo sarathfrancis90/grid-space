@@ -43,6 +43,7 @@ import { MacroRecorderBar } from "../macros/MacroRecorderBar";
 import { MacroManagerDialog } from "../macros/MacroManagerDialog";
 import { ScriptEditor } from "../macros/ScriptEditor";
 import { AIAnalysisPanel } from "../data/AIAnalysisPanel";
+import { KeyboardShortcutsDialog } from "../ui/KeyboardShortcutsDialog";
 import { useMacroRecorder } from "../../hooks/useMacroRecorder";
 import { useAutoSave } from "../../hooks/useAutoSave";
 import { useHydrateFromServer } from "../../hooks/useHydrateFromServer";
@@ -57,6 +58,14 @@ const VersionHistorySidebar = lazy(() =>
     default: m.VersionHistorySidebar,
   })),
 );
+
+function KeyboardShortcutsWrapper() {
+  const isOpen = useUIStore((s) => s.isKeyboardShortcutsOpen);
+  const close = useUIStore((s) => s.setKeyboardShortcutsOpen);
+  return (
+    <KeyboardShortcutsDialog isOpen={isOpen} onClose={() => close(false)} />
+  );
+}
 
 function BandedRowsDialogWrapper() {
   const isOpen = useUIStore((s) => s.isBandedRowsDialogOpen);
@@ -294,6 +303,7 @@ export default function SpreadsheetEditorPage() {
       <SlicerControl />
       <MacroManagerDialog />
       <ScriptEditor />
+      <KeyboardShortcutsWrapper />
       <OfflineIndicator />
       <Suspense fallback={null}>
         <ChartOverlay />
