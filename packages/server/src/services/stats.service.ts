@@ -212,11 +212,22 @@ function getDevelopmentStats(github: GitHubStats): DevelopmentStats {
   // MODELS: Claude Opus 4.6 (primary) + Claude Haiku 4.5 (sub-agents)
   // ═══════════════════════════════════════════════════════════════════
 
-  // Verified totals from ccusage (npx ccusage@latest session --json)
-  // GridSpace direct: $396.86 (517.7M tokens) + subagents: $40.48 (56.8M tokens)
+  // VERIFIED AGAINST ACTUAL BILLING (claude.ai/settings/billing)
+  // Invoices from Feb 19 - Mar 6, 2026:
+  //   Feb 19: $100.00 (Max plan subscription — $100/mo tier)
+  //   Feb 25:  $20.00 (extra usage top-up)
+  //   Feb 26:  $13.65 + $50.00 + $124.72 (extra usage charges + top-ups)
+  //   Mar 02:   $0.00 (subscription renewal)
+  //   Mar 06:  $48.89 + $45.43 (extra usage charges)
+  //   Total billed: $402.69 (all projects combined)
+  //
+  // ccusage project breakdown: GridSpace = $437 / $487 total = 89.7% of usage
+  // GridSpace share of extra usage: ~$272
+  //
+  // Tokens: 574M (517.7M direct + 56.8M subagents) via ccusage session data
   const totalTokensM = 574;
-  const totalExtraUsage = 437;
-  const subscriptionCost = 200;
+  const totalExtraUsage = 302; // actual invoiced extra usage during project dates
+  const subscriptionCost = 100; // Max plan is $100/mo (not $200)
   const totalCost = subscriptionCost + totalExtraUsage;
 
   // Phase costs from ccusage daily breakdown
