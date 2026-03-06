@@ -29,10 +29,19 @@ interface PhaseInfo {
   cost: string;
 }
 
+interface CostBreakdown {
+  subscription: string;
+  subscriptionNote: string;
+  equivalentApiCost: string;
+  model: string;
+  apiPricing: string;
+}
+
 interface DevelopmentStats {
   totalHours: number;
   totalTokens: string;
   totalCost: string;
+  cost: CostBreakdown;
   phases: PhaseInfo[];
 }
 
@@ -180,42 +189,80 @@ function getDevelopmentStats(github: GitHubStats): DevelopmentStats {
     github.commits - phase1Commits - phase2Commits,
     31,
   );
-  const totalCommits = github.commits || phase1Commits + phase2Commits + 31;
 
-  // Token costs are from Claude Code session logs (historical, grows with new sessions)
-  const phase1Tokens = 2.94;
-  const phase2Tokens = 2.39;
-  const phase3Tokens = Math.max(0.12, (totalCommits - 71) * 0.02); // ~20K tokens per commit estimate for new work
-  const totalTokens = phase1Tokens + phase2Tokens + phase3Tokens;
+  // ═══════════════════════════════════════════════════════════════════
+  // REAL TOKEN DATA — from Claude Code session logs (project-scoped)
+  // Source: ~/.claude/projects/-home-cvsilab-projects-grid-space/*.jsonl
+  // These files are ONLY for this project (Claude Code isolates per project dir)
+  // ═══════════════════════════════════════════════════════════════════
 
-  const phase1Cost = 122.94;
-  const phase2Cost = 87.92;
-  // Estimate ongoing cost: ~$3 per commit for new Claude Code work (mixed Opus/Sonnet)
-  const phase3Cost = Math.max(8.41, (phase3Commits - 31) * 3 + 8.41);
-  const totalCost = phase1Cost + phase2Cost + phase3Cost;
+  // Phase 1 (Feb 25-26): 50 sessions — 482M total tokens
+  const p1 = {
+    input: 1.62,
+    output: 1.31,
+    cacheRead: 455.72,
+    cacheWrite: 23.34,
+    totalM: 482,
+    apiCost: 414.68,
+  };
+  // Phase 2 (Mar 4-5): 12 sessions — 400M total tokens
+  const p2 = {
+    input: 1.52,
+    output: 0.87,
+    cacheRead: 380.72,
+    cacheWrite: 16.81,
+    totalM: 400,
+    apiCost: 324.7,
+  };
+  // Phase 3 (Mar 6): 1 session (ongoing) — 156M+ total tokens
+  const p3 = {
+    input: 0.02,
+    output: 0.15,
+    cacheRead: 143.56,
+    cacheWrite: 12.71,
+    totalM: 156,
+    apiCost: 155.0,
+  };
+
+  const totalAllTokensM = p1.totalM + p2.totalM + p3.totalM; // ~1,038M = 1.04B tokens
+  const totalApiCost = p1.apiCost + p2.apiCost + p3.apiCost; // ~$894
+
+  // ACTUAL COST: Anthropic Max plan = $200/month flat subscription
+  // Claude Code usage is INCLUDED — no per-token charges
+  // Project spans Feb 25 - Mar 6 (~10 days, within 1 billing month)
+  const subscriptionCost = 200;
 
   return {
-    totalHours: 31 + Math.floor((phase3Commits - 31) * 0.1), // ~6min per new commit
-    totalTokens: `${totalTokens.toFixed(2)}M`,
-    totalCost: `$${Math.round(totalCost)}`,
+    totalHours: 31 + Math.floor((phase3Commits - 31) * 0.1),
+    totalTokens: `${(totalAllTokensM / 1000).toFixed(2)}B`,
+    totalCost: `$${subscriptionCost}/mo`,
+    cost: {
+      subscription: `$${subscriptionCost}/mo`,
+      subscriptionNote:
+        "Anthropic Max plan — flat monthly, includes all Claude Code usage",
+      equivalentApiCost: `$${Math.round(totalApiCost)}`,
+      model: "Claude Opus 4.6 (1M context)",
+      apiPricing:
+        "$5/M input, $25/M output, $0.50/M cache read, $6.25/M cache write",
+    },
     phases: [
       {
         name: "Build",
         hours: 17,
         commits: phase1Commits,
-        cost: `$${phase1Cost.toFixed(2)}`,
+        cost: `${p1.totalM}M tokens ($${Math.round(p1.apiCost)} API eq.)`,
       },
       {
         name: "CI/CD",
         hours: 8,
         commits: phase2Commits,
-        cost: `$${phase2Cost.toFixed(2)}`,
+        cost: `${p2.totalM}M tokens ($${Math.round(p2.apiCost)} API eq.)`,
       },
       {
         name: "Production",
         hours: 6 + Math.floor((phase3Commits - 31) * 0.1),
         commits: phase3Commits,
-        cost: `$${phase3Cost.toFixed(2)}`,
+        cost: `${p3.totalM}M tokens ($${Math.round(p3.apiCost)} API eq.)`,
       },
     ],
   };
