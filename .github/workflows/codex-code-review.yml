@@ -68,19 +68,14 @@ jobs:
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           model: gpt-5-codex
           effort: high
           sandbox: workspace-write
           codex-args: "--search"
           prompt-file: .github/prompts/codex-review.md
-          instructions-file: AGENTS.md
-          mcp-config-file: .mcp.json
           output-file: .codex-output/review.json
-          output-logs: true
-          retention-days: 14
           safety-strategy: warn
-          allow-bots: "claude[bot],github-actions[bot]"
+          allow-bots: true
 
       - name: Auto-approve on max review iterations
         if: steps.pr.outputs.number != '' && steps.check-iterations.outputs.max_reached == 'true'
