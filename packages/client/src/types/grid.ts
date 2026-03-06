@@ -254,6 +254,40 @@ export interface CommentReply {
   createdAt: number;
 }
 
+// Tables (first-class table entities like Google Sheets)
+export type TableStylePreset =
+  | "blue-medium-1"
+  | "blue-medium-2"
+  | "green-medium-1"
+  | "green-medium-2"
+  | "orange-medium-1"
+  | "orange-medium-2"
+  | "grey-medium-1"
+  | "grey-medium-2"
+  | "purple-medium-1"
+  | "red-medium-1";
+
+export interface TableColumn {
+  id: string;
+  headerName: string;
+}
+
+export interface TableConfig {
+  id: string;
+  name: string;
+  sheetId: string;
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+  columns: TableColumn[];
+  showHeaderRow: boolean;
+  showTotalRow: boolean;
+  showBandedRows: boolean;
+  showBandedCols: boolean;
+  stylePreset: TableStylePreset;
+}
+
 // Hyperlinks
 export interface CellHyperlink {
   url: string;
