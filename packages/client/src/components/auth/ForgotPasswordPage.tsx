@@ -77,13 +77,14 @@ export default function ForgotPasswordPage() {
             style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}
             data-testid="forgot-title"
           >
-            Reset your password
+            Forgot Password
           </h1>
           <p
             className="mt-2 text-sm text-gray-500"
             style={{ marginTop: "8px", fontSize: "14px", color: "#6b7280" }}
           >
-            Enter your email and we&apos;ll send you a reset link
+            Enter your email and we&apos;ll send you a link to reset your
+            password
           </p>
         </div>
 
