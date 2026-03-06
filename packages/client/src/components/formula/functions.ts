@@ -290,6 +290,26 @@ function fnLAMBDA(..._args: FormulaValue[]): FormulaValue {
   return "#VALUE!" as FormulaError;
 }
 
+// Stubs for LAMBDA helper functions — actual implementation is in evaluator.ts
+function fnMAP(..._args: FormulaValue[]): FormulaValue {
+  return "#VALUE!" as FormulaError;
+}
+function fnREDUCE(..._args: FormulaValue[]): FormulaValue {
+  return "#VALUE!" as FormulaError;
+}
+function fnSCAN(..._args: FormulaValue[]): FormulaValue {
+  return "#VALUE!" as FormulaError;
+}
+function fnMAKEARRAY(..._args: FormulaValue[]): FormulaValue {
+  return "#VALUE!" as FormulaError;
+}
+function fnBYROW(..._args: FormulaValue[]): FormulaValue {
+  return "#VALUE!" as FormulaError;
+}
+function fnBYCOL(..._args: FormulaValue[]): FormulaValue {
+  return "#VALUE!" as FormulaError;
+}
+
 // --- Merged registry ---
 
 const FUNCTION_REGISTRY: Record<string, FormulaFunction> = {
@@ -318,6 +338,13 @@ const FUNCTION_REGISTRY: Record<string, FormulaFunction> = {
   LET: fnLET,
   LAMBDA: fnLAMBDA,
   __CALL__: fnLAMBDA, // stub — actual handling is in evaluator
+  __ARRAY_LITERAL__: fnLAMBDA, // stub — actual handling is in evaluator
+  MAP: fnMAP,
+  REDUCE: fnREDUCE,
+  SCAN: fnSCAN,
+  MAKEARRAY: fnMAKEARRAY,
+  BYROW: fnBYROW,
+  BYCOL: fnBYCOL,
   // Domain modules
   ...mathFunctions,
   ...textFunctions,
