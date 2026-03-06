@@ -15,6 +15,12 @@ import type { CellValueGetter } from "../../types/formula";
 import { generateFillValues } from "../../utils/fillHandle";
 import { CellEditor } from "./CellEditor";
 import { ContextMenu } from "./ContextMenu";
+import { SmartChipOverlay } from "./SmartChipOverlay";
+import {
+  useSmartChipStore,
+  getChipDisplayValue,
+  getChipColor,
+} from "../../stores/smartChipStore";
 import type { CellData, CellPosition } from "../../types/grid";
 import { formatCellValue } from "../../utils/numberFormat";
 
@@ -256,11 +262,13 @@ export function Grid() {
     }
     endRow = Math.min(gs.totalRows - 1, endRow + BUFFER_ROWS);
 
-    // Get validation rules and data groups for rendering
+    // Get validation rules, data groups, and smart chips for rendering
     const vs = useValidationStore.getState();
     const ds = useDataStore.getState();
     const fs = useFormatStore.getState();
+    const scs = useSmartChipStore.getState();
     const validationRules = vs.rules.get(activeSheetId);
+    const sheetChips = scs.chips.get(activeSheetId);
     const rowGroups = ds.getRowGroups(activeSheetId);
     const colGroups = ds.getColGroups(activeSheetId);
     const conditionalRules = fs.getConditionalRules(activeSheetId);
@@ -432,6 +440,72 @@ export function Grid() {
           ctx.closePath();
           ctx.fillStyle = "#5f6368";
           ctx.fill();
+        }
+
+        // Check for smart chip
+        const chipData = sheetChips?.get(getCellKey(r, c)) ?? cellData?.chip;
+        if (chipData) {
+          const chipColor = getChipColor(chipData);
+          const chipText = getChipDisplayValue(chipData);
+          const chipPad = 4;
+          const chipH = 18;
+          const chipY = Math.round(cellY + (cellH - chipH) / 2);
+          const chipX = Math.round(cellX + chipPad);
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(
+            Math.round(cellX),
+            Math.round(cellY),
+            Math.round(cellW),
+            Math.round(cellH),
+          );
+          ctx.clip();
+
+          // Draw pill background
+          const chipFont = "11px Arial, sans-serif";
+          ctx.font = chipFont;
+          const textMetrics = ctx.measureText(chipText);
+          const chipW = Math.min(textMetrics.width + 16, cellW - chipPad * 2);
+          const radius = chipH / 2;
+
+          ctx.fillStyle = `${chipColor}20`;
+          ctx.beginPath();
+          ctx.moveTo(chipX + radius, chipY);
+          ctx.lineTo(chipX + chipW - radius, chipY);
+          ctx.arcTo(
+            chipX + chipW,
+            chipY,
+            chipX + chipW,
+            chipY + radius,
+            radius,
+          );
+          ctx.arcTo(
+            chipX + chipW,
+            chipY + chipH,
+            chipX + chipW - radius,
+            chipY + chipH,
+            radius,
+          );
+          ctx.lineTo(chipX + radius, chipY + chipH);
+          ctx.arcTo(chipX, chipY + chipH, chipX, chipY + radius, radius);
+          ctx.arcTo(chipX, chipY, chipX + radius, chipY, radius);
+          ctx.closePath();
+          ctx.fill();
+
+          // Draw pill border
+          ctx.strokeStyle = `${chipColor}60`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          // Draw chip text
+          ctx.fillStyle = chipColor;
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.fillText(chipText, chipX + 8, chipY + chipH / 2, chipW - 16);
+
+          ctx.restore();
+          continue;
         }
 
         // Check for sparkline
@@ -2114,6 +2188,55 @@ export function Grid() {
     computeScrollDimensions,
   ]);
 
+  // Compute visible range for SmartChipOverlay
+  const scrollTop = useGridStore((s) => s.scrollTop);
+  const scrollLeft = useGridStore((s) => s.scrollLeft);
+  const viewportWidth = useGridStore((s) => s.viewportWidth);
+  const viewportHeight = useGridStore((s) => s.viewportHeight);
+
+  const visibleRange = useMemo(() => {
+    const gs = useGridStore.getState();
+    let startCol = 0;
+    let accX = 0;
+    for (let c = 0; c < gs.totalCols; c++) {
+      if (gs.hiddenCols.has(c)) continue;
+      const cw = gs.columnWidths.get(c) ?? gs.defaultColWidth;
+      if (accX + cw > gs.scrollLeft) {
+        startCol = c;
+        break;
+      }
+      accX += cw;
+    }
+    let startRow = 0;
+    let accY = 0;
+    for (let r = 0; r < gs.totalRows; r++) {
+      if (gs.hiddenRows.has(r)) continue;
+      const rh = gs.rowHeights.get(r) ?? gs.defaultRowHeight;
+      if (accY + rh > gs.scrollTop) {
+        startRow = r;
+        break;
+      }
+      accY += rh;
+    }
+    let endCol = startCol;
+    let tempX = accX - gs.scrollLeft + gs.rowHeaderWidth;
+    for (let c = startCol; c < gs.totalCols; c++) {
+      if (tempX > gs.viewportWidth) break;
+      if (gs.hiddenCols.has(c)) continue;
+      endCol = c;
+      tempX += gs.columnWidths.get(c) ?? gs.defaultColWidth;
+    }
+    let endRow = startRow;
+    let tempY = accY - gs.scrollTop + gs.colHeaderHeight;
+    for (let r = startRow; r < gs.totalRows; r++) {
+      if (tempY > gs.viewportHeight) break;
+      if (gs.hiddenRows.has(r)) continue;
+      endRow = r;
+      tempY += gs.rowHeights.get(r) ?? gs.defaultRowHeight;
+    }
+    return { startRow, endRow, startCol, endCol };
+  }, [scrollTop, scrollLeft, viewportWidth, viewportHeight]);
+
   return (
     <div
       ref={containerRef}
@@ -2135,6 +2258,7 @@ export function Grid() {
           pointerEvents: "none",
         }}
       />
+      <SmartChipOverlay visibleRange={visibleRange} />
       <CellEditor onCommit={handleCommitEdit} onCancel={handleCancelEdit} />
       <div
         ref={scrollContainerRef}

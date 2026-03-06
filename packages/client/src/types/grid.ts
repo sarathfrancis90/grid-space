@@ -6,6 +6,7 @@ export interface CellData {
   hyperlink?: CellHyperlink;
   image?: CellImage;
   note?: string;
+  chip?: SmartChip;
 }
 
 export interface CellFormat {
@@ -316,6 +317,44 @@ export interface TableConfig {
   showBandedCols: boolean;
   stylePreset: TableStylePreset;
 }
+
+// Smart Chips
+export type SmartChipType = "date" | "dropdown" | "rating" | "people";
+
+export interface SmartChipBase {
+  id: string;
+  type: SmartChipType;
+}
+
+export interface DateChipData extends SmartChipBase {
+  type: "date";
+  date: string; // ISO date string (YYYY-MM-DD)
+}
+
+export interface DropdownChipData extends SmartChipBase {
+  type: "dropdown";
+  value: string;
+  options: string[];
+  color?: string;
+}
+
+export interface RatingChipData extends SmartChipBase {
+  type: "rating";
+  value: number; // 0-5
+}
+
+export interface PeopleChipData extends SmartChipBase {
+  type: "people";
+  name: string;
+  email?: string;
+  avatarUrl?: string;
+}
+
+export type SmartChip =
+  | DateChipData
+  | DropdownChipData
+  | RatingChipData
+  | PeopleChipData;
 
 // Hyperlinks
 export interface CellHyperlink {
