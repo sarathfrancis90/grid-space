@@ -1,7 +1,9 @@
 /**
  * Text functions: CONCATENATE, LEFT, RIGHT, MID, LEN, TRIM,
  * UPPER, LOWER, PROPER, SUBSTITUTE, FIND, SEARCH,
- * TEXT, VALUE, REPT, EXACT, CLEAN, CHAR, CODE
+ * TEXT, VALUE, REPT, EXACT, CLEAN, CHAR, CODE,
+ * TEXTJOIN, SPLIT, REPLACE, JOIN, T, N, FIXED, DOLLAR,
+ * NUMBERVALUE, ROMAN, ARABIC
  */
 import type { FormulaValue } from "../../../types/formula";
 import type { FormulaFunction, FormulaError } from "./helpers";
@@ -177,6 +179,191 @@ function fnCODE(...args: FormulaValue[]): FormulaValue {
   return text.charCodeAt(0);
 }
 
+function fnTEXTJOIN(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 3) return "#VALUE!" as FormulaError;
+  const delimiter = requireString(args[0]);
+  const ignoreEmpty = Boolean(args[1]);
+  const values = flattenArgs(args.slice(2));
+  const parts: string[] = [];
+  for (const v of values) {
+    if (isFormulaError(v)) return v;
+    const s = v === null ? "" : String(v);
+    if (ignoreEmpty && s === "") continue;
+    parts.push(s);
+  }
+  return parts.join(delimiter);
+}
+
+function fnSPLIT(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 2) return "#VALUE!" as FormulaError;
+  const text = requireString(args[0]);
+  const delimiter = requireString(args[1]);
+  const splitByEach = args.length >= 3 ? Boolean(args[2]) : true;
+  const removeEmpty = args.length >= 4 ? Boolean(args[3]) : true;
+  let parts: string[];
+  if (splitByEach && delimiter.length > 1) {
+    const escaped = delimiter.split("").map(escapeRegex).join("|");
+    parts = text.split(new RegExp(escaped));
+  } else {
+    parts = text.split(delimiter);
+  }
+  if (removeEmpty) {
+    parts = parts.filter((p) => p !== "");
+  }
+  // Return as a 2D array (single row) for spill
+  return [parts] as unknown as FormulaValue;
+}
+
+function fnREPLACE(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 4) return "#VALUE!" as FormulaError;
+  const oldText = requireString(args[0]);
+  const startNum = requireNumber(args[1]);
+  if (isFormulaError(startNum)) return startNum;
+  const numChars = requireNumber(args[2]);
+  if (isFormulaError(numChars)) return numChars;
+  const newText = requireString(args[3]);
+  if ((startNum as number) < 1) return "#VALUE!" as FormulaError;
+  const start = (startNum as number) - 1;
+  return (
+    oldText.substring(0, start) +
+    newText +
+    oldText.substring(start + (numChars as number))
+  );
+}
+
+function fnJOIN(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 2) return "#VALUE!" as FormulaError;
+  const delimiter = requireString(args[0]);
+  const values = flattenArgs(args.slice(1));
+  const parts: string[] = [];
+  for (const v of values) {
+    if (isFormulaError(v)) return v;
+    parts.push(v === null ? "" : String(v));
+  }
+  return parts.join(delimiter);
+}
+
+function fnT(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 1) return "";
+  const val = args[0];
+  if (typeof val === "string" && !isFormulaError(val)) return val;
+  return "";
+}
+
+function fnN(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 1) return 0;
+  const val = args[0];
+  if (typeof val === "number") return val;
+  if (typeof val === "boolean") return val ? 1 : 0;
+  if (isFormulaError(val)) return val;
+  return 0;
+}
+
+function fnFIXED(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 1) return "#VALUE!" as FormulaError;
+  const num = requireNumber(args[0]);
+  if (isFormulaError(num)) return num;
+  const decimals = args.length >= 2 ? requireNumber(args[1]) : 2;
+  if (isFormulaError(decimals)) return decimals;
+  const noCommas = args.length >= 3 ? Boolean(args[2]) : false;
+  const fixed = (num as number).toFixed(decimals as number);
+  if (noCommas) return fixed;
+  const [intPart, decPart] = fixed.split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return decPart !== undefined ? `${withCommas}.${decPart}` : withCommas;
+}
+
+function fnDOLLAR(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 1) return "#VALUE!" as FormulaError;
+  const num = requireNumber(args[0]);
+  if (isFormulaError(num)) return num;
+  const decimals = args.length >= 2 ? requireNumber(args[1]) : 2;
+  if (isFormulaError(decimals)) return decimals;
+  const fixed = Math.abs(num as number).toFixed(decimals as number);
+  const [intPart, decPart] = fixed.split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const formatted =
+    decPart !== undefined ? `$${withCommas}.${decPart}` : `$${withCommas}`;
+  return (num as number) < 0 ? `(${formatted})` : formatted;
+}
+
+function fnNUMBERVALUE(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 1) return "#VALUE!" as FormulaError;
+  const text = requireString(args[0]);
+  const decimalSep = args.length >= 2 ? requireString(args[1]) : ".";
+  const groupSep = args.length >= 3 ? requireString(args[2]) : ",";
+  let cleaned = text;
+  if (groupSep) {
+    cleaned = cleaned.split(groupSep).join("");
+  }
+  if (decimalSep !== ".") {
+    cleaned = cleaned.replace(decimalSep, ".");
+  }
+  const n = Number(cleaned);
+  if (isNaN(n)) return "#VALUE!" as FormulaError;
+  return n;
+}
+
+const ROMAN_VALUES: [number, string][] = [
+  [1000, "M"],
+  [900, "CM"],
+  [500, "D"],
+  [400, "CD"],
+  [100, "C"],
+  [90, "XC"],
+  [50, "L"],
+  [40, "XL"],
+  [10, "X"],
+  [9, "IX"],
+  [5, "V"],
+  [4, "IV"],
+  [1, "I"],
+];
+
+function fnROMAN(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 1) return "#VALUE!" as FormulaError;
+  const num = requireNumber(args[0]);
+  if (isFormulaError(num)) return num;
+  const n = Math.floor(num as number);
+  if (n < 1 || n > 3999) return "#VALUE!" as FormulaError;
+  let result = "";
+  let remaining = n;
+  for (const [value, numeral] of ROMAN_VALUES) {
+    while (remaining >= value) {
+      result += numeral;
+      remaining -= value;
+    }
+  }
+  return result;
+}
+
+function fnARABIC(...args: FormulaValue[]): FormulaValue {
+  if (args.length < 1) return "#VALUE!" as FormulaError;
+  const text = requireString(args[0]).toUpperCase().trim();
+  if (text === "") return 0;
+  const romanMap: Record<string, number> = {
+    I: 1,
+    V: 5,
+    X: 10,
+    L: 50,
+    C: 100,
+    D: 500,
+    M: 1000,
+  };
+  let result = 0;
+  for (let i = 0; i < text.length; i++) {
+    const current = romanMap[text[i]];
+    if (current === undefined) return "#VALUE!" as FormulaError;
+    const next = i + 1 < text.length ? romanMap[text[i + 1]] : 0;
+    if (next !== undefined && current < next) {
+      result -= current;
+    } else {
+      result += current;
+    }
+  }
+  return result;
+}
+
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -201,4 +388,15 @@ export const textFunctions: Record<string, FormulaFunction> = {
   CLEAN: fnCLEAN,
   CHAR: fnCHAR,
   CODE: fnCODE,
+  TEXTJOIN: fnTEXTJOIN,
+  SPLIT: fnSPLIT,
+  REPLACE: fnREPLACE,
+  JOIN: fnJOIN,
+  T: fnT,
+  N: fnN,
+  FIXED: fnFIXED,
+  DOLLAR: fnDOLLAR,
+  NUMBERVALUE: fnNUMBERVALUE,
+  ROMAN: fnROMAN,
+  ARABIC: fnARABIC,
 };
