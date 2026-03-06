@@ -85,13 +85,11 @@ export function ViewSetupDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-center justify-center bg-black/30"
+      className="flex h-full items-center justify-center bg-gray-50"
       data-testid="view-setup-backdrop"
-      onClick={onCancel}
     >
       <div
         className="w-[400px] rounded-lg bg-white shadow-xl"
-        onClick={(e) => e.stopPropagation()}
         data-testid="view-setup-dialog"
       >
         <div className="border-b border-gray-200 px-5 py-4">
