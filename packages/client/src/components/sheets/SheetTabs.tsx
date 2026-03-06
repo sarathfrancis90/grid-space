@@ -110,7 +110,7 @@ export function SheetTabs() {
   return (
     <div
       data-testid="sheet-tabs-container"
-      className="flex items-center h-9 bg-[#f0f0f0] border-t border-gray-300 pl-2 overflow-hidden select-none"
+      className="flex items-center h-9 bg-[#f0f0f0] border-t border-gray-300 pl-2 overflow-x-auto overflow-y-hidden select-none"
       style={{ height: "36px", paddingLeft: "8px" }}
     >
       <button

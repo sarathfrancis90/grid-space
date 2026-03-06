@@ -17,6 +17,7 @@ import { CellEditor } from "./CellEditor";
 import { ContextMenu } from "./ContextMenu";
 import type { CellData, CellPosition } from "../../types/grid";
 import { formatCellValue } from "../../utils/numberFormat";
+import { useTouchGrid } from "../../hooks/useTouchGrid";
 
 const GRID_LINE_COLOR = "#e2e2e2";
 const HEADER_BG = "#f8f9fa";
@@ -2113,6 +2114,62 @@ export function Grid() {
   const scrollDims = useMemo(computeScrollDimensions, [
     computeScrollDimensions,
   ]);
+
+  // Touch support for mobile: tap to select, double-tap to edit, long-press for context menu
+  const clientToCell = useCallback(
+    (clientX: number, clientY: number): CellPosition | null => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return null;
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      return screenToGrid(x, y);
+    },
+    [screenToGrid],
+  );
+
+  const handleTouchCellTap = useCallback(
+    (row: number, col: number) => {
+      const ui = useUIStore.getState();
+      if (ui.isEditing) {
+        commitEdit();
+      }
+      setSelectedCell({ row, col });
+      setSelections([{ start: { row, col }, end: { row, col } }]);
+    },
+    [setSelectedCell, setSelections, commitEdit],
+  );
+
+  const handleTouchCellDoubleTap = useCallback(
+    (row: number, col: number) => {
+      const activeSheetId = getActiveSheetId();
+      const cellData = useCellStore.getState().getCell(activeSheetId, row, col);
+      const currentValue =
+        cellData?.value != null ? String(cellData.value) : "";
+      startEditing({ row, col }, currentValue);
+    },
+    [startEditing, getActiveSheetId],
+  );
+
+  const handleTouchLongPress = useCallback(
+    (row: number, col: number, clientX: number, clientY: number) => {
+      setSelectedCell({ row, col });
+      setContextMenu({
+        x: clientX,
+        y: clientY,
+        target: "cell",
+        targetIndex: 0,
+      });
+    },
+    [setSelectedCell],
+  );
+
+  useTouchGrid({
+    containerRef: scrollContainerRef,
+    clientToCell,
+    onCellTap: handleTouchCellTap,
+    onCellDoubleTap: handleTouchCellDoubleTap,
+    onLongPress: handleTouchLongPress,
+  });
 
   return (
     <div
