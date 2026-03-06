@@ -108,15 +108,6 @@ if (env.NODE_ENV === "production") {
     ) {
       return next();
     }
-
-    // If the request looks like a static file (has a file extension),
-    // don't serve index.html — let it fall through to 404.
-    // This prevents serving HTML with text/html MIME type for missing
-    // JS/CSS chunks, which causes "unsupported MIME type" console errors.
-    if (/\.\w+$/.test(req.path)) {
-      return next();
-    }
-
     res.sendFile(path.join(clientDistPath, "index.html"));
   });
 }
