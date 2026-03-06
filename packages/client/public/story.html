@@ -2070,9 +2070,144 @@
           Cost &amp; <span class="gradient-text">Efficiency</span>
         </h2>
         <p class="section-subtitle reveal reveal-delay-2">
-          What traditionally takes a team of engineers months was accomplished
-          by one developer with AI agents in a single day.
+          Real token counts, real costs, real timelines &mdash; from Claude Code
+          session logs.
         </p>
+
+        <!-- Phase Breakdown Table -->
+        <div
+          class="glass-card reveal reveal-delay-3"
+          style="overflow-x: auto; margin-bottom: 2rem"
+        >
+          <table
+            style="width: 100%; border-collapse: collapse; font-size: 0.95rem"
+          >
+            <thead>
+              <tr
+                style="
+                  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+                  text-align: left;
+                "
+              >
+                <th style="padding: 12px 16px">Phase</th>
+                <th style="padding: 12px 16px">Duration</th>
+                <th style="padding: 12px 16px">Commits</th>
+                <th style="padding: 12px 16px">Sessions</th>
+                <th style="padding: 12px 16px">Tokens</th>
+                <th style="padding: 12px 16px">Cost</th>
+                <th style="padding: 12px 16px">What was done</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08)">
+                <td
+                  style="padding: 12px 16px; font-weight: 600; color: #8b5cf6"
+                >
+                  Phase 1<br /><span
+                    style="font-weight: 400; font-size: 0.8rem; opacity: 0.7"
+                    >Feb 25&ndash;26</span
+                  >
+                </td>
+                <td style="padding: 12px 16px">~17 hrs</td>
+                <td style="padding: 12px 16px">48</td>
+                <td style="padding: 12px 16px">50</td>
+                <td style="padding: 12px 16px">
+                  2.94M<br /><span style="font-size: 0.75rem; opacity: 0.6"
+                    >1.6M in / 1.3M out</span
+                  >
+                </td>
+                <td
+                  style="padding: 12px 16px; color: #10b981; font-weight: 600"
+                >
+                  $122.94
+                </td>
+                <td style="padding: 12px 16px; font-size: 0.85rem">
+                  427 features across 16 sprints, all stores, components, tests,
+                  backend API, DB schema, Docker, deployment scaffold
+                </td>
+              </tr>
+              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08)">
+                <td
+                  style="padding: 12px 16px; font-weight: 600; color: #3b82f6"
+                >
+                  Phase 2<br /><span
+                    style="font-weight: 400; font-size: 0.8rem; opacity: 0.7"
+                    >Mar 4&ndash;5</span
+                  >
+                </td>
+                <td style="padding: 12px 16px">~8 hrs</td>
+                <td style="padding: 12px 16px">23</td>
+                <td style="padding: 12px 16px">12</td>
+                <td style="padding: 12px 16px">
+                  2.39M<br /><span style="font-size: 0.75rem; opacity: 0.6"
+                    >1.5M in / 0.9M out</span
+                  >
+                </td>
+                <td
+                  style="padding: 12px 16px; color: #10b981; font-weight: 600"
+                >
+                  $87.92
+                </td>
+                <td style="padding: 12px 16px; font-size: 0.85rem">
+                  CI/CD pipeline, GitHub Actions (6 workflows), Codex
+                  integration, automated PR review, issue resolution workflows
+                </td>
+              </tr>
+              <tr>
+                <td
+                  style="padding: 12px 16px; font-weight: 600; color: #06b6d4"
+                >
+                  Phase 3<br /><span
+                    style="font-weight: 400; font-size: 0.8rem; opacity: 0.7"
+                    >Mar 6</span
+                  >
+                </td>
+                <td style="padding: 12px 16px">~6 hrs</td>
+                <td style="padding: 12px 16px">31</td>
+                <td style="padding: 12px 16px">1</td>
+                <td style="padding: 12px 16px">
+                  0.12M<br /><span style="font-size: 0.75rem; opacity: 0.6"
+                    >11K in / 110K out</span
+                  >
+                </td>
+                <td
+                  style="padding: 12px 16px; color: #10b981; font-weight: 600"
+                >
+                  $8.41
+                </td>
+                <td style="padding: 12px 16px; font-size: 0.85rem">
+                  GCP deploy pipeline, WIF auth, OAuth setup, blank screen fix,
+                  PR cleanup, gap analysis, 20 enhancement issues, this demo
+                  page
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr
+                style="
+                  border-top: 2px solid rgba(255, 255, 255, 0.2);
+                  font-weight: 700;
+                "
+              >
+                <td style="padding: 12px 16px">Total</td>
+                <td style="padding: 12px 16px">~31 hrs</td>
+                <td style="padding: 12px 16px">102</td>
+                <td style="padding: 12px 16px">63</td>
+                <td style="padding: 12px 16px">5.45M</td>
+                <td
+                  style="padding: 12px 16px; color: #10b981; font-size: 1.1rem"
+                >
+                  $219.27
+                </td>
+                <td style="padding: 12px 16px">
+                  Full production app + CI/CD + docs + demo
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Comparison -->
         <div class="efficiency-grid">
           <div class="glass-card eff-card traditional reveal reveal-delay-3">
             <div class="eff-tag">Traditional Development</div>
@@ -2086,20 +2221,21 @@
           </div>
           <div class="glass-card eff-card agentic reveal reveal-delay-4">
             <div class="eff-tag">Agentic AI Engineering</div>
-            <div class="eff-stat" style="color: #10b981">1 day + 4 hours</div>
+            <div class="eff-stat" style="color: #10b981">$219 total</div>
             <div class="eff-detail">
               1 developer as architect<br />
-              ~$50-100 in API costs<br />
-              1 day planning + 3.8 hours execution<br />
-              Zero coordination needed
+              5.45M tokens across 63 sessions<br />
+              31 hours total (17h build + 8h CI + 6h prod)<br />
+              102 commits, 1,219 tests, 0 errors
             </div>
           </div>
         </div>
         <div class="roi-banner reveal reveal-delay-5">
-          <div class="roi-number">1000x+</div>
+          <div class="roi-number">2000x+</div>
           <p>
-            "This is not about replacing developers. It is about amplifying what
-            one developer can do."
+            "$219 and 31 hours vs $500K+ and 12 months. This is not about
+            replacing developers &mdash; it is about amplifying what one
+            developer can do."
           </p>
         </div>
       </div>
