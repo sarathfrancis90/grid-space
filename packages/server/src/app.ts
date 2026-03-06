@@ -90,13 +90,21 @@ if (env.NODE_ENV === "production") {
     }),
   );
 
+  // SPA fallback — serve index.html for client-side routes only.
+  // Static asset requests (.js, .css, .map, etc.) that weren't matched by
+  // express.static above should 404 — NOT receive index.html with text/html
+  // MIME type, which causes "unsupported MIME type" console errors.
+  const staticExtensions =
+    /\.(js|css|map|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|webp|webmanifest|json)$/;
+
   app.get("*", (req, res, next) => {
     // Skip API, auth, WebSocket, and health routes
     if (
       req.path.startsWith("/api") ||
       req.path.startsWith("/auth") ||
       req.path.startsWith("/socket.io") ||
-      req.path === "/health"
+      req.path === "/health" ||
+      staticExtensions.test(req.path)
     ) {
       return next();
     }
