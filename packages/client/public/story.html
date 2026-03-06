@@ -1347,15 +1347,143 @@
             <div class="stat-label">Automated Tests</div>
           </div>
           <div class="stat-card">
-            <div
-              class="stat-number"
-              data-target="3.8"
-              data-suffix=" hrs"
-              data-decimals="1"
-            >
-              0
+            <div class="stat-number" data-target="102" data-suffix="">0</div>
+            <div class="stat-label">Commits</div>
+          </div>
+        </div>
+
+        <!-- Phase breakdown right in the hero -->
+        <div
+          class="reveal reveal-delay-4"
+          style="width: 100%; max-width: 900px; margin-top: 2rem"
+        >
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 1rem;
+              margin-bottom: 1.5rem;
+            "
+          >
+            <div class="stat-card" style="text-align: center; padding: 1.2rem">
+              <div
+                style="
+                  font-size: 0.65rem;
+                  text-transform: uppercase;
+                  letter-spacing: 0.1em;
+                  color: #8b5cf6;
+                  margin-bottom: 0.5rem;
+                  font-weight: 600;
+                "
+              >
+                Phase 1: Build
+              </div>
+              <div
+                class="stat-number"
+                style="font-size: 1.6rem"
+                data-target="17"
+                data-suffix=" hrs"
+              >
+                0
+              </div>
+              <div style="font-size: 0.7rem; opacity: 0.5; margin-top: 0.3rem">
+                48 commits &middot; 427 features
+              </div>
             </div>
-            <div class="stat-label">Development Time</div>
+            <div class="stat-card" style="text-align: center; padding: 1.2rem">
+              <div
+                style="
+                  font-size: 0.65rem;
+                  text-transform: uppercase;
+                  letter-spacing: 0.1em;
+                  color: #3b82f6;
+                  margin-bottom: 0.5rem;
+                  font-weight: 600;
+                "
+              >
+                Phase 2: CI/CD
+              </div>
+              <div
+                class="stat-number"
+                style="font-size: 1.6rem"
+                data-target="8"
+                data-suffix=" hrs"
+              >
+                0
+              </div>
+              <div style="font-size: 0.7rem; opacity: 0.5; margin-top: 0.3rem">
+                23 commits &middot; 6 workflows
+              </div>
+            </div>
+            <div class="stat-card" style="text-align: center; padding: 1.2rem">
+              <div
+                style="
+                  font-size: 0.65rem;
+                  text-transform: uppercase;
+                  letter-spacing: 0.1em;
+                  color: #06b6d4;
+                  margin-bottom: 0.5rem;
+                  font-weight: 600;
+                "
+              >
+                Phase 3: Production
+              </div>
+              <div
+                class="stat-number"
+                style="font-size: 1.6rem"
+                data-target="6"
+                data-suffix=" hrs"
+              >
+                0
+              </div>
+              <div style="font-size: 0.7rem; opacity: 0.5; margin-top: 0.3rem">
+                31 commits &middot; deploy + fixes
+              </div>
+            </div>
+          </div>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 1rem;
+            "
+          >
+            <div class="stat-card" style="text-align: center; padding: 1rem">
+              <div
+                class="stat-number"
+                style="font-size: 1.8rem; color: #10b981"
+                data-target="31"
+                data-suffix=" hrs"
+              >
+                0
+              </div>
+              <div class="stat-label">Total Dev Time</div>
+            </div>
+            <div class="stat-card" style="text-align: center; padding: 1rem">
+              <div
+                class="stat-number"
+                style="font-size: 1.8rem; color: #10b981"
+                data-target="5.45"
+                data-suffix="M"
+                data-decimals="2"
+              >
+                0
+              </div>
+              <div class="stat-label">Total Tokens</div>
+            </div>
+            <div class="stat-card" style="text-align: center; padding: 1rem">
+              <div
+                style="
+                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                  font-size: 1.8rem;
+                  font-weight: 700;
+                  color: #10b981;
+                "
+              >
+                $219
+              </div>
+              <div class="stat-label">Total Cost</div>
+            </div>
           </div>
         </div>
         <div class="scroll-cta reveal reveal-delay-4">
@@ -2384,11 +2512,11 @@
      TYPEWRITER
      -------------------------------------------------------- */
         var phrases = [
-          "427 features. 16 sprints. 3.8 hours.",
+          "31 hours. $219. 427 features. Production-deployed.",
+          "5.45M tokens across 63 Claude Code sessions.",
           "Full-stack TypeScript. Canvas grid at 60fps.",
           "Real-time collaboration with Yjs CRDT.",
-          "One developer. Claude Code. Production-ready.",
-          "From zero to Google Sheets parity in a single day.",
+          "One developer + Claude Code = production SaaS.",
         ];
         var typeEl = document.getElementById("typewriter");
         var phraseIdx = 0;
