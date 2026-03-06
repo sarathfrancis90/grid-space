@@ -26,6 +26,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate --schema packages/server/prisma/schema.prisma
       - name: Generate feature count
         run: node scripts/generate-feature-count.js
       - name: TypeCheck Client
@@ -64,6 +66,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate --schema packages/server/prisma/schema.prisma
       - name: Generate feature count
         run: node scripts/generate-feature-count.js
       - name: Run Prisma Migrations
@@ -83,6 +87,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate --schema packages/server/prisma/schema.prisma
       - name: Generate feature count
         run: node scripts/generate-feature-count.js
       - name: Build Client
@@ -121,6 +127,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate --schema packages/server/prisma/schema.prisma
       - run: npx playwright install --with-deps chromium
       - name: Generate feature count
         run: node scripts/generate-feature-count.js
