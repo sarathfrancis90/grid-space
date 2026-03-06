@@ -213,22 +213,33 @@ function getDevelopmentStats(github: GitHubStats): DevelopmentStats {
   // ═══════════════════════════════════════════════════════════════════
 
   // VERIFIED AGAINST ACTUAL BILLING (claude.ai/settings/billing)
+  //
   // Invoices from Feb 19 - Mar 6, 2026:
-  //   Feb 19: $100.00 (Max plan subscription — $100/mo tier)
-  //   Feb 25:  $20.00 (extra usage top-up)
-  //   Feb 26:  $13.65 + $50.00 + $124.72 (extra usage charges + top-ups)
-  //   Mar 02:   $0.00 (subscription renewal)
-  //   Mar 06:  $48.89 + $45.43 (extra usage charges)
-  //   Total billed: $402.69 (all projects combined)
+  //   Feb 19: $100.00  Max plan subscription ($100/mo original)
+  //   Feb 25:  $20.00  Extra usage top-up
+  //   Feb 26: $124.72  Plan upgrade from $100/mo → $200/mo (prorated)
+  //   Feb 26:  $50.00  Extra usage top-up
+  //   Feb 26:  $13.65  Extra usage top-up
+  //   Mar 02:   $0.00  Subscription renewal (covered by upgrade)
+  //   Mar 06:  $48.89  Extra usage top-up
+  //   Mar 06:  $45.43  Extra usage top-up
+  //   ─────────────────────────────
+  //   Total billed:    $402.69
+  //   Unused balance:  -$23.12  (still in account)
+  //   Net spent:       $379.57
   //
-  // ccusage project breakdown: GridSpace = $437 / $487 total = 89.7% of usage
-  // GridSpace share of extra usage: ~$272
+  // Breakdown:
+  //   Subscription: $200/mo (upgraded from $100 on Feb 26)
+  //   Extra usage:  $177.97 charged ($20+$50+$13.65+$48.89+$45.43)
+  //                 $154.85 consumed ($177.97 - $23.12 remaining balance)
   //
-  // Tokens: 574M (517.7M direct + 56.8M subagents) via ccusage session data
+  // Tokens: 574M via ccusage (517.7M direct + 56.8M subagents)
+  // Models: Claude Opus 4.6 (1M ctx) + Haiku 4.5 (sub-agents)
   const totalTokensM = 574;
-  const totalExtraUsage = 302; // actual invoiced extra usage during project dates
-  const subscriptionCost = 100; // Max plan is $100/mo (not $200)
-  const totalCost = subscriptionCost + totalExtraUsage;
+  const subscriptionCost = 200; // Max plan $200/mo (upgraded Feb 26)
+  const extraUsageBilled = 178; // total extra usage top-ups
+  const unusedBalance = 23; // still in account
+  const totalCost = subscriptionCost + extraUsageBilled - unusedBalance; // ~$355
 
   // Phase costs from ccusage daily breakdown
   const p1Cost = 35.8 + 201.89 + 39.67; // Feb 25-27: $277.36
