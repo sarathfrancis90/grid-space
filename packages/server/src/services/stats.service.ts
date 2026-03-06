@@ -212,16 +212,17 @@ function getDevelopmentStats(github: GitHubStats): DevelopmentStats {
   // MODELS: Claude Opus 4.6 (primary) + Claude Haiku 4.5 (sub-agents)
   // ═══════════════════════════════════════════════════════════════════
 
-  // Verified totals from ccusage
-  const totalTokensM = 580;
-  const totalExtraUsage = 443;
+  // Verified totals from ccusage (npx ccusage@latest session --json)
+  // GridSpace direct: $396.86 (517.7M tokens) + subagents: $40.48 (56.8M tokens)
+  const totalTokensM = 574;
+  const totalExtraUsage = 437;
   const subscriptionCost = 200;
   const totalCost = subscriptionCost + totalExtraUsage;
 
   // Phase costs from ccusage daily breakdown
   const p1Cost = 35.8 + 201.89 + 39.67; // Feb 25-27: $277.36
   const p2Cost = 10.7 + 9.75; // Mar 4-5:   $20.45
-  const p3Cost = 145.2; // Mar 6:     $145.20
+  const p3Cost = 145.2; // Mar 6:     $145.20 (ongoing)
 
   return {
     totalHours: 31 + Math.floor((phase3Commits - 31) * 0.1),
