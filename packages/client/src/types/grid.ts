@@ -265,7 +265,15 @@ export type ChartType =
   | "area"
   | "pie"
   | "scatter"
-  | "combo";
+  | "combo"
+  | "histogram"
+  | "radar"
+  | "waterfall"
+  | "candlestick";
+
+export type StackMode = "none" | "stacked" | "percent";
+
+export type TrendlineType = "none" | "linear" | "exponential" | "polynomial";
 
 export interface ChartConfig {
   id: string;
@@ -281,6 +289,8 @@ export interface ChartConfig {
   xAxisLabel?: string;
   yAxisLabel?: string;
   colors?: string[];
+  stackMode?: StackMode;
+  trendline?: TrendlineType;
 }
 
 // Comments

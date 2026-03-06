@@ -2,37 +2,11 @@
  * ChartContainer — renders a Chart.js chart in a draggable/resizable overlay.
  */
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from "chart.js";
-import { Bar, Line, Pie, Scatter } from "react-chartjs-2";
 import type { ChartConfig } from "../../types/grid";
 import { useChartStore } from "../../stores/chartStore";
 import { useCellStore } from "../../stores/cellStore";
 import { extractChartData } from "../../utils/chartData";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-);
+import { ChartRenderer } from "./ChartRenderer";
 
 interface ChartContainerProps {
   chart: ChartConfig;
@@ -150,121 +124,6 @@ export function ChartContainer({ chart, sheetId }: ChartContainerProps) {
     [removeChart, sheetId, chart.id],
   );
 
-  const chartOptions = useMemo(
-    () => ({
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: !!chart.title,
-          text: chart.title ?? "",
-        },
-        subtitle: {
-          display: !!chart.subtitle,
-          text: chart.subtitle ?? "",
-        },
-        legend: {
-          display: chart.showLegend !== false,
-          position: (chart.legendPosition ?? "bottom") as
-            | "top"
-            | "bottom"
-            | "left"
-            | "right",
-        },
-      },
-      scales:
-        chart.type !== "pie"
-          ? {
-              x: {
-                title: {
-                  display: !!chart.xAxisLabel,
-                  text: chart.xAxisLabel ?? "",
-                },
-              },
-              y: {
-                title: {
-                  display: !!chart.yAxisLabel,
-                  text: chart.yAxisLabel ?? "",
-                },
-              },
-            }
-          : undefined,
-    }),
-    [chart],
-  );
-
-  const dataConfig = useMemo(() => {
-    const colors = chart.colors?.length ? chart.colors : undefined;
-
-    const datasets = chartData.datasets.map((ds, i) => {
-      const bgColor = colors ? colors[i % colors.length] : ds.backgroundColor;
-
-      if (chart.type === "line" || chart.type === "scatter") {
-        return {
-          ...ds,
-          backgroundColor:
-            typeof bgColor === "string" ? bgColor : ds.borderColor,
-          borderColor: ds.borderColor,
-          fill: false,
-        };
-      }
-      if (chart.type === "area") {
-        return {
-          ...ds,
-          backgroundColor: ds.borderColor ? ds.borderColor + "40" : undefined,
-          borderColor: ds.borderColor,
-          fill: true,
-        };
-      }
-      return {
-        ...ds,
-        backgroundColor: bgColor ?? ds.backgroundColor,
-      };
-    });
-
-    // For combo charts, alternate bar and line
-    if (chart.type === "combo") {
-      return {
-        labels: chartData.labels,
-        datasets: datasets.map((ds, i) => ({
-          ...ds,
-          type: (i % 2 === 0 ? "bar" : "line") as "bar" | "line",
-        })),
-      };
-    }
-
-    return {
-      labels: chartData.labels,
-      datasets,
-    };
-  }, [chartData, chart.type, chart.colors]);
-
-  const renderChart = () => {
-    switch (chart.type) {
-      case "column":
-        return <Bar data={dataConfig} options={chartOptions} />;
-      case "bar":
-        return (
-          <Bar
-            data={dataConfig}
-            options={{ ...chartOptions, indexAxis: "y" as const }}
-          />
-        );
-      case "line":
-        return <Line data={dataConfig} options={chartOptions} />;
-      case "area":
-        return <Line data={dataConfig} options={chartOptions} />;
-      case "pie":
-        return <Pie data={dataConfig} options={chartOptions} />;
-      case "scatter":
-        return <Scatter data={dataConfig} options={chartOptions} />;
-      case "combo":
-        return <Bar data={dataConfig} options={chartOptions} />;
-      default:
-        return <Bar data={dataConfig} options={chartOptions} />;
-    }
-  };
-
   return (
     <div
       ref={containerRef}
@@ -272,6 +131,7 @@ export function ChartContainer({ chart, sheetId }: ChartContainerProps) {
       tabIndex={0}
       onKeyDown={handleKeyDown}
       onMouseDown={handleMouseDown}
+      className="group"
       style={{
         position: "absolute",
         left: chart.position.x,
@@ -290,7 +150,7 @@ export function ChartContainer({ chart, sheetId }: ChartContainerProps) {
         padding: 8,
       }}
     >
-      <div style={{ width: "100%", height: "100%" }}>{renderChart()}</div>
+      <ChartRenderer chart={chart} chartData={chartData} />
       {isSelected && (
         <div
           data-testid={`chart-resize-handle-${chart.id}`}

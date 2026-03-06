@@ -4,7 +4,7 @@
 import { useCallback } from "react";
 import { useChartStore } from "../../stores/chartStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
-import type { ChartType } from "../../types/grid";
+import type { ChartType, StackMode, TrendlineType } from "../../types/grid";
 import { colToLetter } from "../../utils/coordinates";
 import { DEFAULT_COLORS } from "../../utils/chartData";
 
@@ -16,6 +16,31 @@ const CHART_TYPES: { value: ChartType; label: string }[] = [
   { value: "pie", label: "Pie" },
   { value: "scatter", label: "Scatter" },
   { value: "combo", label: "Combo" },
+  { value: "histogram", label: "Histogram" },
+  { value: "radar", label: "Radar" },
+  { value: "waterfall", label: "Waterfall" },
+  { value: "candlestick", label: "Candlestick" },
+];
+
+const STACK_MODES: { value: StackMode; label: string }[] = [
+  { value: "none", label: "None" },
+  { value: "stacked", label: "Stacked" },
+  { value: "percent", label: "100% Stacked" },
+];
+
+const TRENDLINE_TYPES: { value: TrendlineType; label: string }[] = [
+  { value: "none", label: "None" },
+  { value: "linear", label: "Linear" },
+  { value: "exponential", label: "Exponential" },
+  { value: "polynomial", label: "Polynomial" },
+];
+
+const STACKABLE_TYPES: ChartType[] = ["column", "bar", "area", "combo"];
+const TRENDLINE_TYPES_APPLICABLE: ChartType[] = [
+  "line",
+  "scatter",
+  "column",
+  "bar",
 ];
 
 const LEGEND_POSITIONS = [
@@ -132,6 +157,26 @@ export function ChartEditorSidebar() {
         : [...DEFAULT_COLORS];
       currentColors[index] = color;
       updateChart(sheetId, chart.id, { colors: currentColors });
+    },
+    [chart, sheetId, updateChart],
+  );
+
+  const handleStackModeChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      if (!chart) return;
+      updateChart(sheetId, chart.id, {
+        stackMode: e.target.value as StackMode,
+      });
+    },
+    [chart, sheetId, updateChart],
+  );
+
+  const handleTrendlineChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      if (!chart) return;
+      updateChart(sheetId, chart.id, {
+        trendline: e.target.value as TrendlineType,
+      });
     },
     [chart, sheetId, updateChart],
   );
@@ -276,6 +321,48 @@ export function ChartEditorSidebar() {
               />
             </div>
           </>
+        )}
+
+        {/* Stacking */}
+        {STACKABLE_TYPES.includes(chart.type) && (
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Stacking
+            </label>
+            <select
+              data-testid="chart-stack-mode"
+              value={chart.stackMode ?? "none"}
+              onChange={handleStackModeChange}
+              className="w-full h-8 border border-gray-300 rounded text-sm px-2"
+            >
+              {STACK_MODES.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Trendline */}
+        {TRENDLINE_TYPES_APPLICABLE.includes(chart.type) && (
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Trendline
+            </label>
+            <select
+              data-testid="chart-trendline-select"
+              value={chart.trendline ?? "none"}
+              onChange={handleTrendlineChange}
+              className="w-full h-8 border border-gray-300 rounded text-sm px-2"
+            >
+              {TRENDLINE_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
         )}
 
         {/* S6-013: Colors and styling */}
