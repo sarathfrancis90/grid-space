@@ -1,0 +1,3 @@
+interface:
+  display_name: "GridSpace Delivery"
+  short_description: "Repo-specific implementation and review workflow for GridSpace"

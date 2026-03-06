@@ -1,0 +1,94 @@
+name: Codex Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  codex-review:
+    if: |
+      github.actor != 'github-actions[bot]' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'pull_request' && github.event.pull_request.draft == false) ||
+        (github.event_name == 'issue_comment' &&
+          github.event.issue.pull_request != null &&
+          (contains(github.event.comment.body, '@codex review') || contains(github.event.comment.body, '/codex review')))
+      )
+    runs-on: ubuntu-latest
+    concurrency:
+      group: codex-review-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve PR number
+        id: pr
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "issue_comment" ]; then
+            echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "number=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check review iteration count
+        id: check-iterations
+        if: steps.pr.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REVIEW_COUNT=$(gh api "repos/${{ github.repository }}/pulls/${{ steps.pr.outputs.number }}/reviews" \
+            --jq '[.[] | select(.user.type == "Bot")] | length' 2>/dev/null || echo "0")
+          echo "review_count=${REVIEW_COUNT}" >> "$GITHUB_OUTPUT"
+
+          if [ "$REVIEW_COUNT" -ge 3 ]; then
+            echo "max_reached=true" >> "$GITHUB_OUTPUT"
+            echo "Max review iterations reached for PR #${{ steps.pr.outputs.number }}"
+          else
+            echo "max_reached=false" >> "$GITHUB_OUTPUT"
+            echo "Review iteration $((REVIEW_COUNT + 1)) of 3 for PR #${{ steps.pr.outputs.number }}"
+          fi
+
+      - name: Run Codex Review
+        if: steps.pr.outputs.number != '' && steps.check-iterations.outputs.max_reached != 'true'
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          model: gpt-5-codex
+          effort: high
+          sandbox: workspace-write
+          codex-args:
+            - --search
+          prompt-file: .github/prompts/codex-review.md
+          instructions-file: AGENTS.md
+          mcp-config-file: .mcp.json
+          output-file: .codex-output/review.json
+          output-logs: true
+          retention-days: 14
+          safety-strategy: warn
+          allow-bots: "claude[bot],github-actions[bot]"
+
+      - name: Auto-approve on max review iterations
+        if: steps.pr.outputs.number != '' && steps.check-iterations.outputs.max_reached == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr review "${{ steps.pr.outputs.number }}" --approve \
+            --body "Auto-approved after 3 bot review iterations to prevent an infinite loop."
+          gh pr merge "${{ steps.pr.outputs.number }}" --squash --auto || \
+            echo "Could not enable auto-merge. Manual merge may be required."

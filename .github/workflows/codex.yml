@@ -1,0 +1,162 @@
+name: Codex
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  issues:
+    types: [opened, assigned, labeled]
+  workflow_dispatch:
+
+jobs:
+  codex:
+    if: |
+      github.actor != 'github-actions[bot]' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'issue_comment' &&
+          contains(github.event.comment.body, '@codex') &&
+          !contains(github.event.comment.body, '@codex review')) ||
+        (github.event_name == 'pull_request_review_comment' &&
+          contains(github.event.comment.body, '@codex') &&
+          !contains(github.event.comment.body, '@codex review')) ||
+        (github.event_name == 'pull_request_review' &&
+          contains(github.event.review.body, '@codex')) ||
+        (github.event_name == 'issues' &&
+          github.event.action == 'assigned' &&
+          github.event.assignee.login == 'codex[bot]') ||
+        (github.event_name == 'issues' &&
+          github.event.action == 'opened' &&
+          (contains(github.event.issue.body, '@codex') || contains(github.event.issue.title, '@codex'))) ||
+        (github.event_name == 'issues' &&
+          github.event.action == 'labeled' &&
+          (github.event.label.name == 'codex' || github.event.label.name == 'codex-code'))
+      )
+    runs-on: ubuntu-latest
+    concurrency:
+      group: codex-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve trigger context
+        id: context
+        run: |
+          EVENT="${{ github.event_name }}"
+          NUMBER=""
+          KIND="unknown"
+
+          if [ "$EVENT" = "issues" ]; then
+            NUMBER="$(jq -r '.issue.number // empty' "$GITHUB_EVENT_PATH")"
+            KIND="issue"
+          elif [ "$EVENT" = "issue_comment" ]; then
+            NUMBER="$(jq -r '.issue.number // empty' "$GITHUB_EVENT_PATH")"
+            if jq -e '.issue.pull_request != null' "$GITHUB_EVENT_PATH" >/dev/null; then
+              KIND="pr"
+            else
+              KIND="issue"
+            fi
+          elif [ "$EVENT" = "pull_request_review_comment" ]; then
+            NUMBER="$(jq -r '.pull_request.number // empty' "$GITHUB_EVENT_PATH")"
+            KIND="pr"
+          elif [ "$EVENT" = "pull_request_review" ]; then
+            NUMBER="$(jq -r '.pull_request.number // empty' "$GITHUB_EVENT_PATH")"
+            KIND="pr"
+          fi
+
+          echo "number=$NUMBER" >> "$GITHUB_OUTPUT"
+          echo "kind=$KIND" >> "$GITHUB_OUTPUT"
+
+      - name: Add Codex routing labels
+        if: steps.context.outputs.number != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "codex-code" \
+            --description "Assigned to Codex automation for implementation" \
+            --color "0EA5E9" 2>/dev/null || true
+          gh label create "ai-agent" \
+            --description "Automated AI agent workflow touched this item" \
+            --color "2563EB" 2>/dev/null || true
+
+          gh issue edit "${{ steps.context.outputs.number }}" \
+            --add-label "codex-code" \
+            --add-label "ai-agent" || true
+
+      - name: Acknowledge issue pickup
+        if: steps.context.outputs.kind == 'issue' && steps.context.outputs.number != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment "${{ steps.context.outputs.number }}" --body \
+          "Codex is picking this up now. I will create a branch, implement the change, run validation, and open a PR.
+
+          **Status:** In Progress"
+
+      - name: Move issue to In progress
+        if: steps.context.outputs.kind == 'issue' && steps.context.outputs.number != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "PROJECT_TOKEN not configured. Skipping Kanban update."
+            exit 0
+          fi
+
+          chmod +x .github/scripts/update-kanban.sh
+          .github/scripts/update-kanban.sh \
+            --issue "${{ steps.context.outputs.number }}" \
+            --status "In progress"
+
+      - name: Run Codex
+        id: codex
+        uses: openai/codex-action@v1
+        env:
+          PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          model: gpt-5-codex
+          effort: high
+          sandbox: workspace-write
+          codex-args:
+            - --search
+          prompt-file: .github/prompts/codex-implement.md
+          instructions-file: AGENTS.md
+          mcp-config-file: .mcp.json
+          output-file: .codex-output/implement.json
+          output-logs: true
+          retention-days: 14
+          safety-strategy: warn
+          allow-bots: "claude[bot],github-actions[bot]"
+
+      - name: Move issue to In review
+        if: success() && steps.context.outputs.kind == 'issue' && steps.context.outputs.number != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "PROJECT_TOKEN not configured. Skipping Kanban update."
+            exit 0
+          fi
+
+          chmod +x .github/scripts/update-kanban.sh
+          .github/scripts/update-kanban.sh \
+            --issue "${{ steps.context.outputs.number }}" \
+            --status "In review"
