@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useUIStore } from "../../stores/uiStore";
 import { useNamedFunctionStore } from "../../stores/namedFunctionStore";
 import { isValidFunctionName } from "../../stores/namedFunctionStore";
@@ -79,7 +79,11 @@ function ArgumentEditor({ args, onChange }: ArgumentEditorProps) {
 
 export function NamedFunctionsDialog() {
   const isOpen = useUIStore((s) => s.isNamedFunctionsDialogOpen);
-  const allFunctions = useNamedFunctionStore((s) => s.getAllFunctions());
+  const functions = useNamedFunctionStore((s) => s.functions);
+  const allFunctions = useMemo(
+    () => Array.from(functions.values()),
+    [functions],
+  );
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [editingName, setEditingName] = useState<string | null>(null);
 
