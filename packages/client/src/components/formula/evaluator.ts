@@ -188,6 +188,35 @@ function evaluateFunction(
     return evaluateCall(argNodes, getCellValue);
   }
 
+  // Special handling for __ARRAY_LITERAL__ — return stored array value
+  if (upperName === "__ARRAY_LITERAL__") {
+    if (argNodes.length === 1 && argNodes[0].type === "string") {
+      const stored = arrayLiteralRegistry.get(argNodes[0].value);
+      if (stored !== undefined) return stored;
+    }
+    return "#VALUE!" as FormulaError;
+  }
+
+  // Special handling for LAMBDA helper functions (take LAMBDA as argument)
+  if (upperName === "MAP") {
+    return evaluateMAP(argNodes, getCellValue);
+  }
+  if (upperName === "REDUCE") {
+    return evaluateREDUCE(argNodes, getCellValue);
+  }
+  if (upperName === "SCAN") {
+    return evaluateSCAN(argNodes, getCellValue);
+  }
+  if (upperName === "MAKEARRAY") {
+    return evaluateMAKEARRAY(argNodes, getCellValue);
+  }
+  if (upperName === "BYROW") {
+    return evaluateBYROW(argNodes, getCellValue);
+  }
+  if (upperName === "BYCOL") {
+    return evaluateBYCOL(argNodes, getCellValue);
+  }
+
   // Evaluate arguments, expanding ranges
   const evaluatedArgs = argNodes.map((arg) => evaluateArg(arg, getCellValue));
 
@@ -558,8 +587,19 @@ function substituteBindings(
   return node;
 }
 
+/** Registry for array literals that can't be represented as simple AST nodes. */
+const arrayLiteralRegistry = new Map<string, FormulaValue>();
+let arrayLiteralCounter = 0;
+
+/** Reset array literal registry (called alongside resetLambdaRegistry). */
+function resetArrayLiteralRegistry(): void {
+  arrayLiteralRegistry.clear();
+  arrayLiteralCounter = 0;
+}
+
 /**
  * Convert a FormulaValue into a literal AST node.
+ * For array values, stores in registry and returns a __ARRAY_LITERAL__ function node.
  */
 function valueToASTNode(value: FormulaValue): ASTNode {
   if (typeof value === "number") return { type: "number", value };
@@ -568,6 +608,15 @@ function valueToASTNode(value: FormulaValue): ASTNode {
     return { type: "string", value };
   }
   if (typeof value === "boolean") return { type: "boolean", value };
+  if (Array.isArray(value)) {
+    const id = `__ARR_${arrayLiteralCounter++}__`;
+    arrayLiteralRegistry.set(id, value as unknown as FormulaValue);
+    return {
+      type: "function",
+      name: "__ARRAY_LITERAL__",
+      args: [{ type: "string", value: id }],
+    };
+  }
   return { type: "number", value: 0 }; // null → 0
 }
 
@@ -586,6 +635,7 @@ let lambdaCounter = 0;
 export function resetLambdaRegistry(): void {
   lambdaRegistry.clear();
   lambdaCounter = 0;
+  resetArrayLiteralRegistry();
 }
 
 /**
@@ -708,6 +758,266 @@ function evaluateNamedFunction(
 /** Reset named function call depth (call before each top-level evaluation). */
 export function resetNamedFunctionCallDepth(): void {
   namedFunctionCallDepth = 0;
+}
+
+// ---------------------------------------------------------------------------
+// LAMBDA helper functions — MAP, REDUCE, SCAN, MAKEARRAY, BYROW, BYCOL
+// ---------------------------------------------------------------------------
+
+/**
+ * Invoke a lambda (by ID string) with the given argument values.
+ */
+function invokeLambda(
+  lambdaId: FormulaValue,
+  args: FormulaValue[],
+): FormulaValue {
+  if (typeof lambdaId !== "string" || !lambdaId.startsWith("__LAMBDA_")) {
+    return "#VALUE!" as FormulaError;
+  }
+  const lambda = lambdaRegistry.get(lambdaId);
+  if (!lambda) return "#VALUE!" as FormulaError;
+  if (args.length !== lambda.params.length) return "#VALUE!" as FormulaError;
+
+  const bindings = new Map<string, FormulaValue>();
+  for (let i = 0; i < lambda.params.length; i++) {
+    bindings.set(lambda.params[i], args[i]);
+  }
+  const substitutedBody = substituteBindings(lambda.body, bindings);
+  return evaluate(substitutedBody, lambda.getCellValue);
+}
+
+/**
+ * Normalize a value into a 2D array for consistent processing.
+ */
+function to2DArray(val: FormulaValue): FormulaValue[][] {
+  if (Array.isArray(val)) {
+    const arr = val as unknown as FormulaValue[] | FormulaValue[][];
+    if (arr.length > 0 && Array.isArray(arr[0])) {
+      return arr as unknown as FormulaValue[][];
+    }
+    // 1D array → column vector
+    return (arr as FormulaValue[]).map((v) => [v]);
+  }
+  return [[val]];
+}
+
+/**
+ * MAP(lambda, array1, [array2, ...])
+ * Applies LAMBDA to each element of one or more arrays.
+ */
+function evaluateMAP(
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+): FormulaValue {
+  // MAP(lambda, array1, ...) — first arg is lambda, rest are arrays
+  // Google Sheets: MAP(array1, [array2, ...], lambda) — lambda is LAST
+  if (argNodes.length < 2) return "#VALUE!" as FormulaError;
+
+  // Evaluate all arguments
+  const evaluatedArgs = argNodes.map((arg) => evaluateArg(arg, getCellValue));
+
+  // Lambda is the last argument (Google Sheets convention)
+  const lambdaId = evaluatedArgs[evaluatedArgs.length - 1];
+  const arrays = evaluatedArgs.slice(0, -1).map(to2DArray);
+
+  // All arrays must have the same dimensions
+  const rows = arrays[0].length;
+  const cols = arrays[0][0]?.length ?? 0;
+  for (const arr of arrays) {
+    if (arr.length !== rows || (arr[0]?.length ?? 0) !== cols) {
+      return "#VALUE!" as FormulaError;
+    }
+  }
+
+  const result: FormulaValue[][] = [];
+  for (let r = 0; r < rows; r++) {
+    const rowResult: FormulaValue[] = [];
+    for (let c = 0; c < cols; c++) {
+      const lambdaArgs = arrays.map((arr) => arr[r][c]);
+      const val = invokeLambda(lambdaId, lambdaArgs);
+      if (isFormulaError(val)) return val;
+      rowResult.push(val);
+    }
+    result.push(rowResult);
+  }
+
+  if (result.length === 1 && result[0].length === 1) return result[0][0];
+  return result as unknown as FormulaValue;
+}
+
+/**
+ * REDUCE(initial_value, array, lambda)
+ * Reduces an array to an accumulated result.
+ */
+function evaluateREDUCE(
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+): FormulaValue {
+  if (argNodes.length !== 3) return "#VALUE!" as FormulaError;
+
+  const initial = evaluate(argNodes[0], getCellValue);
+  if (isFormulaError(initial)) return initial;
+
+  const arrayVal = evaluateArg(argNodes[1], getCellValue);
+  const lambdaId = evaluate(argNodes[2], getCellValue);
+
+  const flat = flattenForLambda(arrayVal);
+  let accumulator = initial;
+  for (const element of flat) {
+    const val = invokeLambda(lambdaId, [accumulator, element]);
+    if (isFormulaError(val)) return val;
+    accumulator = val;
+  }
+
+  return accumulator;
+}
+
+/**
+ * SCAN(initial_value, array, lambda)
+ * Like REDUCE but returns intermediate accumulated values.
+ */
+function evaluateSCAN(
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+): FormulaValue {
+  if (argNodes.length !== 3) return "#VALUE!" as FormulaError;
+
+  const initial = evaluate(argNodes[0], getCellValue);
+  if (isFormulaError(initial)) return initial;
+
+  const arrayVal = evaluateArg(argNodes[1], getCellValue);
+  const lambdaId = evaluate(argNodes[2], getCellValue);
+
+  const arr2D = to2DArray(arrayVal);
+  const rows = arr2D.length;
+  const cols = arr2D[0]?.length ?? 0;
+
+  const result: FormulaValue[][] = [];
+  let accumulator = initial;
+  for (let r = 0; r < rows; r++) {
+    const rowResult: FormulaValue[] = [];
+    for (let c = 0; c < cols; c++) {
+      const val = invokeLambda(lambdaId, [accumulator, arr2D[r][c]]);
+      if (isFormulaError(val)) return val;
+      accumulator = val;
+      rowResult.push(accumulator);
+    }
+    result.push(rowResult);
+  }
+
+  if (result.length === 1 && result[0].length === 1) return result[0][0];
+  return result as unknown as FormulaValue;
+}
+
+/**
+ * MAKEARRAY(rows, cols, lambda)
+ * Creates an array using a LAMBDA applied to each (row, col) index.
+ */
+function evaluateMAKEARRAY(
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+): FormulaValue {
+  if (argNodes.length !== 3) return "#VALUE!" as FormulaError;
+
+  const rowsVal = evaluate(argNodes[0], getCellValue);
+  const colsVal = evaluate(argNodes[1], getCellValue);
+  const lambdaId = evaluate(argNodes[2], getCellValue);
+
+  if (isFormulaError(rowsVal)) return rowsVal;
+  if (isFormulaError(colsVal)) return colsVal;
+
+  const numRows = typeof rowsVal === "number" ? Math.floor(rowsVal) : null;
+  const numCols = typeof colsVal === "number" ? Math.floor(colsVal) : null;
+  if (numRows === null || numCols === null || numRows < 1 || numCols < 1) {
+    return "#VALUE!" as FormulaError;
+  }
+
+  const result: FormulaValue[][] = [];
+  for (let r = 1; r <= numRows; r++) {
+    const rowResult: FormulaValue[] = [];
+    for (let c = 1; c <= numCols; c++) {
+      const val = invokeLambda(lambdaId, [r, c]);
+      if (isFormulaError(val)) return val;
+      rowResult.push(val);
+    }
+    result.push(rowResult);
+  }
+
+  if (result.length === 1 && result[0].length === 1) return result[0][0];
+  return result as unknown as FormulaValue;
+}
+
+/**
+ * BYROW(array, lambda)
+ * Applies LAMBDA to each row, returns a column of results.
+ */
+function evaluateBYROW(
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+): FormulaValue {
+  if (argNodes.length !== 2) return "#VALUE!" as FormulaError;
+
+  const arrayVal = evaluateArg(argNodes[0], getCellValue);
+  const lambdaId = evaluate(argNodes[1], getCellValue);
+
+  const arr2D = to2DArray(arrayVal);
+  const result: FormulaValue[][] = [];
+
+  for (const row of arr2D) {
+    const rowAsArray = [row] as unknown as FormulaValue;
+    const val = invokeLambda(lambdaId, [rowAsArray]);
+    if (isFormulaError(val)) return val;
+    result.push([val]);
+  }
+
+  if (result.length === 1) return result[0][0];
+  return result as unknown as FormulaValue;
+}
+
+/**
+ * BYCOL(array, lambda)
+ * Applies LAMBDA to each column, returns a row of results.
+ */
+function evaluateBYCOL(
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+): FormulaValue {
+  if (argNodes.length !== 2) return "#VALUE!" as FormulaError;
+
+  const arrayVal = evaluateArg(argNodes[0], getCellValue);
+  const lambdaId = evaluate(argNodes[1], getCellValue);
+
+  const arr2D = to2DArray(arrayVal);
+  const cols = arr2D[0]?.length ?? 0;
+  const rowResult: FormulaValue[] = [];
+
+  for (let c = 0; c < cols; c++) {
+    const colArray = arr2D.map((row) => [row[c]]) as unknown as FormulaValue;
+    const val = invokeLambda(lambdaId, [colArray]);
+    if (isFormulaError(val)) return val;
+    rowResult.push(val);
+  }
+
+  if (rowResult.length === 1) return rowResult[0];
+  return [rowResult] as unknown as FormulaValue;
+}
+
+/**
+ * Flatten a FormulaValue (possibly 2D array) into a flat list for REDUCE.
+ */
+function flattenForLambda(val: FormulaValue): FormulaValue[] {
+  if (Array.isArray(val)) {
+    const result: FormulaValue[] = [];
+    for (const item of val as unknown[]) {
+      if (Array.isArray(item)) {
+        result.push(...(item as FormulaValue[]));
+      } else {
+        result.push(item as FormulaValue);
+      }
+    }
+    return result;
+  }
+  return [val];
 }
 
 /**
