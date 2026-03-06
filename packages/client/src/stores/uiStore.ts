@@ -65,6 +65,7 @@ interface UIState {
   isMacroManagerOpen: boolean;
   isScriptEditorOpen: boolean;
   isAIAnalysisOpen: boolean;
+  isNamedFunctionsDialogOpen: boolean;
   isKeyboardShortcutsOpen: boolean;
   /** S2-001: whether user is in formula editing mode (started typing "=") */
   isFormulaMode: boolean;
@@ -96,6 +97,7 @@ interface UIState {
   setMacroManagerOpen: (open: boolean) => void;
   setScriptEditorOpen: (open: boolean) => void;
   setAIAnalysisOpen: (open: boolean) => void;
+  setNamedFunctionsDialogOpen: (open: boolean) => void;
   setKeyboardShortcutsOpen: (open: boolean) => void;
   /** S2-001: enter/exit formula mode */
   setFormulaMode: (active: boolean) => void;
@@ -130,6 +132,7 @@ export const useUIStore = create<UIState>()(
     isMacroManagerOpen: false,
     isScriptEditorOpen: false,
     isAIAnalysisOpen: false,
+    isNamedFunctionsDialogOpen: false,
     isKeyboardShortcutsOpen: false,
     isFormulaMode: false,
     formulaReferences: [],
@@ -315,6 +318,12 @@ export const useUIStore = create<UIState>()(
     setAIAnalysisOpen: (open: boolean) => {
       set((state) => {
         state.isAIAnalysisOpen = open;
+      });
+    },
+
+    setNamedFunctionsDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isNamedFunctionsDialogOpen = open;
       });
     },
 

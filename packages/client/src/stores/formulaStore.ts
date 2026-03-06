@@ -10,7 +10,10 @@ import {
   evaluate,
   extractReferences,
   resetLambdaRegistry,
+  resetNamedFunctionCallDepth,
+  setNamedFunctionResolver,
 } from "../components/formula/evaluator";
+import { useNamedFunctionStore } from "./namedFunctionStore";
 import { DependencyGraph } from "../components/formula/dependencyGraph";
 import { cellId } from "../components/formula/cellUtils";
 
@@ -86,8 +89,14 @@ export const useFormulaStore = create<FormulaState & FormulaActions>()(
       const state = get();
       const expr = formula.startsWith("=") ? formula.slice(1) : formula;
 
-      // Reset lambda registry for each top-level evaluation
+      // Reset lambda registry and named function depth for each top-level evaluation
       resetLambdaRegistry();
+      resetNamedFunctionCallDepth();
+
+      // Set up named function resolver
+      setNamedFunctionResolver((name: string) => {
+        return useNamedFunctionStore.getState().getFunction(name);
+      });
 
       try {
         const ast = parseFormula(expr);

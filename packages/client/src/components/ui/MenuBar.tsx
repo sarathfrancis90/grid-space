@@ -438,6 +438,14 @@ export function MenuBar() {
           action: () => setOpenMenu(null),
         },
         {
+          label: "Named functions",
+          testId: "menu-data-named-functions",
+          action: () => {
+            useUIStore.getState().setNamedFunctionsDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Protected ranges",
           testId: "menu-data-protection",
           separator: true,
