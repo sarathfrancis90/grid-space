@@ -2844,28 +2844,97 @@
               setLive("liveMergedPRs", d.github.mergedPRs);
               setLive("liveCommits", d.github.commits);
 
-              // Update hero stat counters with live data where available
-              // Commits counter in hero (the 4th stat-card)
+              // === UPDATE ALL HERO STATS FROM API ===
+
+              // Row 1: Features, LOC, Tests, Commits
               var heroStatNumbers = document.querySelectorAll(
                 ".stats-grid > .stat-card .stat-number",
               );
-              if (heroStatNumbers.length >= 4 && d.github.commits > 0) {
-                heroStatNumbers[3].setAttribute(
+              if (heroStatNumbers.length >= 1 && d.app.features)
+                heroStatNumbers[0].setAttribute(
                   "data-target",
-                  String(d.github.commits),
+                  String(d.app.features),
                 );
-              }
-              if (heroStatNumbers.length >= 3 && d.app.testsCount) {
-                heroStatNumbers[2].setAttribute(
-                  "data-target",
-                  String(d.app.testsCount),
-                );
-              }
-              if (heroStatNumbers.length >= 2 && d.app.linesOfCode) {
+              if (heroStatNumbers.length >= 2 && d.app.linesOfCode)
                 heroStatNumbers[1].setAttribute(
                   "data-target",
                   String(d.app.linesOfCode),
                 );
+              if (heroStatNumbers.length >= 3 && d.app.testsCount)
+                heroStatNumbers[2].setAttribute(
+                  "data-target",
+                  String(d.app.testsCount),
+                );
+              if (heroStatNumbers.length >= 4 && d.github.commits > 0)
+                heroStatNumbers[3].setAttribute(
+                  "data-target",
+                  String(d.github.commits),
+                );
+
+              // Phase breakdown cards — update hours, commits, descriptions
+              var phaseCards = document.querySelectorAll("[data-phase]");
+              if (phaseCards.length === 0) {
+                // Find phase cards by content pattern
+                var allStatCards = document.querySelectorAll(
+                  ".stat-card .stat-number",
+                );
+                var phases = d.development.phases;
+                // Phase hours are at indices 4,5,6 (after hero row 1)
+                if (allStatCards.length >= 7 && phases.length >= 3) {
+                  allStatCards[4].setAttribute(
+                    "data-target",
+                    String(phases[0].hours),
+                  );
+                  allStatCards[5].setAttribute(
+                    "data-target",
+                    String(phases[1].hours),
+                  );
+                  allStatCards[6].setAttribute(
+                    "data-target",
+                    String(phases[2].hours),
+                  );
+                }
+                // Totals row: total hours, total tokens, total cost at indices 7,8
+                if (allStatCards.length >= 9) {
+                  allStatCards[7].setAttribute(
+                    "data-target",
+                    String(d.development.totalHours),
+                  );
+                  allStatCards[8].setAttribute(
+                    "data-target",
+                    String(parseFloat(d.development.totalTokens)),
+                  );
+                  allStatCards[8].setAttribute("data-decimals", "2");
+                }
+              }
+
+              // Update total cost text (not animated, direct text)
+              var costEls = document.querySelectorAll(".stat-card");
+              costEls.forEach(function (card) {
+                var label = card.querySelector(".stat-label");
+                if (label && label.textContent === "Total Cost") {
+                  var numEl = card.querySelector("div[style]");
+                  if (numEl) numEl.textContent = d.development.totalCost;
+                }
+              });
+
+              // Update phase commit counts in sub-text
+              var phases = d.development.phases;
+              if (phases.length >= 3) {
+                var phaseSubTexts = [];
+                costEls.forEach(function (card) {
+                  var sub = card.querySelector("div[style*='opacity']");
+                  if (sub && sub.textContent.includes("commits"))
+                    phaseSubTexts.push(sub);
+                });
+                if (phaseSubTexts.length >= 3) {
+                  phaseSubTexts[0].textContent =
+                    phases[0].commits + " commits \u00B7 427 features";
+                  phaseSubTexts[1].textContent =
+                    phases[1].commits + " commits \u00B7 6 workflows";
+                  phaseSubTexts[2].textContent =
+                    phases[2].commits + " commits \u00B7 deploy + fixes";
+                }
               }
 
               // Update GitHub section stats
