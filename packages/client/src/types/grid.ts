@@ -34,16 +34,49 @@ export interface MergedRegion {
   endCol: number;
 }
 
+export type IconSetStyle =
+  | "3-arrows"
+  | "3-flags"
+  | "3-traffic-lights"
+  | "4-arrows"
+  | "5-arrows";
+
+export interface DataBarConfig {
+  color: string;
+  fillType: "solid" | "gradient";
+  minValue?: number;
+  maxValue?: number;
+  showNegative?: boolean;
+  negativeColor?: string;
+}
+
+export interface IconSetConfig {
+  style: IconSetStyle;
+  thresholds: number[];
+}
+
 export interface ConditionalRule {
   id: string;
   range: { startRow: number; startCol: number; endRow: number; endCol: number };
-  type: "value" | "text" | "colorScale" | "blank" | "date" | "customFormula";
+  type:
+    | "value"
+    | "text"
+    | "colorScale"
+    | "blank"
+    | "date"
+    | "customFormula"
+    | "dataBar"
+    | "iconSet";
   condition: string;
   values: string[];
   format: Partial<CellFormat>;
   priority: number;
   /** For customFormula type: the formula string to evaluate */
   formula?: string;
+  /** For dataBar type: bar configuration */
+  dataBarConfig?: DataBarConfig;
+  /** For iconSet type: icon set configuration */
+  iconSetConfig?: IconSetConfig;
 }
 
 export interface BorderStyle {

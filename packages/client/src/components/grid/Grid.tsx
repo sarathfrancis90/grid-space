@@ -4,7 +4,12 @@ import { useUIStore } from "../../stores/uiStore";
 import { useCellStore } from "../../stores/cellStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useClipboardStore } from "../../stores/clipboardStore";
-import { useFormatStore, evaluateColorScale } from "../../stores/formatStore";
+import {
+  useFormatStore,
+  evaluateColorScale,
+  evaluateDataBar,
+  evaluateIconSet,
+} from "../../stores/formatStore";
 import { useFormulaStore } from "../../stores/formulaStore";
 import { useFindReplaceStore } from "../../stores/findReplaceStore";
 import { useValidationStore } from "../../stores/validationStore";
@@ -284,8 +289,8 @@ export function Grid() {
     for (const rule of conditionalRules) {
       if (
         rule.type === "colorScale" ||
-        rule.condition === "dataBar" ||
-        rule.condition === "iconSet"
+        rule.type === "dataBar" ||
+        rule.type === "iconSet"
       ) {
         const key = rule.id;
         let min = Infinity;
@@ -363,7 +368,7 @@ export function Grid() {
 
         // Conditional format: data bars
         for (const rule of conditionalRules) {
-          if (rule.condition !== "dataBar") continue;
+          if (rule.type !== "dataBar") continue;
           const { range: rng } = rule;
           if (
             r < rng.startRow ||
@@ -375,11 +380,25 @@ export function Grid() {
           const num = cellValue != null ? Number(cellValue) : NaN;
           if (isNaN(num)) continue;
           const stats = condRangeStats.get(rule.id);
-          if (!stats || stats.max === stats.min) continue;
-          const ratio = (num - stats.min) / (stats.max - stats.min);
-          const barW = Math.round(cellW * ratio);
-          ctx.fillStyle = rule.values[0] ?? "#4285f4";
-          ctx.globalAlpha = 0.3;
+          if (!stats) continue;
+          const barResult = evaluateDataBar(rule, num, stats.min, stats.max);
+          if (!barResult) continue;
+          const barW = Math.round(cellW * barResult.ratio);
+          if (barResult.fillType === "gradient") {
+            const grad = ctx.createLinearGradient(
+              Math.round(cellX),
+              Math.round(cellY),
+              Math.round(cellX) + barW,
+              Math.round(cellY),
+            );
+            grad.addColorStop(0, barResult.color);
+            grad.addColorStop(1, barResult.color + "00");
+            ctx.fillStyle = grad;
+            ctx.globalAlpha = 0.5;
+          } else {
+            ctx.fillStyle = barResult.color;
+            ctx.globalAlpha = 0.3;
+          }
           ctx.fillRect(
             Math.round(cellX),
             Math.round(cellY),
@@ -612,7 +631,7 @@ export function Grid() {
 
           // Conditional format: icon sets (draw icon before text)
           for (const rule of conditionalRules) {
-            if (rule.condition !== "iconSet") continue;
+            if (rule.type !== "iconSet") continue;
             const { range: rng } = rule;
             if (
               r < rng.startRow ||
@@ -624,27 +643,15 @@ export function Grid() {
             const num = cellValue != null ? Number(cellValue) : NaN;
             if (isNaN(num)) continue;
             const stats = condRangeStats.get(rule.id);
-            if (!stats || stats.max === stats.min) continue;
-            const ratio = (num - stats.min) / (stats.max - stats.min);
-            // Pick icon based on thirds
-            let icon: string;
-            let iconColor: string;
-            if (ratio >= 0.67) {
-              icon = "\u25B2"; // ▲ up arrow
-              iconColor = "#34a853";
-            } else if (ratio >= 0.33) {
-              icon = "\u25B6"; // ▶ right arrow
-              iconColor = "#fbbc04";
-            } else {
-              icon = "\u25BC"; // ▼ down arrow
-              iconColor = "#ea4335";
-            }
-            ctx.fillStyle = iconColor;
+            if (!stats) continue;
+            const iconResult = evaluateIconSet(rule, num, stats.min, stats.max);
+            if (!iconResult) continue;
+            ctx.fillStyle = iconResult.color;
             ctx.font = "10px Arial, sans-serif";
             ctx.textAlign = "left";
             ctx.textBaseline = "middle";
             ctx.fillText(
-              icon,
+              iconResult.icon,
               Math.round(cellX + 2),
               Math.round(cellY + cellH / 2),
             );

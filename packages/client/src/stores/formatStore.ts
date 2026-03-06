@@ -10,6 +10,9 @@ import type {
   BorderSide,
   MergedRegion,
   ConditionalRule,
+  DataBarConfig,
+  IconSetConfig,
+  IconSetStyle,
 } from "../types/grid";
 import { useCellStore } from "./cellStore";
 import { useUIStore } from "./uiStore";
@@ -603,7 +606,7 @@ function matchesRule(
     return matchesCustomFormula(rule.formula ?? "", value);
   }
 
-  // colorScale is applied by the renderer, not matched per-rule
+  // colorScale, dataBar, iconSet are applied by the renderer, not matched per-rule
   return false;
 }
 
@@ -747,3 +750,99 @@ function interpolateColor(c1: string, c2: string, ratio: number): string {
   const b = Math.round(b1 + (b2 - b1) * ratio);
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
+
+/** Evaluate a data bar rule and return bar width ratio and colors. */
+export function evaluateDataBar(
+  rule: ConditionalRule,
+  value: number,
+  rangeMin: number,
+  rangeMax: number,
+): {
+  ratio: number;
+  color: string;
+  fillType: "solid" | "gradient";
+  isNegative: boolean;
+} | null {
+  if (rule.type !== "dataBar") return null;
+  const config: DataBarConfig = rule.dataBarConfig ?? {
+    color: rule.values[0] ?? "#4285f4",
+    fillType: "solid",
+  };
+  const effectiveMin = config.minValue ?? rangeMin;
+  const effectiveMax = config.maxValue ?? rangeMax;
+  if (effectiveMax === effectiveMin) return null;
+
+  const isNegative = value < 0;
+  const clampedValue = Math.max(effectiveMin, Math.min(value, effectiveMax));
+  const ratio = (clampedValue - effectiveMin) / (effectiveMax - effectiveMin);
+  const barColor =
+    isNegative && config.showNegative && config.negativeColor
+      ? config.negativeColor
+      : config.color;
+
+  return { ratio, color: barColor, fillType: config.fillType, isNegative };
+}
+
+const ICON_SET_DEFINITIONS: Record<
+  IconSetStyle,
+  { icons: string[]; colors: string[] }
+> = {
+  "3-arrows": {
+    icons: ["\u25BC", "\u25B6", "\u25B2"], // down, right, up
+    colors: ["#ea4335", "#fbbc04", "#34a853"],
+  },
+  "3-flags": {
+    icons: ["\u2691", "\u2691", "\u2691"], // flag
+    colors: ["#ea4335", "#fbbc04", "#34a853"],
+  },
+  "3-traffic-lights": {
+    icons: ["\u25CF", "\u25CF", "\u25CF"], // circle
+    colors: ["#ea4335", "#fbbc04", "#34a853"],
+  },
+  "4-arrows": {
+    icons: ["\u25BC", "\u25C0", "\u25B6", "\u25B2"],
+    colors: ["#ea4335", "#f4a261", "#fbbc04", "#34a853"],
+  },
+  "5-arrows": {
+    icons: ["\u25BC", "\u2199", "\u25B6", "\u2197", "\u25B2"],
+    colors: ["#ea4335", "#f4a261", "#fbbc04", "#a8d08d", "#34a853"],
+  },
+};
+
+/** Evaluate an icon set rule and return the icon + color for the value. */
+export function evaluateIconSet(
+  rule: ConditionalRule,
+  value: number,
+  rangeMin: number,
+  rangeMax: number,
+): { icon: string; color: string } | null {
+  if (rule.type !== "iconSet") return null;
+  const config: IconSetConfig = rule.iconSetConfig ?? {
+    style: (rule.values[1] as IconSetStyle) ?? "3-arrows",
+    thresholds: [],
+  };
+  const def =
+    ICON_SET_DEFINITIONS[config.style] ?? ICON_SET_DEFINITIONS["3-arrows"];
+  const iconCount = def.icons.length;
+
+  if (config.thresholds.length > 0) {
+    // Use explicit thresholds
+    let idx = 0;
+    for (let i = 0; i < config.thresholds.length; i++) {
+      if (value >= config.thresholds[i]) idx = i + 1;
+    }
+    idx = Math.min(idx, iconCount - 1);
+    return { icon: def.icons[idx], color: def.colors[idx] };
+  }
+
+  // Default: divide range into equal parts
+  if (rangeMax === rangeMin)
+    return { icon: def.icons[iconCount - 1], color: def.colors[iconCount - 1] };
+  const ratio = (value - rangeMin) / (rangeMax - rangeMin);
+  const step = 1 / iconCount;
+  let idx = Math.floor(ratio / step);
+  idx = Math.max(0, Math.min(idx, iconCount - 1));
+  return { icon: def.icons[idx], color: def.colors[idx] };
+}
+
+export { ICON_SET_DEFINITIONS };
