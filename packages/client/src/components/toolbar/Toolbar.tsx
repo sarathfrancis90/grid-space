@@ -767,11 +767,13 @@ export function Toolbar() {
         <option value="General">General</option>
         <option value="Number">Number</option>
         <option value="Currency">Currency</option>
+        <option value="Accounting">Accounting</option>
         <option value="Percent">Percent</option>
         <option value="Date">Date</option>
         <option value="DateLong">Date (long)</option>
         <option value="Time">Time</option>
         <option value="Time12">Time (12h)</option>
+        <option value="Duration">Duration</option>
         <option value="Scientific">Scientific</option>
       </select>
 

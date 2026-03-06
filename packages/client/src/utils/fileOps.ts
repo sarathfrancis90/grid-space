@@ -381,6 +381,63 @@ export async function exportXLSX(
   return buf as ArrayBuffer;
 }
 
+// ── ODS (OpenDocument Spreadsheet via SheetJS) ──────────────
+
+/** Import ODS file buffer into sheet data */
+export async function importODS(buffer: ArrayBuffer): Promise<XLSXSheet[]> {
+  return importXLSX(buffer);
+}
+
+/** Export cell data to ODS ArrayBuffer */
+export async function exportODS(
+  sheetsData: Array<{
+    name: string;
+    cells: Map<string, CellData>;
+    options?: ExportXLSXOptions;
+  }>,
+): Promise<ArrayBuffer> {
+  const XLSX = await import("xlsx");
+  const workbook = XLSX.utils.book_new();
+
+  for (const sheet of sheetsData) {
+    const { maxRow, maxCol } = getDataBounds(sheet.cells);
+    const aoa: (string | number | boolean | null)[][] = [];
+
+    for (let r = 0; r <= maxRow; r++) {
+      const row: (string | number | boolean | null)[] = [];
+      for (let c = 0; c <= maxCol; c++) {
+        const cell = sheet.cells.get(`${r},${c}`);
+        row.push(cell?.value ?? null);
+      }
+      aoa.push(row);
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    for (const [key, cell] of sheet.cells) {
+      const [r, c] = key.split(",").map(Number);
+      const addr = XLSX.utils.encode_cell({ r, c });
+      if (!ws[addr]) continue;
+      if (cell.formula) {
+        ws[addr].f = cell.formula.startsWith("=")
+          ? cell.formula.slice(1)
+          : cell.formula;
+      }
+      if (cell.format && Object.keys(cell.format).length > 0) {
+        ws[addr].s = buildXlsxStyle(cell.format);
+      }
+    }
+
+    XLSX.utils.book_append_sheet(workbook, ws, sheet.name);
+  }
+
+  const buf = XLSX.write(workbook, {
+    type: "array",
+    bookType: "ods",
+  });
+  return buf as ArrayBuffer;
+}
+
 // ── PDF ──────────────────────────────────────────────────────
 
 /** Generate simple PDF from cell data using canvas/print approach */

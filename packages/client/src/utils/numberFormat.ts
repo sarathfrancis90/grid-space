@@ -161,6 +161,41 @@ function formatNumberPattern(value: number, fmt: string): string {
   return prefix + result + (isPercent ? "%" : "") + suffix;
 }
 
+/** Format a duration value (decimal hours) as [h]:mm:ss */
+function formatDuration(value: number): string {
+  const totalSeconds = Math.round(Math.abs(value) * 3600);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const sign = value < 0 ? "-" : "";
+  return `${sign}${hours}:${padZero(minutes)}:${padZero(seconds)}`;
+}
+
+/** Format a value in accounting format: aligned $, parentheses for negatives */
+function formatAccounting(value: number, decimals: number = 2): string {
+  const absNum = Math.abs(value);
+  const fixed = absNum.toFixed(decimals);
+  const [intPart, decPart] = fixed.split(".");
+  const intStr = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const numStr = decimals > 0 && decPart ? `${intStr}.${decPart}` : intStr;
+
+  if (value < 0) {
+    return `$ (${numStr})`;
+  }
+  if (value === 0) {
+    return `$ ${numStr} `;
+  }
+  return `$ ${numStr} `;
+}
+
+function isDurationFormat(fmt: string): boolean {
+  return fmt === "[h]:mm:ss" || fmt === "[hh]:mm:ss";
+}
+
+function isAccountingFormat(fmt: string): boolean {
+  return fmt.startsWith("_($") || fmt === "Accounting";
+}
+
 /**
  * Format a cell value using a format string.
  * Returns the formatted string for display.
@@ -182,6 +217,16 @@ export function formatCellValue(
   }
 
   const fmt = format;
+
+  // Duration format: [h]:mm:ss
+  if (isDurationFormat(fmt)) {
+    return formatDuration(numValue);
+  }
+
+  // Accounting format
+  if (isAccountingFormat(fmt)) {
+    return formatAccounting(numValue);
+  }
 
   // Date/time formats
   if (isDateFormat(fmt)) {
@@ -207,11 +252,13 @@ export const NUMBER_FORMATS = {
   General: "General",
   Number: "#,##0.00",
   Currency: "$#,##0.00",
+  Accounting: "_($#,##0.00",
   Percent: "0.00%",
   Date: "yyyy-mm-dd",
   DateLong: "mmmm d, yyyy",
   Time: "hh:nn:ss",
   Time12: "h:nn:ss AM/PM",
+  Duration: "[h]:mm:ss",
   Scientific: "0.00E+0",
 } as const;
 
