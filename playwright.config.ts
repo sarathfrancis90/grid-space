@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const useExternalServers = process.env.PLAYWRIGHT_USE_EXTERNAL_SERVERS == "1";
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -17,18 +19,20 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: [
-    {
-      command: "npm run dev:server",
-      url: "http://localhost:3001/health",
-      reuseExistingServer: !process.env.CI,
-      timeout: 30_000,
-    },
-    {
-      command: "npm run dev:client",
-      url: "http://localhost:5173",
-      reuseExistingServer: !process.env.CI,
-      timeout: 30_000,
-    },
-  ],
+  webServer: useExternalServers
+    ? undefined
+    : [
+        {
+          command: "npm run dev:server",
+          url: "http://localhost:3001/health",
+          reuseExistingServer: !process.env.CI,
+          timeout: 30_000,
+        },
+        {
+          command: "npm run dev:client",
+          url: "http://localhost:5173",
+          reuseExistingServer: !process.env.CI,
+          timeout: 30_000,
+        },
+      ],
 });

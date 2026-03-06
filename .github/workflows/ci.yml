@@ -153,6 +153,8 @@ jobs:
           npx serve packages/client/dist -l 5173 &
           npx wait-on http://localhost:5173 --timeout 15000
       - name: Run Playwright Tests
+        env:
+          PLAYWRIGHT_USE_EXTERNAL_SERVERS: "1"
         run: npx playwright test
       - uses: actions/upload-artifact@v4
         if: failure()
