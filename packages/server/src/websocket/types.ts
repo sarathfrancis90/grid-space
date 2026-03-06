@@ -54,6 +54,10 @@ export const WS_EVENTS = {
   TYPING_START: "typing-start",
   TYPING_END: "typing-end",
   TYPING_INDICATOR: "typing-indicator",
+
+  // Comment reactions
+  REACTION_TOGGLE: "reaction-toggle",
+  REACTION_UPDATE: "reaction-update",
 } as const;
 
 export interface PresenceUser {
@@ -148,6 +152,12 @@ export interface JoinPayload {
   spreadsheetId: string;
   sheetId: string;
   tabId: string;
+}
+
+export interface ReactionTogglePayload {
+  spreadsheetId: string;
+  commentId: string;
+  emoji: string;
 }
 
 /** Socket data augmented by auth middleware */

@@ -171,3 +171,51 @@ export async function addReply(
     next(err);
   }
 }
+
+export async function toggleReaction(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) throw new AppError(401, "Authentication required");
+
+    const spreadsheetId = paramStr(req.params.id);
+    const commentId = paramStr(req.params.commentId);
+    const { emoji } = req.body;
+
+    const result = await commentService.toggleReaction(
+      spreadsheetId,
+      req.user.id,
+      commentId,
+      emoji,
+    );
+
+    res.json(apiSuccess(result));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getReactions(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) throw new AppError(401, "Authentication required");
+
+    const spreadsheetId = paramStr(req.params.id);
+    const commentId = paramStr(req.params.commentId);
+
+    const reactions = await commentService.getReactions(
+      spreadsheetId,
+      req.user.id,
+      commentId,
+    );
+
+    res.json(apiSuccess(reactions));
+  } catch (err) {
+    next(err);
+  }
+}

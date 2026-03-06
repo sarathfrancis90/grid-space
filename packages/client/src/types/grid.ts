@@ -244,6 +244,7 @@ export interface CellComment {
   updatedAt?: number;
   resolved?: boolean;
   replies?: CommentReply[];
+  reactions?: CommentReaction[];
 }
 
 export interface CommentReply {
@@ -252,6 +253,19 @@ export interface CommentReply {
   author: string;
   authorId?: string;
   createdAt: number;
+}
+
+export interface CommentReaction {
+  emoji: string;
+  userId: string;
+  userName: string;
+}
+
+export interface ReactionSummary {
+  emoji: string;
+  count: number;
+  users: Array<{ userId: string; userName: string }>;
+  currentUserReacted: boolean;
 }
 
 // Tables (first-class table entities like Google Sheets)

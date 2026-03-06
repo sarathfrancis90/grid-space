@@ -14,6 +14,7 @@ import type {
   FormatUpdatePayload,
   ChartUpdatePayload,
   TypingPayload,
+  ReactionTogglePayload,
   SocketData,
 } from "./types";
 import * as presence from "./presence";
@@ -354,6 +355,23 @@ export function registerHandlers(io: Server, socket: Socket): void {
       socket.to(roomName(p.spreadsheetId)).emit(WS_EVENTS.CHART_SYNC, {
         ...p,
         userId,
+      });
+    }),
+  );
+
+  // ─── COMMENT REACTIONS ────────────────────────────────
+  socket.on(
+    WS_EVENTS.REACTION_TOGGLE,
+    withRateLimit((payload: unknown) => {
+      const { spreadsheetId, commentId, emoji } =
+        payload as ReactionTogglePayload;
+      if (!data.spreadsheetId || data.spreadsheetId !== spreadsheetId) return;
+
+      socket.to(roomName(spreadsheetId)).emit(WS_EVENTS.REACTION_UPDATE, {
+        userId,
+        userName: data.user.name ?? "Unknown",
+        commentId,
+        emoji,
       });
     }),
   );

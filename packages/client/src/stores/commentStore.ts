@@ -4,7 +4,12 @@
  */
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import type { CellComment, CommentReply } from "../types/grid";
+import type {
+  CellComment,
+  CommentReply,
+  CommentReaction,
+  ReactionSummary,
+} from "../types/grid";
 
 export type CommentFilter = "all" | "for-you" | "open" | "resolved";
 
@@ -32,6 +37,18 @@ interface CommentState {
   addReply: (sheetId: string, commentId: string, reply: CommentReply) => void;
   resolveComment: (sheetId: string, commentId: string) => void;
   unresolveComment: (sheetId: string, commentId: string) => void;
+
+  // Reactions
+  toggleReaction: (
+    sheetId: string,
+    commentId: string,
+    reaction: CommentReaction,
+  ) => void;
+  getReactionSummary: (
+    sheetId: string,
+    commentId: string,
+    currentUserId: string,
+  ) => ReactionSummary[];
 
   // Panel
   openPanel: () => void;
@@ -164,6 +181,67 @@ export const useCommentStore = create<CommentState>()(
           comment.resolved = false;
         }
       });
+    },
+
+    // Reactions
+    toggleReaction: (
+      sheetId: string,
+      commentId: string,
+      reaction: CommentReaction,
+    ) => {
+      set((state) => {
+        const comments = state.comments.get(sheetId);
+        if (!comments) return;
+        const comment = comments.find((c) => c.id === commentId);
+        if (!comment) return;
+        if (!comment.reactions) comment.reactions = [];
+
+        const existingIdx = comment.reactions.findIndex(
+          (r) => r.emoji === reaction.emoji && r.userId === reaction.userId,
+        );
+
+        if (existingIdx >= 0) {
+          comment.reactions.splice(existingIdx, 1);
+        } else {
+          comment.reactions.push(reaction);
+        }
+      });
+    },
+
+    getReactionSummary: (
+      sheetId: string,
+      commentId: string,
+      currentUserId: string,
+    ): ReactionSummary[] => {
+      const comments = get().comments.get(sheetId);
+      if (!comments) return [];
+      const comment = comments.find((c) => c.id === commentId);
+      if (!comment?.reactions) return [];
+
+      const emojiMap = new Map<
+        string,
+        Array<{ userId: string; userName: string }>
+      >();
+      for (const r of comment.reactions) {
+        if (!emojiMap.has(r.emoji)) {
+          emojiMap.set(r.emoji, []);
+        }
+        emojiMap.get(r.emoji)!.push({
+          userId: r.userId,
+          userName: r.userName,
+        });
+      }
+
+      const summaries: ReactionSummary[] = [];
+      for (const [emoji, users] of emojiMap) {
+        summaries.push({
+          emoji,
+          count: users.length,
+          users,
+          currentUserReacted: users.some((u) => u.userId === currentUserId),
+        });
+      }
+      return summaries;
     },
 
     // Panel
