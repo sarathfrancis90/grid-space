@@ -68,6 +68,7 @@ export function Grid() {
   const fillHandleStartRef = useRef<CellPosition | null>(null);
   const fillHandleEndRef = useRef<CellPosition | null>(null);
   const moveSelectionStartRef = useRef<CellPosition | null>(null);
+  const moveMouseStartRef = useRef<CellPosition | null>(null);
   const moveTargetRef = useRef<CellPosition | null>(null);
 
   const [containerWidth, setContainerWidth] = useState(0);
@@ -872,7 +873,7 @@ export function Grid() {
       ui.selections.length > 0 ? ui.selections[ui.selections.length - 1] : null;
     if (
       dragModeRef.current === "move-selection" &&
-      moveSelectionStartRef.current &&
+      moveMouseStartRef.current &&
       moveTargetRef.current &&
       moveSel
     ) {
@@ -880,14 +881,14 @@ export function Grid() {
       const origMinCol = Math.min(moveSel.start.col, moveSel.end.col);
       const origMaxRow = Math.max(moveSel.start.row, moveSel.end.row);
       const origMaxCol = Math.max(moveSel.start.col, moveSel.end.col);
-      const orig = moveSelectionStartRef.current;
+      const mouseStart = moveMouseStartRef.current;
       const target = moveTargetRef.current;
-      const dRow = target.row - orig.row;
-      const dCol = target.col - orig.col;
-      const newMinRow = origMinRow + dRow;
-      const newMinCol = origMinCol + dCol;
-      const newMaxRow = origMaxRow + dRow;
-      const newMaxCol = origMaxCol + dCol;
+      const dRow = target.row - mouseStart.row;
+      const dCol = target.col - mouseStart.col;
+      const newMinRow = Math.max(0, origMinRow + dRow);
+      const newMinCol = Math.max(0, origMinCol + dCol);
+      const newMaxRow = newMinRow + (origMaxRow - origMinRow);
+      const newMaxCol = newMinCol + (origMaxCol - origMinCol);
 
       const ghostX = gs.getColumnX(newMinCol) - gs.scrollLeft + rhw;
       const ghostY = gs.getRowY(newMinRow) - gs.scrollTop + chh;
@@ -1515,6 +1516,7 @@ export function Grid() {
           col: Math.min(sel.start.col, sel.end.col),
         };
         const pos = screenToGrid(x, y);
+        moveMouseStartRef.current = pos;
         moveTargetRef.current = pos;
         return;
       }
@@ -1769,40 +1771,42 @@ export function Grid() {
           const maxRow = Math.max(sel.start.row, sel.end.row);
           const minCol = Math.min(sel.start.col, sel.end.col);
           const maxCol = Math.max(sel.start.col, sel.end.col);
-          const origStart = moveSelectionStartRef.current;
+          const mouseStart = moveMouseStartRef.current;
           const target = moveTargetRef.current;
-          const deltaRow = target.row - origStart.row;
-          const deltaCol = target.col - origStart.col;
+          if (mouseStart) {
+            const deltaRow = target.row - mouseStart.row;
+            const deltaCol = target.col - mouseStart.col;
 
-          if (deltaRow !== 0 || deltaCol !== 0) {
-            const activeSheetId = getActiveSheetId();
-            // Push undo before moving
-            useHistoryStore.getState().pushUndo();
+            if (deltaRow !== 0 || deltaCol !== 0) {
+              const activeSheetId = getActiveSheetId();
+              // Push undo before moving
+              useHistoryStore.getState().pushUndo();
 
-            const toRow = minRow + deltaRow;
-            const toCol = minCol + deltaCol;
-            useCellStore
-              .getState()
-              .moveCells(
-                activeSheetId,
-                minRow,
-                minCol,
-                maxRow,
-                maxCol,
-                toRow,
-                toCol,
-              );
+              const toRow = Math.max(0, minRow + deltaRow);
+              const toCol = Math.max(0, minCol + deltaCol);
+              useCellStore
+                .getState()
+                .moveCells(
+                  activeSheetId,
+                  minRow,
+                  minCol,
+                  maxRow,
+                  maxCol,
+                  toRow,
+                  toCol,
+                );
 
-            // Update selection to the new position
-            const rowSpan = maxRow - minRow;
-            const colSpan = maxCol - minCol;
-            setSelectedCell({ row: toRow, col: toCol });
-            setSelections([
-              {
-                start: { row: toRow, col: toCol },
-                end: { row: toRow + rowSpan, col: toCol + colSpan },
-              },
-            ]);
+              // Update selection to the new position
+              const rowSpan = maxRow - minRow;
+              const colSpan = maxCol - minCol;
+              setSelectedCell({ row: toRow, col: toCol });
+              setSelections([
+                {
+                  start: { row: toRow, col: toCol },
+                  end: { row: toRow + rowSpan, col: toCol + colSpan },
+                },
+              ]);
+            }
           }
         }
       }
@@ -1812,6 +1816,7 @@ export function Grid() {
     fillHandleStartRef.current = null;
     fillHandleEndRef.current = null;
     moveSelectionStartRef.current = null;
+    moveMouseStartRef.current = null;
     moveTargetRef.current = null;
   }, [executeFill, getActiveSheetId, setSelectedCell, setSelections]);
 
