@@ -2,7 +2,7 @@
  * File operations: CSV/TSV/XLSX/PDF/JSON import and export.
  * Pure utility functions — no store or DOM access.
  */
-import type { CellData, CellFormat } from "../types/grid";
+import type { CellData, CellFormat, NamedFunction } from "../types/grid";
 
 // ── CSV / TSV ────────────────────────────────────────────────
 
@@ -458,6 +458,7 @@ export interface AutosaveData {
     name: string;
     cells: Array<[string, CellData]>;
   }>;
+  namedFunctions?: NamedFunction[];
 }
 
 export function saveToLocalStorage(data: AutosaveData): void {
@@ -484,4 +485,25 @@ export function clearLocalStorage(): void {
   } catch {
     // ignore
   }
+}
+
+// ── Named Functions serialization ──────────────────────────
+
+/** Serialize named functions to a JSON string for export */
+export function exportNamedFunctionsJSON(fns: NamedFunction[]): string {
+  return JSON.stringify({ namedFunctions: fns }, null, 2);
+}
+
+/** Parse a JSON string containing named functions */
+export function importNamedFunctionsJSON(json: string): NamedFunction[] {
+  const parsed: unknown = JSON.parse(json);
+  if (
+    parsed &&
+    typeof parsed === "object" &&
+    "namedFunctions" in parsed &&
+    Array.isArray((parsed as { namedFunctions: unknown }).namedFunctions)
+  ) {
+    return (parsed as { namedFunctions: NamedFunction[] }).namedFunctions;
+  }
+  return [];
 }

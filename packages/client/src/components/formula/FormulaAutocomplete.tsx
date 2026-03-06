@@ -2,9 +2,10 @@
  * FormulaAutocomplete — dropdown showing matching formula function names.
  * S2-002: Formula autocomplete dropdown
  */
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useNamedFunctionStore } from "../../stores/namedFunctionStore";
 
-const FORMULA_FUNCTIONS = [
+const BUILTIN_FORMULA_FUNCTIONS = [
   "ABS",
   "ACOS",
   "ASIN",
@@ -136,19 +137,31 @@ export function FormulaAutocomplete({
 }: FormulaAutocompleteProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
+  const namedFunctions = useNamedFunctionStore((s) => s.getAllFunctions());
+
+  const { allFunctions, namedFnSet } = useMemo(() => {
+    const namedNames = namedFunctions.map((fn) => fn.name.toUpperCase());
+    const namedSet = new Set(namedNames);
+    const builtinSet = new Set(BUILTIN_FORMULA_FUNCTIONS);
+    const combined = [...BUILTIN_FORMULA_FUNCTIONS];
+    for (const name of namedNames) {
+      if (!builtinSet.has(name)) {
+        combined.push(name);
+      }
+    }
+    return { allFunctions: combined.sort(), namedFnSet: namedSet };
+  }, [namedFunctions]);
 
   // Extract the function name being typed (after last operator or open paren)
   const getPrefix = useCallback((): string => {
     const stripped = input.startsWith("=") ? input.slice(1) : input;
-    const match = stripped.match(/([A-Z]+)$/i);
+    const match = stripped.match(/([A-Z_][A-Z0-9_.]*$)/i);
     return match ? match[1].toUpperCase() : "";
   }, [input]);
 
   const prefix = getPrefix();
   const matches =
-    prefix.length > 0
-      ? FORMULA_FUNCTIONS.filter((f) => f.startsWith(prefix))
-      : [];
+    prefix.length > 0 ? allFunctions.filter((f) => f.startsWith(prefix)) : [];
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -216,11 +229,26 @@ export function FormulaAutocomplete({
             fontFamily: "monospace",
           }}
         >
-          {func}
+          <span>{func}</span>
+          {namedFnSet.has(func) && (
+            <span
+              style={{
+                marginLeft: 6,
+                fontSize: 10,
+                color: "#6b7280",
+                fontFamily: "sans-serif",
+              }}
+            >
+              custom
+            </span>
+          )}
         </div>
       ))}
     </div>
   );
 }
 
-export { FORMULA_FUNCTIONS };
+export {
+  BUILTIN_FORMULA_FUNCTIONS,
+  BUILTIN_FORMULA_FUNCTIONS as FORMULA_FUNCTIONS,
+};
