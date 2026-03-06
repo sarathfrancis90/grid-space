@@ -200,9 +200,24 @@ export function tokenize(input: string): Token[] {
       }
 
       // Check if it's a function call (followed by open paren)
+      // Also support dotted names like WORKDAY.INTL(
       if (peek() === "(") {
         addToken("FUNCTION_NAME", upper, startPos);
         continue;
+      }
+      if (peek() === "." && pos + 1 < input.length && isAlpha(input[pos + 1])) {
+        const savedPos = pos;
+        let dotIdent = ident;
+        dotIdent += advance(); // consume '.'
+        while (pos < input.length && isAlphaNumeric(peek())) {
+          dotIdent += advance();
+        }
+        if (peek() === "(") {
+          addToken("FUNCTION_NAME", dotIdent.toUpperCase(), startPos);
+          continue;
+        }
+        // Not a function — backtrack
+        pos = savedPos;
       }
 
       // Check for mixed reference like A$1 (letters followed by $ then digits)
