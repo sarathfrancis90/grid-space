@@ -70,6 +70,8 @@ jobs:
         run: npx prisma generate --schema packages/server/prisma/schema.prisma
       - name: Generate feature count
         run: node scripts/generate-feature-count.js
+      - name: Build Server
+        run: npm run build --workspace=packages/server
       - name: Run Prisma Migrations
         run: npx prisma migrate deploy --schema packages/server/prisma/schema.prisma
       - name: Client Unit Tests
