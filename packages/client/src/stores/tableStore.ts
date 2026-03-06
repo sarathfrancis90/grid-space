@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import type { TableConfig, TableStylePreset, CellData } from "../types/grid";
+import type {
+  TableConfig,
+  TableStylePreset,
+  TotalRowFunction,
+  CellData,
+} from "../types/grid";
 import { getCellKey } from "../utils/coordinates";
 
 interface TableState {
@@ -35,6 +40,34 @@ interface TableState {
   setShowBandedRows: (tableId: string, show: boolean) => void;
   setShowBandedCols: (tableId: string, show: boolean) => void;
   setStylePreset: (tableId: string, preset: TableStylePreset) => void;
+  setAutoExpand: (tableId: string, autoExpand: boolean) => void;
+  setColumnTotalFunction: (
+    tableId: string,
+    columnId: string,
+    fn: TotalRowFunction,
+  ) => void;
+
+  // Convert selection to table
+  convertSelectionToTable: (
+    sheetId: string,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+    cells: Map<string, CellData>,
+    hasHeaders: boolean,
+    name?: string,
+  ) => TableConfig;
+
+  // Auto-expand: check if a cell edit is adjacent to a table
+  checkAutoExpand: (sheetId: string, row: number, col: number) => void;
+
+  // Compute totals row value for a column
+  computeTotalValue: (
+    tableId: string,
+    columnId: string,
+    cells: Map<string, CellData>,
+  ) => number | string | null;
 
   // Structured reference resolution
   resolveStructuredRef: (
@@ -237,6 +270,164 @@ export const useTableStore = create<TableState>()(
         const table = state.tables.get(tableId);
         if (table) table.stylePreset = preset;
       });
+    },
+
+    setAutoExpand: (tableId: string, autoExpand: boolean) => {
+      set((state) => {
+        const table = state.tables.get(tableId);
+        if (table) table.autoExpand = autoExpand;
+      });
+    },
+
+    setColumnTotalFunction: (
+      tableId: string,
+      columnId: string,
+      fn: TotalRowFunction,
+    ) => {
+      set((state) => {
+        const table = state.tables.get(tableId);
+        if (!table) return;
+        const col = table.columns.find((c) => c.id === columnId);
+        if (col) col.totalFunction = fn;
+      });
+    },
+
+    convertSelectionToTable: (
+      sheetId: string,
+      startRow: number,
+      startCol: number,
+      endRow: number,
+      endCol: number,
+      cells: Map<string, CellData>,
+      hasHeaders: boolean,
+      name?: string,
+    ): TableConfig => {
+      const tableCount = get().getAllTables().length;
+      const tableName = name ?? `Table${tableCount + 1}`;
+      const tableId = `table-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      const colCount = endCol - startCol + 1;
+      const columns = [];
+
+      for (let c = 0; c < colCount; c++) {
+        let headerName: string;
+        if (hasHeaders) {
+          const cell = cells.get(getCellKey(startRow, startCol + c));
+          headerName =
+            cell?.value != null ? String(cell.value) : `Column ${c + 1}`;
+        } else {
+          headerName = `Column ${c + 1}`;
+        }
+        columns.push({ id: generateColumnId(), headerName });
+      }
+
+      const config: TableConfig = {
+        id: tableId,
+        name: tableName,
+        sheetId,
+        startRow,
+        startCol,
+        endRow,
+        endCol,
+        columns,
+        showHeaderRow: hasHeaders,
+        showTotalRow: false,
+        showBandedRows: true,
+        showBandedCols: false,
+        stylePreset: "blue-medium-1",
+        autoExpand: true,
+      };
+
+      set((state) => {
+        state.tables.set(config.id, config);
+      });
+
+      return config;
+    },
+
+    checkAutoExpand: (sheetId: string, row: number, col: number) => {
+      const tables = get().getTablesForSheet(sheetId);
+      for (const table of tables) {
+        if (!table.autoExpand) continue;
+        // Check if cell is in the row immediately below the table
+        const isAdjacentRow =
+          row === table.endRow + 1 &&
+          col >= table.startCol &&
+          col <= table.endCol;
+        // Check if cell is in the column immediately to the right
+        const isAdjacentCol =
+          col === table.endCol + 1 &&
+          row >= table.startRow &&
+          row <= table.endRow;
+
+        if (isAdjacentRow) {
+          set((state) => {
+            const t = state.tables.get(table.id);
+            if (t) t.endRow = row;
+          });
+        }
+        if (isAdjacentCol) {
+          set((state) => {
+            const t = state.tables.get(table.id);
+            if (t) {
+              t.endCol = col;
+              t.columns.push({
+                id: generateColumnId(),
+                headerName: `Column ${t.columns.length + 1}`,
+              });
+            }
+          });
+        }
+      }
+    },
+
+    computeTotalValue: (
+      tableId: string,
+      columnId: string,
+      cells: Map<string, CellData>,
+    ): number | string | null => {
+      const table = get().tables.get(tableId);
+      if (!table) return null;
+
+      const col = table.columns.find((c) => c.id === columnId);
+      if (!col) return null;
+      const fn = col.totalFunction ?? "none";
+      if (fn === "none") return null;
+
+      const colIdx = table.columns.indexOf(col);
+      const absCol = table.startCol + colIdx;
+      const dataStartRow = table.showHeaderRow
+        ? table.startRow + 1
+        : table.startRow;
+      const dataEndRow = table.showTotalRow ? table.endRow - 1 : table.endRow;
+
+      const values: number[] = [];
+      let nonEmptyCount = 0;
+      for (let r = dataStartRow; r <= dataEndRow; r++) {
+        const cell = cells.get(getCellKey(r, absCol));
+        const v = cell?.value ?? null;
+        if (v != null) nonEmptyCount++;
+        if (typeof v === "number") values.push(v);
+      }
+
+      switch (fn) {
+        case "sum":
+          return values.reduce((a, b) => a + b, 0);
+        case "average":
+          return values.length > 0
+            ? values.reduce((a, b) => a + b, 0) / values.length
+            : 0;
+        case "count":
+          return values.length;
+        case "counta":
+          return nonEmptyCount;
+        case "min":
+          return values.length > 0 ? Math.min(...values) : 0;
+        case "max":
+          return values.length > 0 ? Math.max(...values) : 0;
+        default:
+          return null;
+      }
     },
 
     resolveStructuredRef: (

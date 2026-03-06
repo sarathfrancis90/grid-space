@@ -360,6 +360,15 @@ export function MenuBar() {
             setOpenMenu(null);
           },
         },
+        {
+          label: "Table",
+          testId: "menu-insert-table",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setConvertToTableOpen(true);
+            setOpenMenu(null);
+          },
+        },
       ],
     },
     {
@@ -403,6 +412,22 @@ export function MenuBar() {
           separator: true,
           action: () => {
             useUIStore.getState().setBandedRowsDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Convert to table",
+          testId: "menu-format-convert-table",
+          action: () => {
+            useUIStore.getState().setConvertToTableOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Manage tables",
+          testId: "menu-format-manage-tables",
+          action: () => {
+            useUIStore.getState().setTableManagerOpen(true);
             setOpenMenu(null);
           },
         },

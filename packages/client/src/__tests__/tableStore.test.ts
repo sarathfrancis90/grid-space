@@ -22,6 +22,7 @@ function makeTable(overrides?: Partial<TableConfig>): TableConfig {
     showBandedRows: true,
     showBandedCols: false,
     stylePreset: "blue-medium-1",
+    autoExpand: true,
     ...overrides,
   };
 }

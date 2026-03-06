@@ -296,9 +296,19 @@ export type TableStylePreset =
   | "purple-medium-1"
   | "red-medium-1";
 
+export type TotalRowFunction =
+  | "none"
+  | "sum"
+  | "average"
+  | "count"
+  | "counta"
+  | "min"
+  | "max";
+
 export interface TableColumn {
   id: string;
   headerName: string;
+  totalFunction?: TotalRowFunction;
 }
 
 export interface TableConfig {
@@ -315,6 +325,7 @@ export interface TableConfig {
   showBandedRows: boolean;
   showBandedCols: boolean;
   stylePreset: TableStylePreset;
+  autoExpand: boolean;
 }
 
 // Hyperlinks

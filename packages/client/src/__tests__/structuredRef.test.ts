@@ -78,6 +78,7 @@ describe("resolveAtColumnRef", () => {
     showBandedRows: false,
     showBandedCols: false,
     stylePreset: "blue-medium-1",
+    autoExpand: true,
   };
 
   it("resolves @Column to index", () => {
