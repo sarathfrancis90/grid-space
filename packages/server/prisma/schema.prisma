@@ -28,6 +28,8 @@ model User {
   commentReplies     CommentReply[]
   notifications      Notification[]
   notificationPrefs  NotificationPreference[]
+  extensions         Extension[]         @relation("ExtensionAuthor")
+  installedExtensions ExtensionInstall[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -277,4 +279,58 @@ model NotificationPreference {
   @@unique([userId, spreadsheetId])
   @@index([userId])
   @@map("notification_preferences")
+}
+
+// ─── EXTENSION ──────────────────────────────────────────
+model Extension {
+  id             String      @id @default(cuid())
+
+  authorId       String      @map("author_id")
+  author         User        @relation("ExtensionAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  name           String
+  slug           String      @unique
+  description    String      @default("")
+  version        String      @default("1.0.0")
+  iconUrl        String?     @map("icon_url")
+
+  permissions    String[]    @default([])
+  entryPoint     String      @default("index.js") @map("entry_point")
+  sourceCode     String      @default("") @map("source_code")
+  config         Json        @default("{}") @map("config")
+
+  isPublished    Boolean     @default(false) @map("is_published")
+  isVerified     Boolean     @default(false) @map("is_verified")
+  installCount   Int         @default(0) @map("install_count")
+
+  installs       ExtensionInstall[]
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@index([authorId])
+  @@index([isPublished])
+  @@index([slug])
+  @@map("extensions")
+}
+
+// ─── EXTENSION INSTALL ──────────────────────────────────
+model ExtensionInstall {
+  id             String      @id @default(cuid())
+
+  extensionId    String      @map("extension_id")
+  extension      Extension   @relation(fields: [extensionId], references: [id], onDelete: Cascade)
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  isEnabled      Boolean     @default(true) @map("is_enabled")
+  settings       Json        @default("{}") @map("settings")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@unique([extensionId, userId])
+  @@index([userId])
+  @@index([extensionId])
+  @@map("extension_installs")
 }
