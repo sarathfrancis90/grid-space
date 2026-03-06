@@ -140,4 +140,66 @@ describe("ProtectedRoute", () => {
 
     expect(screen.queryByTestId("protected-content")).not.toBeInTheDocument();
   });
+
+  it("redirects when refresh fails with network error", async () => {
+    mockFetch.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+
+    renderProtectedRoute();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("login-page")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId("protected-content")).not.toBeInTheDocument();
+  });
+
+  it("does not flash protected content before redirect", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({
+        success: false,
+        error: { code: 401, message: "Refresh token required" },
+      }),
+    });
+
+    renderProtectedRoute();
+
+    // Dashboard should never appear
+    expect(screen.queryByTestId("protected-content")).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("login-page")).toBeInTheDocument();
+    });
+
+    // Still no dashboard content after redirect
+    expect(screen.queryByTestId("protected-content")).not.toBeInTheDocument();
+  });
+
+  it("renders children when refresh token succeeds", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: {
+          user: {
+            id: "user-1",
+            email: "test@example.com",
+            name: "Test",
+            avatarUrl: null,
+            emailVerified: true,
+            createdAt: "2026-01-01",
+          },
+          accessToken: "new-access-token",
+        },
+      }),
+    });
+
+    renderProtectedRoute();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("protected-content")).toBeInTheDocument();
+    });
+  });
 });

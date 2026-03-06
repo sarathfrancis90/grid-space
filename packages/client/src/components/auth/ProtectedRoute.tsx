@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 
@@ -9,37 +9,30 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
-  const isLoading = useAuthStore((s) => s.isLoading);
   const refreshToken = useAuthStore((s) => s.refreshToken);
-  const [checked, setChecked] = useState(false);
-  const attemptedRefreshRef = useRef(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
+    let cancelled = false;
 
-    if (isAuthenticated && user) {
-      setChecked(true);
+    const state = useAuthStore.getState();
+    if (state.isAuthenticated && state.user) {
+      setAuthChecked(true);
       return;
     }
 
-    if (attemptedRefreshRef.current) {
-      setChecked(true);
-      return;
-    }
-
-    attemptedRefreshRef.current = true;
     refreshToken().finally(() => {
-      if (isMounted) {
-        setChecked(true);
+      if (!cancelled) {
+        setAuthChecked(true);
       }
     });
 
     return () => {
-      isMounted = false;
+      cancelled = true;
     };
-  }, [isAuthenticated, user, isLoading, refreshToken]);
+  }, [refreshToken]);
 
-  if (!checked || isLoading) {
+  if (!authChecked) {
     return (
       <div
         className="flex min-h-screen items-center justify-center"
