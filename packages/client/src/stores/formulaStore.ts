@@ -4,7 +4,12 @@
  */
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import type { ASTNode, FormulaValue, CellValueGetter } from "../types/formula";
+import type {
+  ASTNode,
+  FormulaValue,
+  CellValueGetter,
+  EvaluationContext,
+} from "../types/formula";
 import { parseFormula } from "../components/formula/parser";
 import {
   evaluate,
@@ -15,7 +20,7 @@ import {
 } from "../components/formula/evaluator";
 import { useNamedFunctionStore } from "./namedFunctionStore";
 import { DependencyGraph } from "../components/formula/dependencyGraph";
-import { cellId } from "../components/formula/cellUtils";
+import { cellId, parseCellId } from "../components/formula/cellUtils";
 
 interface SpillRange {
   sourceRow: number;
@@ -105,7 +110,18 @@ export const useFormulaStore = create<FormulaState & FormulaActions>()(
           state.astCache.set(cellKey, ast);
         }
 
-        const result = evaluate(ast, getCellValue);
+        // Build evaluation context from cellKey (provides current cell position)
+        let context: EvaluationContext | undefined;
+        if (cellKey) {
+          try {
+            const parsed = parseCellId(cellKey);
+            context = { currentRow: parsed.row, currentCol: parsed.col };
+          } catch {
+            // If cellKey isn't in A1 format, skip context
+          }
+        }
+
+        const result = evaluate(ast, getCellValue, context);
 
         if (cellKey) {
           state.formulaCache.set(cellKey, result);
@@ -187,7 +203,16 @@ export const useFormulaStore = create<FormulaState & FormulaActions>()(
               continue;
             }
 
-            const result = evaluate(ast, getCellValue);
+            // Build evaluation context from cell key
+            let ctx: EvaluationContext | undefined;
+            try {
+              const parsed = parseCellId(cell);
+              ctx = { currentRow: parsed.row, currentCol: parsed.col };
+            } catch {
+              // Skip context if cell key isn't parseable
+            }
+
+            const result = evaluate(ast, getCellValue, ctx);
             results.set(cell, result);
             state.formulaCache.set(cell, result);
           } catch {

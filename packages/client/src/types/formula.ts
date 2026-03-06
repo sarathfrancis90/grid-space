@@ -120,3 +120,11 @@ export type CellValueGetter = (
   col: number,
   row: number,
 ) => FormulaValue;
+
+// Context passed through evaluation to provide current cell info
+export interface EvaluationContext {
+  /** 0-based row of the cell being evaluated */
+  currentRow: number;
+  /** 0-based column of the cell being evaluated */
+  currentCol: number;
+}

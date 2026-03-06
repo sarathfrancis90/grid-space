@@ -9,10 +9,12 @@ import type {
   CellValueGetter,
   CellReference,
   RangeReference,
+  EvaluationContext,
 } from "../../types/formula";
 import { isFormulaError } from "../../types/formula";
 import { getFunction, hasFunction } from "./functions";
 import { parseFormula as parseFormulaImport } from "./parser";
+import { colLetterToIndex } from "./cellUtils";
 import type { NamedFunction } from "../../types/grid";
 
 let namedFunctionResolver:
@@ -37,10 +39,13 @@ export class EvaluationError extends Error {
 
 /**
  * Evaluate an AST node, returning a FormulaValue.
+ * An optional context provides the current cell's row/col for functions
+ * like ROW(), COLUMN(), OFFSET(), and INDIRECT().
  */
 export function evaluate(
   node: ASTNode,
   getCellValue: CellValueGetter,
+  context?: EvaluationContext,
 ): FormulaValue {
   switch (node.type) {
     case "number":
@@ -58,11 +63,17 @@ export function evaluate(
       // If a bare range is evaluated, return #VALUE!
       return "#VALUE!" as FormulaError;
     case "unary":
-      return evaluateUnary(node.op, node.operand, getCellValue);
+      return evaluateUnary(node.op, node.operand, getCellValue, context);
     case "binary":
-      return evaluateBinary(node.op, node.left, node.right, getCellValue);
+      return evaluateBinary(
+        node.op,
+        node.left,
+        node.right,
+        getCellValue,
+        context,
+      );
     case "function":
-      return evaluateFunction(node.name, node.args, getCellValue);
+      return evaluateFunction(node.name, node.args, getCellValue, context);
   }
 }
 
@@ -70,8 +81,9 @@ function evaluateUnary(
   op: string,
   operand: ASTNode,
   getCellValue: CellValueGetter,
+  context?: EvaluationContext,
 ): FormulaValue {
-  const val = evaluate(operand, getCellValue);
+  const val = evaluate(operand, getCellValue, context);
   if (isFormulaError(val)) return val;
 
   const num = toNumeric(val);
@@ -92,11 +104,12 @@ function evaluateBinary(
   left: ASTNode,
   right: ASTNode,
   getCellValue: CellValueGetter,
+  context?: EvaluationContext,
 ): FormulaValue {
-  const leftVal = evaluate(left, getCellValue);
+  const leftVal = evaluate(left, getCellValue, context);
   if (isFormulaError(leftVal)) return leftVal;
 
-  const rightVal = evaluate(right, getCellValue);
+  const rightVal = evaluate(right, getCellValue, context);
   if (isFormulaError(rightVal)) return rightVal;
 
   switch (op) {
@@ -138,6 +151,7 @@ function evaluateFunction(
   name: string,
   argNodes: ASTNode[],
   getCellValue: CellValueGetter,
+  context?: EvaluationContext,
 ): FormulaValue {
   const upperName = name.toUpperCase();
 
@@ -146,7 +160,7 @@ function evaluateFunction(
     if (namedFunctionResolver) {
       const namedFn = namedFunctionResolver(upperName);
       if (namedFn) {
-        return evaluateNamedFunction(namedFn, argNodes, getCellValue);
+        return evaluateNamedFunction(namedFn, argNodes, getCellValue, context);
       }
     }
     return "#NAME?" as FormulaError;
@@ -157,25 +171,25 @@ function evaluateFunction(
 
   // Special handling for IFERROR/IFNA — evaluate first arg, catch errors
   if (upperName === "IFERROR") {
-    return evaluateIFERROR(argNodes, getCellValue, fn);
+    return evaluateIFERROR(argNodes, getCellValue, fn, context);
   }
   if (upperName === "IFNA") {
-    return evaluateIFNA(argNodes, getCellValue, fn);
+    return evaluateIFNA(argNodes, getCellValue, fn, context);
   }
 
   // Special handling for IF — short-circuit evaluation
   if (upperName === "IF") {
-    return evaluateIF(argNodes, getCellValue, fn);
+    return evaluateIF(argNodes, getCellValue, fn, context);
   }
 
   // Special handling for ARRAYFORMULA — element-wise evaluation over ranges
   if (upperName === "ARRAYFORMULA") {
-    return evaluateArrayFormula(argNodes, getCellValue);
+    return evaluateArrayFormula(argNodes, getCellValue, context);
   }
 
   // Special handling for LET — sequential name-value binding
   if (upperName === "LET") {
-    return evaluateLET(argNodes, getCellValue);
+    return evaluateLET(argNodes, getCellValue, context);
   }
 
   // Special handling for LAMBDA — closure creation
@@ -185,11 +199,31 @@ function evaluateFunction(
 
   // Special handling for __CALL__ — invoke a lambda expression
   if (upperName === "__CALL__") {
-    return evaluateCall(argNodes, getCellValue);
+    return evaluateCall(argNodes, getCellValue, context);
+  }
+
+  // Special handling for ROW/COLUMN — need current cell context
+  if (upperName === "ROW") {
+    return evaluateROW(argNodes, getCellValue, context);
+  }
+  if (upperName === "COLUMN") {
+    return evaluateCOLUMN(argNodes, getCellValue, context);
+  }
+
+  // Special handling for OFFSET — dynamic range reference
+  if (upperName === "OFFSET") {
+    return evaluateOFFSET(argNodes, getCellValue, context);
+  }
+
+  // Special handling for INDIRECT — string to cell reference
+  if (upperName === "INDIRECT") {
+    return evaluateINDIRECT(argNodes, getCellValue, context);
   }
 
   // Evaluate arguments, expanding ranges
-  const evaluatedArgs = argNodes.map((arg) => evaluateArg(arg, getCellValue));
+  const evaluatedArgs = argNodes.map((arg) =>
+    evaluateArg(arg, getCellValue, context),
+  );
 
   try {
     return fn(...evaluatedArgs);
@@ -204,11 +238,12 @@ function evaluateFunction(
 function evaluateArg(
   node: ASTNode,
   getCellValue: CellValueGetter,
+  context?: EvaluationContext,
 ): FormulaValue {
   if (node.type === "range") {
     return expandRange(node, getCellValue) as unknown as FormulaValue;
   }
-  return evaluate(node, getCellValue);
+  return evaluate(node, getCellValue, context);
 }
 
 /**
@@ -243,22 +278,23 @@ function evaluateIF(
   argNodes: ASTNode[],
   getCellValue: CellValueGetter,
   fn: (...args: FormulaValue[]) => FormulaValue,
+  context?: EvaluationContext,
 ): FormulaValue {
   if (argNodes.length < 2 || argNodes.length > 3) {
     return "#VALUE!" as FormulaError;
   }
 
-  const condition = evaluate(argNodes[0], getCellValue);
+  const condition = evaluate(argNodes[0], getCellValue, context);
   if (isFormulaError(condition)) return condition;
 
   const isTruthy = toBoolValue(condition);
   if (isTruthy) {
-    return evaluate(argNodes[1], getCellValue);
+    return evaluate(argNodes[1], getCellValue, context);
   }
   if (argNodes.length >= 3) {
-    return evaluate(argNodes[2], getCellValue);
+    return evaluate(argNodes[2], getCellValue, context);
   }
-  return fn(condition, evaluate(argNodes[1], getCellValue));
+  return fn(condition, evaluate(argNodes[1], getCellValue, context));
 }
 
 /**
@@ -268,10 +304,11 @@ function evaluateIFERROR(
   argNodes: ASTNode[],
   getCellValue: CellValueGetter,
   fn: (...args: FormulaValue[]) => FormulaValue,
+  context?: EvaluationContext,
 ): FormulaValue {
   if (argNodes.length !== 2) return "#VALUE!" as FormulaError;
-  const value = evaluate(argNodes[0], getCellValue);
-  const errorVal = evaluate(argNodes[1], getCellValue);
+  const value = evaluate(argNodes[0], getCellValue, context);
+  const errorVal = evaluate(argNodes[1], getCellValue, context);
   return fn(value, errorVal);
 }
 
@@ -282,11 +319,250 @@ function evaluateIFNA(
   argNodes: ASTNode[],
   getCellValue: CellValueGetter,
   fn: (...args: FormulaValue[]) => FormulaValue,
+  context?: EvaluationContext,
 ): FormulaValue {
   if (argNodes.length !== 2) return "#VALUE!" as FormulaError;
-  const value = evaluate(argNodes[0], getCellValue);
-  const naVal = evaluate(argNodes[1], getCellValue);
+  const value = evaluate(argNodes[0], getCellValue, context);
+  const naVal = evaluate(argNodes[1], getCellValue, context);
   return fn(value, naVal);
+}
+
+// ---------------------------------------------------------------------------
+// ROW / COLUMN — return current cell position or reference position
+// ---------------------------------------------------------------------------
+
+function evaluateROW(
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+  context?: EvaluationContext,
+): FormulaValue {
+  if (argNodes.length === 0) {
+    // No args → return current cell row (1-based)
+    return context ? context.currentRow + 1 : 1;
+  }
+  if (argNodes.length === 1) {
+    const arg = argNodes[0];
+    // If the argument is a cell reference, return its row (1-based)
+    if (arg.type === "cell") {
+      return arg.row + 1;
+    }
+    // If it's a range, return the start row (1-based)
+    if (arg.type === "range") {
+      return Math.min(arg.start.row, arg.end.row) + 1;
+    }
+    // Otherwise evaluate and return #VALUE!
+    const val = evaluate(arg, getCellValue, context);
+    if (isFormulaError(val)) return val;
+    return "#VALUE!" as FormulaError;
+  }
+  return "#VALUE!" as FormulaError;
+}
+
+function evaluateCOLUMN(
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+  context?: EvaluationContext,
+): FormulaValue {
+  if (argNodes.length === 0) {
+    // No args → return current cell column (1-based)
+    return context ? context.currentCol + 1 : 1;
+  }
+  if (argNodes.length === 1) {
+    const arg = argNodes[0];
+    if (arg.type === "cell") {
+      return arg.col + 1;
+    }
+    if (arg.type === "range") {
+      return Math.min(arg.start.col, arg.end.col) + 1;
+    }
+    const val = evaluate(arg, getCellValue, context);
+    if (isFormulaError(val)) return val;
+    return "#VALUE!" as FormulaError;
+  }
+  return "#VALUE!" as FormulaError;
+}
+
+// ---------------------------------------------------------------------------
+// OFFSET — return a range offset from a starting reference
+// ---------------------------------------------------------------------------
+
+function evaluateOFFSET(
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+  context?: EvaluationContext,
+): FormulaValue {
+  // OFFSET(cell_reference, rows, cols, [height], [width])
+  if (argNodes.length < 3 || argNodes.length > 5) {
+    return "#VALUE!" as FormulaError;
+  }
+
+  // First arg must be a cell or range reference to get the anchor position
+  const refNode = argNodes[0];
+  let anchorRow: number;
+  let anchorCol: number;
+  let anchorSheet: string | undefined;
+  let baseHeight = 1;
+  let baseWidth = 1;
+
+  if (refNode.type === "cell") {
+    anchorRow = refNode.row;
+    anchorCol = refNode.col;
+    anchorSheet = refNode.sheet;
+  } else if (refNode.type === "range") {
+    anchorRow = Math.min(refNode.start.row, refNode.end.row);
+    anchorCol = Math.min(refNode.start.col, refNode.end.col);
+    anchorSheet = refNode.start.sheet;
+    baseHeight = Math.abs(refNode.end.row - refNode.start.row) + 1;
+    baseWidth = Math.abs(refNode.end.col - refNode.start.col) + 1;
+  } else {
+    return "#VALUE!" as FormulaError;
+  }
+
+  // Evaluate rows and cols offset
+  const rowsVal = evaluate(argNodes[1], getCellValue, context);
+  if (isFormulaError(rowsVal)) return rowsVal;
+  const rowsOffset = toNumeric(rowsVal);
+  if (rowsOffset === null) return "#VALUE!" as FormulaError;
+
+  const colsVal = evaluate(argNodes[2], getCellValue, context);
+  if (isFormulaError(colsVal)) return colsVal;
+  const colsOffset = toNumeric(colsVal);
+  if (colsOffset === null) return "#VALUE!" as FormulaError;
+
+  // Optional height and width
+  let height = baseHeight;
+  let width = baseWidth;
+
+  if (argNodes.length >= 4) {
+    const hVal = evaluate(argNodes[3], getCellValue, context);
+    if (isFormulaError(hVal)) return hVal;
+    const h = toNumeric(hVal);
+    if (h === null || h < 1) return "#VALUE!" as FormulaError;
+    height = Math.floor(h);
+  }
+  if (argNodes.length >= 5) {
+    const wVal = evaluate(argNodes[4], getCellValue, context);
+    if (isFormulaError(wVal)) return wVal;
+    const w = toNumeric(wVal);
+    if (w === null || w < 1) return "#VALUE!" as FormulaError;
+    width = Math.floor(w);
+  }
+
+  const newRow = anchorRow + Math.floor(rowsOffset);
+  const newCol = anchorCol + Math.floor(colsOffset);
+
+  // Bounds check
+  if (newRow < 0 || newCol < 0) return "#REF!" as FormulaError;
+
+  // Single cell → return the value directly
+  if (height === 1 && width === 1) {
+    return getCellValue(anchorSheet, newCol, newRow);
+  }
+
+  // Multi-cell → return 2D array
+  const rows: FormulaValue[][] = [];
+  for (let r = 0; r < height; r++) {
+    const rowVals: FormulaValue[] = [];
+    for (let c = 0; c < width; c++) {
+      rowVals.push(getCellValue(anchorSheet, newCol + c, newRow + r));
+    }
+    rows.push(rowVals);
+  }
+  return rows as unknown as FormulaValue;
+}
+
+// ---------------------------------------------------------------------------
+// INDIRECT — resolve a string cell reference to its value
+// ---------------------------------------------------------------------------
+
+function evaluateINDIRECT(
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+  context?: EvaluationContext,
+): FormulaValue {
+  // INDIRECT(cell_reference_string, [a1_notation])
+  if (argNodes.length < 1 || argNodes.length > 2) {
+    return "#VALUE!" as FormulaError;
+  }
+
+  const refStrVal = evaluate(argNodes[0], getCellValue, context);
+  if (isFormulaError(refStrVal)) return refStrVal;
+  if (typeof refStrVal !== "string" || !refStrVal) {
+    return "#REF!" as FormulaError;
+  }
+
+  // Parse the A1-style reference string (e.g. "A1", "Sheet1!A1", "A1:B5")
+  const refStr = refStrVal.trim();
+
+  // Check for range reference (contains ":")
+  const colonIdx = refStr.indexOf(":");
+  if (colonIdx >= 0) {
+    const startStr = refStr.substring(0, colonIdx);
+    const endStr = refStr.substring(colonIdx + 1);
+    const startRef = parseA1Reference(startStr);
+    const endRef = parseA1Reference(endStr);
+    if (!startRef || !endRef) return "#REF!" as FormulaError;
+
+    // Use sheet from start ref for both
+    const sheet = startRef.sheet ?? endRef.sheet;
+    const startRow = Math.min(startRef.row, endRef.row);
+    const endRow = Math.max(startRef.row, endRef.row);
+    const startCol = Math.min(startRef.col, endRef.col);
+    const endCol = Math.max(startRef.col, endRef.col);
+
+    const rows: FormulaValue[][] = [];
+    for (let r = startRow; r <= endRow; r++) {
+      const rowVals: FormulaValue[] = [];
+      for (let c = startCol; c <= endCol; c++) {
+        rowVals.push(getCellValue(sheet, c, r));
+      }
+      rows.push(rowVals);
+    }
+
+    // Single cell range
+    if (rows.length === 1 && rows[0].length === 1) {
+      return rows[0][0];
+    }
+    return rows as unknown as FormulaValue;
+  }
+
+  // Single cell reference
+  const ref = parseA1Reference(refStr);
+  if (!ref) return "#REF!" as FormulaError;
+
+  return getCellValue(ref.sheet, ref.col, ref.row);
+}
+
+/**
+ * Parse an A1-style cell reference string like "A1", "$A$1", "Sheet1!A1"
+ * Returns the parsed components or null if invalid.
+ */
+function parseA1Reference(
+  refStr: string,
+): { sheet?: string; col: number; row: number } | null {
+  let sheet: string | undefined;
+  let cellPart = refStr.trim();
+
+  // Check for sheet reference
+  const bangIdx = cellPart.indexOf("!");
+  if (bangIdx >= 0) {
+    sheet = cellPart.substring(0, bangIdx).replace(/^'|'$/g, "");
+    cellPart = cellPart.substring(bangIdx + 1);
+  }
+
+  // Strip $ signs for absolute references
+  cellPart = cellPart.replace(/\$/g, "");
+
+  // Match column letters + row number
+  const match = cellPart.match(/^([A-Za-z]+)(\d+)$/);
+  if (!match) return null;
+
+  const col = colLetterToIndex(match[1].toUpperCase());
+  const row = parseInt(match[2], 10) - 1; // 0-based
+
+  if (row < 0 || col < 0) return null;
+
+  return { sheet, col, row };
 }
 
 // --- Helpers ---
@@ -429,13 +705,14 @@ function replaceRangesAtOffset(
 function evaluateArrayFormula(
   argNodes: ASTNode[],
   getCellValue: CellValueGetter,
+  context?: EvaluationContext,
 ): FormulaValue {
   if (argNodes.length !== 1) return "#VALUE!" as FormulaError;
 
   const arg = argNodes[0];
 
   // First try normal evaluation — if the inner expression already returns an array, use it
-  const normalResult = evaluateArg(arg, getCellValue);
+  const normalResult = evaluateArg(arg, getCellValue, context);
   if (Array.isArray(normalResult)) {
     return normalResult as FormulaValue;
   }
@@ -462,7 +739,7 @@ function evaluateArrayFormula(
     const rowValues: FormulaValue[] = [];
     for (let col = 0; col < outCols; col++) {
       const modifiedNode = replaceRangesAtOffset(arg, row, col);
-      rowValues.push(evaluate(modifiedNode, getCellValue));
+      rowValues.push(evaluate(modifiedNode, getCellValue, context));
     }
     result.push(rowValues);
   }
@@ -482,6 +759,7 @@ function evaluateArrayFormula(
 function evaluateLET(
   argNodes: ASTNode[],
   getCellValue: CellValueGetter,
+  context?: EvaluationContext,
 ): FormulaValue {
   // LET(name1, value1, name2, value2, ..., expression)
   // Must have an odd number of args >= 3
@@ -498,7 +776,7 @@ function evaluateLET(
 
     // Evaluate the value expression with current bindings substituted
     const substituted = substituteBindings(argNodes[i + 1], bindings);
-    const value = evaluate(substituted, getCellValue);
+    const value = evaluate(substituted, getCellValue, context);
     bindings.set(name.toUpperCase(), value);
   }
 
@@ -507,7 +785,7 @@ function evaluateLET(
     argNodes[argNodes.length - 1],
     bindings,
   );
-  return evaluate(bodySubstituted, getCellValue);
+  return evaluate(bodySubstituted, getCellValue, context);
 }
 
 /**
@@ -620,11 +898,12 @@ function evaluateLAMBDA(
 function evaluateCall(
   argNodes: ASTNode[],
   getCellValue: CellValueGetter,
+  context?: EvaluationContext,
 ): FormulaValue {
   if (argNodes.length < 1) return "#VALUE!" as FormulaError;
 
   // Evaluate the callee to get the lambda ID
-  const callee = evaluate(argNodes[0], getCellValue);
+  const callee = evaluate(argNodes[0], getCellValue, context);
 
   if (typeof callee !== "string" || !callee.startsWith("__LAMBDA_")) {
     return "#VALUE!" as FormulaError;
@@ -636,7 +915,7 @@ function evaluateCall(
   // Evaluate the call arguments
   const callArgs: FormulaValue[] = [];
   for (let i = 1; i < argNodes.length; i++) {
-    callArgs.push(evaluateArg(argNodes[i], getCellValue));
+    callArgs.push(evaluateArg(argNodes[i], getCellValue, context));
   }
 
   // Check arity
@@ -652,7 +931,7 @@ function evaluateCall(
 
   // Substitute bindings into the body and evaluate
   const substitutedBody = substituteBindings(lambda.body, bindings);
-  return evaluate(substitutedBody, lambda.getCellValue);
+  return evaluate(substitutedBody, lambda.getCellValue, context);
 }
 
 // ---------------------------------------------------------------------------
@@ -666,6 +945,7 @@ function evaluateNamedFunction(
   namedFn: NamedFunction,
   argNodes: ASTNode[],
   getCellValue: CellValueGetter,
+  context?: EvaluationContext,
 ): FormulaValue {
   // Prevent infinite recursion
   if (namedFunctionCallDepth >= MAX_NAMED_FUNCTION_DEPTH) {
@@ -680,7 +960,7 @@ function evaluateNamedFunction(
   // Evaluate call arguments
   const callArgs: FormulaValue[] = [];
   for (const argNode of argNodes) {
-    callArgs.push(evaluateArg(argNode, getCellValue));
+    callArgs.push(evaluateArg(argNode, getCellValue, context));
   }
 
   // Build bindings from parameter names to argument values
@@ -696,7 +976,7 @@ function evaluateNamedFunction(
 
     namedFunctionCallDepth++;
     try {
-      return evaluate(substituted, getCellValue);
+      return evaluate(substituted, getCellValue, context);
     } finally {
       namedFunctionCallDepth--;
     }
