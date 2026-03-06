@@ -182,4 +182,82 @@ describe("validateValue", () => {
     };
     expect(validateValue(rule, "anything").valid).toBe(true);
   });
+
+  it("email: valid email addresses", () => {
+    const rule: ValidationRule = { type: "email" };
+    expect(validateValue(rule, "user@example.com").valid).toBe(true);
+    expect(validateValue(rule, "name.surname@domain.co.uk").valid).toBe(true);
+    expect(validateValue(rule, "test+tag@gmail.com").valid).toBe(true);
+  });
+
+  it("email: invalid email addresses", () => {
+    const rule: ValidationRule = { type: "email" };
+    expect(validateValue(rule, "not-an-email").valid).toBe(false);
+    expect(validateValue(rule, "missing@domain").valid).toBe(false);
+    expect(validateValue(rule, "@no-local.com").valid).toBe(false);
+    expect(validateValue(rule, "spaces in@email.com").valid).toBe(false);
+  });
+
+  it("email: uses default error message", () => {
+    const rule: ValidationRule = { type: "email" };
+    const result = validateValue(rule, "bad");
+    expect(result.valid).toBe(false);
+    expect(result.message).toContain("valid email");
+  });
+
+  it("email: uses custom error message", () => {
+    const rule: ValidationRule = {
+      type: "email",
+      errorMessage: "Please enter an email",
+    };
+    const result = validateValue(rule, "bad");
+    expect(result.valid).toBe(false);
+    expect(result.message).toBe("Please enter an email");
+  });
+
+  it("email: allows blank when allowBlank is true", () => {
+    const rule: ValidationRule = { type: "email", allowBlank: true };
+    expect(validateValue(rule, "").valid).toBe(true);
+    expect(validateValue(rule, null).valid).toBe(true);
+  });
+
+  it("url: valid URLs", () => {
+    const rule: ValidationRule = { type: "url" };
+    expect(validateValue(rule, "https://example.com").valid).toBe(true);
+    expect(validateValue(rule, "http://www.google.com/path").valid).toBe(true);
+    expect(validateValue(rule, "https://sub.domain.co.uk/page?q=1").valid).toBe(
+      true,
+    );
+  });
+
+  it("url: invalid URLs", () => {
+    const rule: ValidationRule = { type: "url" };
+    expect(validateValue(rule, "not-a-url").valid).toBe(false);
+    expect(validateValue(rule, "ftp://files.example.com").valid).toBe(false);
+    expect(validateValue(rule, "example.com").valid).toBe(false);
+    expect(validateValue(rule, "://missing-scheme.com").valid).toBe(false);
+  });
+
+  it("url: uses default error message", () => {
+    const rule: ValidationRule = { type: "url" };
+    const result = validateValue(rule, "bad");
+    expect(result.valid).toBe(false);
+    expect(result.message).toContain("valid URL");
+  });
+
+  it("url: uses custom error message", () => {
+    const rule: ValidationRule = {
+      type: "url",
+      errorMessage: "Enter a website link",
+    };
+    const result = validateValue(rule, "bad");
+    expect(result.valid).toBe(false);
+    expect(result.message).toBe("Enter a website link");
+  });
+
+  it("url: allows blank when allowBlank is true", () => {
+    const rule: ValidationRule = { type: "url", allowBlank: true };
+    expect(validateValue(rule, "").valid).toBe(true);
+    expect(validateValue(rule, null).valid).toBe(true);
+  });
 });

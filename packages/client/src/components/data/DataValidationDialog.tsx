@@ -16,6 +16,8 @@ const RULE_TYPES: { value: ValidationRuleType; label: string }[] = [
   { value: "dropdown-list", label: "Dropdown list" },
   { value: "checkbox", label: "Checkbox" },
   { value: "custom-formula", label: "Custom formula" },
+  { value: "email", label: "Email" },
+  { value: "url", label: "URL" },
 ];
 
 export function DataValidationDialog({
