@@ -135,6 +135,10 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const data = await api.post<AuthResponse>("/auth/refresh");
 
+          if (!data?.accessToken || !data?.user?.id) {
+            throw new Error("Invalid refresh response");
+          }
+
           setAccessToken(data.accessToken);
 
           set((state) => {
