@@ -515,6 +515,89 @@
       }
 
       /* ============================================================
+   LIVE STATS BAR
+   ============================================================ */
+      .live-stats-bar {
+        width: 100%;
+        max-width: 900px;
+        margin-top: 2rem;
+      }
+
+      .live-stats-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-muted);
+      }
+
+      .live-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: pulse 2s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+
+      .live-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+      }
+
+      @media (max-width: 640px) {
+        .live-stats-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      .live-stat {
+        background: var(--bg-card);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-sm);
+        padding: 12px 8px;
+        text-align: center;
+        backdrop-filter: blur(20px);
+        transition: all var(--transition);
+      }
+
+      .live-stat:hover {
+        border-color: var(--border-glow);
+        box-shadow: var(--shadow-glow);
+      }
+
+      .live-stat-value {
+        font-family: var(--font-mono);
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--accent-light);
+        line-height: 1.3;
+      }
+
+      .live-stat-label {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .live-stats-updated {
+        text-align: center;
+        margin-top: 8px;
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* ============================================================
    SECTION 1: AGENTIC AI ENGINEERING
    ============================================================ */
       .comparison-grid {
@@ -1486,6 +1569,41 @@
             </div>
           </div>
         </div>
+        <!-- Live Stats Bar (fetched from /api/stats) -->
+        <div
+          id="liveStatsBar"
+          class="live-stats-bar reveal reveal-delay-5"
+          style="display: none"
+        >
+          <div class="live-stats-header">
+            <span class="live-dot"></span>
+            <span>Live from GitHub</span>
+          </div>
+          <div class="live-stats-grid">
+            <div class="live-stat">
+              <div class="live-stat-value" id="liveOpenIssues">--</div>
+              <div class="live-stat-label">Open Issues</div>
+            </div>
+            <div class="live-stat">
+              <div class="live-stat-value" id="liveClosedIssues">--</div>
+              <div class="live-stat-label">Closed Issues</div>
+            </div>
+            <div class="live-stat">
+              <div class="live-stat-value" id="liveOpenPRs">--</div>
+              <div class="live-stat-label">Open PRs</div>
+            </div>
+            <div class="live-stat">
+              <div class="live-stat-value" id="liveMergedPRs">--</div>
+              <div class="live-stat-label">Merged PRs</div>
+            </div>
+            <div class="live-stat">
+              <div class="live-stat-value" id="liveCommits">--</div>
+              <div class="live-stat-label">Commits</div>
+            </div>
+          </div>
+          <div class="live-stats-updated" id="liveStatsUpdated"></div>
+        </div>
+
         <div class="scroll-cta reveal reveal-delay-4">
           <span>Scroll to see how</span>
           <svg
@@ -2689,6 +2807,117 @@
         sections.forEach(function (s) {
           sectionObserver.observe(s);
         });
+
+        /* --------------------------------------------------------
+     LIVE STATS — fetch from /api/stats
+     -------------------------------------------------------- */
+        (function fetchLiveStats() {
+          // Determine API base: same origin in production, localhost:3001 in dev
+          var apiBase =
+            window.location.port === "5173" ? "http://localhost:3001" : "";
+          var url = apiBase + "/api/stats";
+
+          fetch(url)
+            .then(function (res) {
+              if (!res.ok) throw new Error("Stats API " + res.status);
+              return res.json();
+            })
+            .then(function (json) {
+              if (!json.success || !json.data) return;
+              var d = json.data;
+
+              // Show the live stats bar
+              var bar = document.getElementById("liveStatsBar");
+              if (bar) bar.style.display = "";
+
+              // Fill live stat values
+              function setLive(id, val) {
+                var el = document.getElementById(id);
+                if (el)
+                  el.textContent =
+                    typeof val === "number" ? val.toLocaleString() : val;
+              }
+
+              setLive("liveOpenIssues", d.github.openIssues);
+              setLive("liveClosedIssues", d.github.closedIssues);
+              setLive("liveOpenPRs", d.github.openPRs);
+              setLive("liveMergedPRs", d.github.mergedPRs);
+              setLive("liveCommits", d.github.commits);
+
+              // Update hero stat counters with live data where available
+              // Commits counter in hero (the 4th stat-card)
+              var heroStatNumbers = document.querySelectorAll(
+                ".stats-grid > .stat-card .stat-number",
+              );
+              if (heroStatNumbers.length >= 4 && d.github.commits > 0) {
+                heroStatNumbers[3].setAttribute(
+                  "data-target",
+                  String(d.github.commits),
+                );
+              }
+              if (heroStatNumbers.length >= 3 && d.app.testsCount) {
+                heroStatNumbers[2].setAttribute(
+                  "data-target",
+                  String(d.app.testsCount),
+                );
+              }
+              if (heroStatNumbers.length >= 2 && d.app.linesOfCode) {
+                heroStatNumbers[1].setAttribute(
+                  "data-target",
+                  String(d.app.linesOfCode),
+                );
+              }
+
+              // Update GitHub section stats
+              var ghStats = document.querySelectorAll(".gh-stat-num");
+              if (ghStats.length >= 5) {
+                if (d.github.commits > 0)
+                  ghStats[0].setAttribute(
+                    "data-target",
+                    String(d.github.commits),
+                  );
+                if (d.github.openPRs + d.github.mergedPRs > 0)
+                  ghStats[1].setAttribute(
+                    "data-target",
+                    String(d.github.openPRs + d.github.mergedPRs),
+                  );
+                if (d.github.mergedPRs > 0)
+                  ghStats[2].setAttribute(
+                    "data-target",
+                    String(d.github.mergedPRs),
+                  );
+                if (d.github.totalIssues > 0)
+                  ghStats[3].setAttribute(
+                    "data-target",
+                    String(d.github.totalIssues),
+                  );
+              }
+
+              // Update parity section
+              var parityPercent = document.querySelector(".parity-percent");
+              if (parityPercent && d.parity.percentage) {
+                parityPercent.setAttribute(
+                  "data-target",
+                  String(d.parity.percentage),
+                );
+              }
+
+              // Show last-updated timestamp
+              var updatedEl = document.getElementById("liveStatsUpdated");
+              if (updatedEl) {
+                var now = new Date();
+                updatedEl.textContent =
+                  "Last updated: " +
+                  now.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
+              }
+            })
+            .catch(function () {
+              // Graceful fallback — hardcoded values already in the HTML remain
+            });
+        })();
       })();
     </script>
   </body>

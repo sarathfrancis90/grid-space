@@ -20,11 +20,15 @@ import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
 import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
 import extensionRoutes from "./extension.routes";
+import statsRoutes from "./stats.routes";
 
 const router = Router();
 
 // Health & status
 router.use("/health", healthRoutes);
+
+// Project stats (public, no auth)
+router.use("/stats", statsRoutes);
 
 // API documentation
 router.use("/docs", docsRoutes);
