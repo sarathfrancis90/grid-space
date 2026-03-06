@@ -319,9 +319,7 @@ describe("Database functions", () => {
 
     it("handles field as string number", () => {
       // "3" should be treated as column index 3 (Salary)
-      expect(evalFormula('DSUM(A1:D7, "Salary", E1:E2)', DB_CELLS)).toBe(
-        255000,
-      );
+      expect(evalFormula('DSUM(A1:D7, "3", E1:E2)', DB_CELLS)).toBe(255000);
     });
   });
 });
