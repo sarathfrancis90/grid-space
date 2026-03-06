@@ -121,8 +121,12 @@ export function computeHistogramBins(
 ): HistogramBin[] {
   if (data.length === 0) return [];
 
-  const min = Math.min(...data);
-  const max = Math.max(...data);
+  let min = Infinity;
+  let max = -Infinity;
+  for (const v of data) {
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
   const range = max - min;
 
   // Sturges' formula for bin count

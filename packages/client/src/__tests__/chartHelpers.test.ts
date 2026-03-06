@@ -45,6 +45,14 @@ describe("computeHistogramBins", () => {
       expect(bin.label).toMatch(/\d+\.\d+-\d+\.\d+/);
     }
   });
+
+  it("handles large datasets without stack overflow", () => {
+    const data = Array.from({ length: 100000 }, (_, i) => i);
+    const bins = computeHistogramBins(data, 10);
+    expect(bins).toHaveLength(10);
+    const totalCount = bins.reduce((sum, b) => sum + b.count, 0);
+    expect(totalCount).toBe(100000);
+  });
 });
 
 describe("computeLinearTrendline", () => {
