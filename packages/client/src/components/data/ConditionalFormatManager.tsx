@@ -7,7 +7,11 @@ import { useState, useCallback, useMemo } from "react";
 import { useFormatStore } from "../../stores/formatStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useUIStore } from "../../stores/uiStore";
-import type { ConditionalRule, CellFormat } from "../../types/grid";
+import type {
+  ConditionalRule,
+  CellFormat,
+  IconSetStyle,
+} from "../../types/grid";
 
 const EMPTY_RULES: ConditionalRule[] = [];
 
@@ -18,6 +22,21 @@ const RULE_TYPES = [
   { value: "date", label: "Date" },
   { value: "customFormula", label: "Custom Formula" },
   { value: "colorScale", label: "Color Scale" },
+  { value: "dataBar", label: "Data Bar" },
+  { value: "iconSet", label: "Icon Set" },
+] as const;
+
+const ICON_SET_STYLES: { value: IconSetStyle; label: string }[] = [
+  { value: "3-arrows", label: "3 Arrows" },
+  { value: "3-flags", label: "3 Flags" },
+  { value: "3-traffic-lights", label: "3 Traffic Lights" },
+  { value: "4-arrows", label: "4 Arrows" },
+  { value: "5-arrows", label: "5 Arrows" },
+];
+
+const DATA_BAR_FILL_TYPES = [
+  { value: "solid", label: "Solid" },
+  { value: "gradient", label: "Gradient" },
 ] as const;
 
 const VALUE_CONDITIONS = [
@@ -77,6 +96,11 @@ export function ConditionalFormatManager({
   const [newValue2, setNewValue2] = useState("");
   const [newFormula, setNewFormula] = useState("");
   const [newBgColor, setNewBgColor] = useState("#b7e1cd");
+  const [dataBarColor, setDataBarColor] = useState("#4285f4");
+  const [dataBarFill, setDataBarFill] = useState<"solid" | "gradient">("solid");
+  const [dataBarNegative, setDataBarNegative] = useState(false);
+  const [dataBarNegColor, setDataBarNegColor] = useState("#ea4335");
+  const [iconSetStyle, setIconSetStyle] = useState<IconSetStyle>("3-arrows");
 
   const getSelectionRange = useCallback(() => {
     if (selections.length === 0)
@@ -103,6 +127,20 @@ export function ConditionalFormatManager({
       priority: rules.length,
       formula: newRuleType === "customFormula" ? newFormula : undefined,
     };
+    if (newRuleType === "dataBar") {
+      rule.dataBarConfig = {
+        color: dataBarColor,
+        fillType: dataBarFill,
+        showNegative: dataBarNegative,
+        negativeColor: dataBarNegColor,
+      };
+    }
+    if (newRuleType === "iconSet") {
+      rule.iconSetConfig = {
+        style: iconSetStyle,
+        thresholds: [],
+      };
+    }
     addRule(sheetId, rule);
     setNewValue1("");
     setNewValue2("");
@@ -115,6 +153,11 @@ export function ConditionalFormatManager({
     newValue2,
     newFormula,
     newBgColor,
+    dataBarColor,
+    dataBarFill,
+    dataBarNegative,
+    dataBarNegColor,
+    iconSetStyle,
     rules.length,
     addRule,
     getSelectionRange,
@@ -332,6 +375,99 @@ export function ConditionalFormatManager({
               />
             )}
 
+            {newRuleType === "dataBar" && (
+              <>
+                <input
+                  data-testid="cf-databar-color"
+                  type="color"
+                  value={dataBarColor}
+                  onChange={(e) => setDataBarColor(e.target.value)}
+                  title="Bar color"
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "4px",
+                  }}
+                />
+                <select
+                  data-testid="cf-databar-fill"
+                  value={dataBarFill}
+                  onChange={(e) =>
+                    setDataBarFill(e.target.value as "solid" | "gradient")
+                  }
+                  style={{
+                    height: "32px",
+                    padding: "0 8px",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                  }}
+                >
+                  {DATA_BAR_FILL_TYPES.map((f) => (
+                    <option key={f.value} value={f.value}>
+                      {f.label}
+                    </option>
+                  ))}
+                </select>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    fontSize: "12px",
+                  }}
+                >
+                  <input
+                    data-testid="cf-databar-negative"
+                    type="checkbox"
+                    checked={dataBarNegative}
+                    onChange={(e) => setDataBarNegative(e.target.checked)}
+                  />
+                  Neg
+                </label>
+                {dataBarNegative && (
+                  <input
+                    data-testid="cf-databar-neg-color"
+                    type="color"
+                    value={dataBarNegColor}
+                    onChange={(e) => setDataBarNegColor(e.target.value)}
+                    title="Negative bar color"
+                    style={{
+                      width: "32px",
+                      height: "32px",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "4px",
+                    }}
+                  />
+                )}
+              </>
+            )}
+
+            {newRuleType === "iconSet" && (
+              <select
+                data-testid="cf-iconset-style"
+                value={iconSetStyle}
+                onChange={(e) =>
+                  setIconSetStyle(e.target.value as IconSetStyle)
+                }
+                style={{
+                  flex: 1,
+                  height: "32px",
+                  padding: "0 8px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                }}
+              >
+                {ICON_SET_STYLES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            )}
+
             <input
               data-testid="cf-bg-color-input"
               type="color"
@@ -446,6 +582,12 @@ export function ConditionalFormatManager({
                   <span> ({rule.values.join(", ")})</span>
                 )}
                 {rule.formula && <span> [{rule.formula}]</span>}
+                {rule.dataBarConfig && (
+                  <span> [{rule.dataBarConfig.fillType}]</span>
+                )}
+                {rule.iconSetConfig && (
+                  <span> [{rule.iconSetConfig.style}]</span>
+                )}
               </div>
               <button
                 data-testid={`cf-delete-${rule.id}`}
