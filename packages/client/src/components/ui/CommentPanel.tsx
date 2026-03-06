@@ -8,7 +8,12 @@ import { useCommentStore } from "../../stores/commentStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useCellStore } from "../../stores/cellStore";
 import { getCellKey } from "../../utils/coordinates";
-import type { CellComment, CommentReply } from "../../types/grid";
+import type {
+  CellComment,
+  CommentReply,
+  CommentReaction,
+} from "../../types/grid";
+import { ReactionPicker } from "./ReactionPicker";
 
 export function CommentPanel() {
   const activeCell = useCommentStore((s) => s.activeCommentCell);
@@ -88,6 +93,20 @@ export function CommentPanel() {
       setReplyText("");
     },
     [effectiveSheet, replyText],
+  );
+
+  const handleToggleReaction = useCallback(
+    (commentId: string, emoji: string) => {
+      const reaction: CommentReaction = {
+        emoji,
+        userId: "current-user",
+        userName: "You",
+      };
+      useCommentStore
+        .getState()
+        .toggleReaction(effectiveSheet, commentId, reaction);
+    },
+    [effectiveSheet],
   );
 
   const handleClose = useCallback(() => {
@@ -219,6 +238,15 @@ export function CommentPanel() {
                 </div>
               </div>
             )}
+
+            {/* Emoji reactions */}
+            <ReactionPicker
+              commentId={c.id}
+              reactions={useCommentStore
+                .getState()
+                .getReactionSummary(effectiveSheet, c.id, "current-user")}
+              onToggleReaction={handleToggleReaction}
+            />
 
             {/* Threaded replies */}
             {c.replies && c.replies.length > 0 && (

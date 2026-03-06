@@ -26,6 +26,7 @@ model User {
   webhooks           Webhook[]
   comments           Comment[]
   commentReplies     CommentReply[]
+  commentReactions   CommentReaction[]
   notifications      Notification[]
   notificationPrefs  NotificationPreference[]
   extensions         Extension[]
@@ -202,6 +203,7 @@ model Comment {
   mentions       String[]    @default([])
 
   replies        CommentReply[]
+  reactions      CommentReaction[]
 
   createdAt      DateTime    @default(now()) @map("created_at")
   updatedAt      DateTime    @updatedAt @map("updated_at")
@@ -230,6 +232,26 @@ model CommentReply {
   @@index([commentId])
   @@index([authorId])
   @@map("comment_replies")
+}
+
+// ─── COMMENT REACTION ───────────────────────────────────
+model CommentReaction {
+  id             String      @id @default(cuid())
+
+  commentId      String      @map("comment_id")
+  comment        Comment     @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  emoji          String
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@unique([commentId, userId, emoji])
+  @@index([commentId])
+  @@index([userId])
+  @@map("comment_reactions")
 }
 
 // ─── NOTIFICATION ────────────────────────────────────────

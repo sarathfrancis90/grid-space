@@ -29,6 +29,12 @@ const replySchema = {
   }),
 };
 
+const reactionSchema = {
+  body: z.object({
+    emoji: z.string().min(1).max(32),
+  }),
+};
+
 // GET /api/spreadsheets/:id/comments
 router.get("/", commentController.listComments);
 
@@ -72,5 +78,16 @@ router.post(
   validate(replySchema),
   commentController.addReply,
 );
+
+// POST /api/spreadsheets/:id/comments/:commentId/reactions
+router.post(
+  "/:commentId/reactions",
+  writeLimiter,
+  validate(reactionSchema),
+  commentController.toggleReaction,
+);
+
+// GET /api/spreadsheets/:id/comments/:commentId/reactions
+router.get("/:commentId/reactions", commentController.getReactions);
 
 export default router;
