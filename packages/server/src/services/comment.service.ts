@@ -30,6 +30,10 @@ interface CommentWithReplies {
       avatarUrl: string | null;
     };
   }>;
+  reactions: Array<{
+    emoji: string;
+    userId: string;
+  }>;
 }
 
 const COMMENT_SELECT = {
@@ -56,6 +60,9 @@ const COMMENT_SELECT = {
         select: { id: true, name: true, email: true, avatarUrl: true },
       },
     },
+  },
+  reactions: {
+    select: { emoji: true, userId: true },
   },
 };
 

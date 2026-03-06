@@ -1,10 +1,10 @@
 /**
  * Comment store — manages cell comments per sheet.
- * Supports threaded replies, @mentions, resolving, comment panel with filters.
+ * Supports threaded replies, @mentions, resolving, emoji reactions, comment panel with filters.
  */
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import type { CellComment, CommentReply } from "../types/grid";
+import type { CellComment, CommentReply, CommentReaction } from "../types/grid";
 
 export type CommentFilter = "all" | "for-you" | "open" | "resolved";
 
@@ -32,6 +32,15 @@ interface CommentState {
   addReply: (sheetId: string, commentId: string, reply: CommentReply) => void;
   resolveComment: (sheetId: string, commentId: string) => void;
   unresolveComment: (sheetId: string, commentId: string) => void;
+
+  // Reactions
+  toggleReaction: (
+    sheetId: string,
+    commentId: string,
+    emoji: string,
+    userId: string,
+  ) => void;
+  getReactions: (sheetId: string, commentId: string) => CommentReaction[];
 
   // Panel
   openPanel: () => void;
@@ -61,6 +70,7 @@ export const useCommentStore = create<CommentState>()(
           ...comment,
           replies: comment.replies ?? [],
           resolved: comment.resolved ?? false,
+          reactions: comment.reactions ?? [],
         };
         state.comments.get(sheetId)!.push(c);
       });
@@ -164,6 +174,48 @@ export const useCommentStore = create<CommentState>()(
           comment.resolved = false;
         }
       });
+    },
+
+    // Reactions
+    toggleReaction: (
+      sheetId: string,
+      commentId: string,
+      emoji: string,
+      userId: string,
+    ) => {
+      set((state) => {
+        const comments = state.comments.get(sheetId);
+        if (!comments) return;
+        const comment = comments.find((c) => c.id === commentId);
+        if (!comment) return;
+
+        if (!comment.reactions) comment.reactions = [];
+
+        const existing = comment.reactions.find((r) => r.emoji === emoji);
+        if (existing) {
+          if (existing.userIds.includes(userId)) {
+            existing.userIds = existing.userIds.filter((id) => id !== userId);
+            existing.count = existing.userIds.length;
+            if (existing.count === 0) {
+              comment.reactions = comment.reactions.filter(
+                (r) => r.emoji !== emoji,
+              );
+            }
+          } else {
+            existing.userIds.push(userId);
+            existing.count = existing.userIds.length;
+          }
+        } else {
+          comment.reactions.push({ emoji, userIds: [userId], count: 1 });
+        }
+      });
+    },
+
+    getReactions: (sheetId: string, commentId: string): CommentReaction[] => {
+      const comments = get().comments.get(sheetId);
+      if (!comments) return [];
+      const comment = comments.find((c) => c.id === commentId);
+      return comment?.reactions ?? [];
     },
 
     // Panel

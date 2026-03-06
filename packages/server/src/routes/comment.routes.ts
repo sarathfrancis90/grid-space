@@ -4,6 +4,7 @@ import { authenticate } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { writeLimiter } from "../middleware/rateLimit.middleware";
 import * as commentController from "../controllers/comment.controller";
+import * as reactionController from "../controllers/reaction.controller";
 
 const router = Router({ mergeParams: true });
 
@@ -26,6 +27,12 @@ const editCommentSchema = {
 const replySchema = {
   body: z.object({
     text: z.string().min(1).max(5000),
+  }),
+};
+
+const reactionSchema = {
+  body: z.object({
+    emoji: z.string().min(1).max(32),
   }),
 };
 
@@ -72,5 +79,16 @@ router.post(
   validate(replySchema),
   commentController.addReply,
 );
+
+// POST /api/spreadsheets/:id/comments/:commentId/reactions
+router.post(
+  "/:commentId/reactions",
+  writeLimiter,
+  validate(reactionSchema),
+  reactionController.toggleReaction,
+);
+
+// GET /api/spreadsheets/:id/comments/:commentId/reactions
+router.get("/:commentId/reactions", reactionController.getReactions);
 
 export default router;

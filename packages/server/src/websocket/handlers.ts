@@ -2,6 +2,7 @@ import type { Server, Socket } from "socket.io";
 import { WS_EVENTS } from "./types";
 import type {
   JoinPayload,
+  ReactionTogglePayload,
   CursorMovePayload,
   CellEditStartPayload,
   CellEditEndPayload,
@@ -354,6 +355,22 @@ export function registerHandlers(io: Server, socket: Socket): void {
       socket.to(roomName(p.spreadsheetId)).emit(WS_EVENTS.CHART_SYNC, {
         ...p,
         userId,
+      });
+    }),
+  );
+
+  // ─── COMMENT REACTIONS ──────────────────────────────────
+  socket.on(
+    WS_EVENTS.REACTION_TOGGLE,
+    withRateLimit((payload: unknown) => {
+      const { spreadsheetId, commentId, emoji } =
+        payload as ReactionTogglePayload;
+      if (\!data.spreadsheetId || data.spreadsheetId \!== spreadsheetId) return;
+
+      socket.to(roomName(spreadsheetId)).emit(WS_EVENTS.REACTION_UPDATE, {
+        userId,
+        commentId,
+        emoji,
       });
     }),
   );
