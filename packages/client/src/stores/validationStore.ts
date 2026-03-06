@@ -140,6 +140,32 @@ function validateValue(
       return { valid: true };
     }
 
+    case "email": {
+      const emailStr = String(value);
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(emailStr)) {
+        return {
+          valid: false,
+          message: rule.errorMessage ?? "Value must be a valid email address",
+        };
+      }
+      return { valid: true };
+    }
+
+    case "url": {
+      const urlStr = String(value);
+      const urlPattern = /^https?:\/\/[^\s]+\.[^\s]+/;
+      if (!urlPattern.test(urlStr)) {
+        return {
+          valid: false,
+          message:
+            rule.errorMessage ??
+            "Value must be a valid URL (starting with http:// or https://)",
+        };
+      }
+      return { valid: true };
+    }
+
     case "custom-formula": {
       // Custom formula validation is evaluated externally
       // Here we just check if a formula was provided

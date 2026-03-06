@@ -120,7 +120,9 @@ export type ValidationRuleType =
   | "date-range"
   | "dropdown-list"
   | "checkbox"
-  | "custom-formula";
+  | "custom-formula"
+  | "email"
+  | "url";
 
 export interface ValidationRule {
   type: ValidationRuleType;
