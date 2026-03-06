@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useUIStore } from "../../stores/uiStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useCellStore } from "../../stores/cellStore";
@@ -43,7 +43,6 @@ export function ConvertToTableDialog() {
   const selections = useUIStore((s) => s.selections);
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
 
-  const [hasHeaders, setHasHeaders] = useState(true);
   const [tableName, setTableName] = useState("");
   const [selectedPreset, setSelectedPreset] =
     useState<TableStylePreset>("blue-medium-1");
@@ -60,10 +59,11 @@ export function ConvertToTableDialog() {
     return detectHeaders(cells, startRow, startCol, endCol);
   }, [selection, sheetId]);
 
-  // Update hasHeaders when dialog opens with auto-detection
-  useState(() => {
+  const [hasHeaders, setHasHeaders] = useState(autoDetected);
+
+  useEffect(() => {
     setHasHeaders(autoDetected);
-  });
+  }, [autoDetected]);
 
   if (!isOpen) return null;
 
@@ -106,7 +106,7 @@ export function ConvertToTableDialog() {
     const cells = useCellStore.getState().cells.get(sheetId) ?? new Map();
     const name = tableName.trim() || undefined;
 
-    useTableStore
+    const created = useTableStore
       .getState()
       .convertSelectionToTable(
         sheetId,
@@ -119,9 +119,6 @@ export function ConvertToTableDialog() {
         name,
       );
 
-    // Apply the selected style
-    const tables = useTableStore.getState().getTablesForSheet(sheetId);
-    const created = tables[tables.length - 1];
     if (created && selectedPreset !== "blue-medium-1") {
       useTableStore.getState().setStylePreset(created.id, selectedPreset);
     }
