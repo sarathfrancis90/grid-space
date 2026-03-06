@@ -19,6 +19,7 @@ import notificationRoutes from "./notification.routes";
 import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
 import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
+import extensionRoutes from "./extension.routes";
 
 const router = Router();
 
@@ -78,6 +79,9 @@ router.use("/templates", templateRoutes);
 
 // API Key management
 router.use("/users/me/api-keys", apiKeyRoutes);
+
+// Extensions
+router.use("/extensions", extensionRoutes);
 
 // Webhook management
 router.use("/webhooks", webhookRoutes);
