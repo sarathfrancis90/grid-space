@@ -15,6 +15,7 @@ import { infoFunctions } from "./functions/infoFunctions";
 import { arrayFunctions } from "./functions/arrayFunctions";
 import { regexFunctions } from "./functions/regexFunctions";
 import { queryFunctions } from "./functions/queryFunctions";
+import { webFunctions } from "./functions/webFunctions";
 
 type FormulaFunction = (...args: FormulaValue[]) => FormulaValue;
 
@@ -330,6 +331,7 @@ const FUNCTION_REGISTRY: Record<string, FormulaFunction> = {
   ...arrayFunctions,
   ...regexFunctions,
   ...queryFunctions,
+  ...webFunctions,
 };
 
 export function getFunction(name: string): FormulaFunction | null {

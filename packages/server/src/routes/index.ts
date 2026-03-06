@@ -20,6 +20,7 @@ import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
 import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
 import extensionRoutes from "./extension.routes";
+import proxyRoutes from "./proxy.routes";
 
 const router = Router();
 
@@ -85,5 +86,8 @@ router.use("/extensions", extensionRoutes);
 
 // Webhook management
 router.use("/webhooks", webhookRoutes);
+
+// Proxy for formula import functions (CORS bypass)
+router.use("/proxy", proxyRoutes);
 
 export default router;

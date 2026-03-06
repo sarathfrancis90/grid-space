@@ -9,4 +9,5 @@ export { infoFunctions } from "./infoFunctions";
 export { arrayFunctions } from "./arrayFunctions";
 export { regexFunctions } from "./regexFunctions";
 export { queryFunctions } from "./queryFunctions";
+export { webFunctions } from "./webFunctions";
 export type { FormulaFunction } from "./helpers";
