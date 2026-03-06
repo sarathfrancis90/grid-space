@@ -15,6 +15,24 @@ import { getFunction, hasFunction } from "./functions";
 import { parseFormula as parseFormulaImport } from "./parser";
 import type { NamedFunction } from "../../types/grid";
 
+/**
+ * Optional callback to check if a cell contains a formula.
+ * Used by ISFORMULA. Set via setCellFormulaChecker before evaluation.
+ */
+export type CellFormulaChecker = (
+  sheet: string | undefined,
+  col: number,
+  row: number,
+) => boolean;
+
+let cellFormulaChecker: CellFormulaChecker | null = null;
+
+export function setCellFormulaChecker(
+  checker: CellFormulaChecker | null,
+): void {
+  cellFormulaChecker = checker;
+}
+
 let namedFunctionResolver:
   | ((name: string) => NamedFunction | undefined)
   | null = null;
@@ -166,6 +184,21 @@ function evaluateFunction(
   // Special handling for IF — short-circuit evaluation
   if (upperName === "IF") {
     return evaluateIF(argNodes, getCellValue, fn);
+  }
+
+  // Special handling for ISREF — check if argument is a cell/range reference
+  if (upperName === "ISREF") {
+    return evaluateISREF(argNodes);
+  }
+
+  // Special handling for ISFORMULA — check if referenced cell has a formula
+  if (upperName === "ISFORMULA") {
+    return evaluateISFORMULA(argNodes);
+  }
+
+  // Special handling for CELL — return info about a cell reference
+  if (upperName === "CELL") {
+    return evaluateCELL(argNodes, getCellValue);
   }
 
   // Special handling for ARRAYFORMULA — element-wise evaluation over ranges
@@ -347,6 +380,84 @@ function toBoolValue(val: FormulaValue): boolean {
   if (typeof val === "number") return val !== 0;
   if (val === null) return false;
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// ISREF — check if argument is a valid cell/range reference
+// ---------------------------------------------------------------------------
+
+function evaluateISREF(argNodes: ASTNode[]): FormulaValue {
+  if (argNodes.length !== 1) return "#VALUE!" as FormulaError;
+  const arg = argNodes[0];
+  return arg.type === "cell" || arg.type === "range";
+}
+
+// ---------------------------------------------------------------------------
+// ISFORMULA — check if referenced cell contains a formula
+// ---------------------------------------------------------------------------
+
+function evaluateISFORMULA(argNodes: ASTNode[]): FormulaValue {
+  if (argNodes.length !== 1) return "#VALUE!" as FormulaError;
+  const arg = argNodes[0];
+  if (arg.type !== "cell") return "#VALUE!" as FormulaError;
+  if (!cellFormulaChecker) return false;
+  return cellFormulaChecker(arg.sheet, arg.col, arg.row);
+}
+
+// ---------------------------------------------------------------------------
+// CELL — return information about a cell reference
+// ---------------------------------------------------------------------------
+
+function colToLetter(col: number): string {
+  let result = "";
+  let n = col + 1; // 0-based to 1-based
+  while (n > 0) {
+    n--;
+    result = String.fromCharCode((n % 26) + 65) + result;
+    n = Math.floor(n / 26);
+  }
+  return result;
+}
+
+function evaluateCELL(
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+): FormulaValue {
+  if (argNodes.length < 1 || argNodes.length > 2)
+    return "#VALUE!" as FormulaError;
+
+  const infoType = evaluate(argNodes[0], getCellValue);
+  if (typeof infoType !== "string") return "#VALUE!" as FormulaError;
+
+  // If no reference provided, return #VALUE!
+  if (argNodes.length < 2) return "#VALUE!" as FormulaError;
+
+  const refNode = argNodes[1];
+  if (refNode.type !== "cell" && refNode.type !== "range")
+    return "#VALUE!" as FormulaError;
+
+  // Get the target cell reference
+  const cellRef: CellReference =
+    refNode.type === "range" ? refNode.start : refNode;
+  const col = cellRef.col;
+  const row = cellRef.row;
+
+  switch (infoType.toLowerCase()) {
+    case "address":
+      return `$${colToLetter(col)}$${row + 1}`;
+    case "col":
+      return col + 1; // 1-based
+    case "row":
+      return row + 1; // 1-based
+    case "type": {
+      const val = getCellValue(cellRef.sheet, col, row);
+      if (val === null || val === "") return "b"; // blank
+      if (typeof val === "number") return "v"; // value (number)
+      return "l"; // label (text)
+    }
+    default:
+      return "#VALUE!" as FormulaError;
+  }
 }
 
 // ---------------------------------------------------------------------------

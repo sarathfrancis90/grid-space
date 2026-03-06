@@ -275,6 +275,21 @@ function compareValues(a: FormulaValue, b: FormulaValue): number {
 
 // --- Special functions handled by evaluator (stubs for registry presence) ---
 
+function fnISREF(..._args: FormulaValue[]): FormulaValue {
+  // Actual implementation is in evaluator.ts — this is a stub for the registry
+  return false;
+}
+
+function fnISFORMULA(..._args: FormulaValue[]): FormulaValue {
+  // Actual implementation is in evaluator.ts — this is a stub for the registry
+  return false;
+}
+
+function fnCELL(..._args: FormulaValue[]): FormulaValue {
+  // Actual implementation is in evaluator.ts — this is a stub for the registry
+  return "#VALUE!" as FormulaError;
+}
+
 function fnARRAYFORMULA(...args: FormulaValue[]): FormulaValue {
   // Actual implementation is in evaluator.ts — this is a stub for the registry
   return args[0] ?? null;
@@ -314,6 +329,9 @@ const FUNCTION_REGISTRY: Record<string, FormulaFunction> = {
   IMPORTDATA: fnIMPORTDATA,
   IMPORTRANGE: fnIMPORTRANGE,
   IMAGE: fnIMAGE,
+  ISREF: fnISREF,
+  ISFORMULA: fnISFORMULA,
+  CELL: fnCELL,
   ARRAYFORMULA: fnARRAYFORMULA,
   LET: fnLET,
   LAMBDA: fnLAMBDA,

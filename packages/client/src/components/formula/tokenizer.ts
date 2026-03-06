@@ -200,9 +200,31 @@ export function tokenize(input: string): Token[] {
       }
 
       // Check if it's a function call (followed by open paren)
+      // Also handle dotted function names like ERROR.TYPE(
       if (peek() === "(") {
         addToken("FUNCTION_NAME", upper, startPos);
         continue;
+      }
+      if (peek() === ".") {
+        const dotPos = pos;
+        const savedIdent = ident;
+        advance(); // consume '.'
+        let suffix = "";
+        while (pos < input.length && isAlphaNumeric(peek())) {
+          suffix += advance();
+        }
+        if (suffix.length > 0 && peek() === "(") {
+          // It's a dotted function name like ERROR.TYPE(
+          addToken(
+            "FUNCTION_NAME",
+            upper + "." + suffix.toUpperCase(),
+            startPos,
+          );
+          continue;
+        }
+        // Not a dotted function — backtrack
+        pos = dotPos;
+        ident = savedIdent;
       }
 
       // Check for mixed reference like A$1 (letters followed by $ then digits)
