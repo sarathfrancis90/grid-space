@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
             style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}
             data-testid="forgot-title"
           >
-            Reset your password
+            Forgot your password?
           </h1>
           <p
             className="mt-2 text-sm text-gray-500"
