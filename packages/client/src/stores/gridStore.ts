@@ -104,6 +104,7 @@ export const useGridStore = create<GridState>()(
       const state = get();
       let x = 0;
       for (let c = 0; c < col; c++) {
+        if (state.hiddenCols.has(c)) continue;
         x += state.columnWidths.get(c) ?? DEFAULT_COL_WIDTH;
       }
       return x;
@@ -113,6 +114,7 @@ export const useGridStore = create<GridState>()(
       const state = get();
       let y = 0;
       for (let r = 0; r < row; r++) {
+        if (state.hiddenRows.has(r)) continue;
         y += state.rowHeights.get(r) ?? DEFAULT_ROW_HEIGHT;
       }
       return y;
@@ -122,6 +124,7 @@ export const useGridStore = create<GridState>()(
       const state = get();
       let accum = 0;
       for (let c = 0; c < state.totalCols; c++) {
+        if (state.hiddenCols.has(c)) continue;
         accum += state.columnWidths.get(c) ?? DEFAULT_COL_WIDTH;
         if (accum > x) return c;
       }
@@ -132,6 +135,7 @@ export const useGridStore = create<GridState>()(
       const state = get();
       let accum = 0;
       for (let r = 0; r < state.totalRows; r++) {
+        if (state.hiddenRows.has(r)) continue;
         accum += state.rowHeights.get(r) ?? DEFAULT_ROW_HEIGHT;
         if (accum > y) return r;
       }
