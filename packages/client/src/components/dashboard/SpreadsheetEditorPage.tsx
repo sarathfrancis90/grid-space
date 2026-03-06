@@ -48,6 +48,7 @@ import { KeyboardShortcutsDialog } from "../ui/KeyboardShortcutsDialog";
 import { useMacroRecorder } from "../../hooks/useMacroRecorder";
 import { useAutoSave } from "../../hooks/useAutoSave";
 import { useHydrateFromServer } from "../../hooks/useHydrateFromServer";
+import { useRealtimeConnection } from "../../hooks/useRealtimeConnection";
 import { SaveIndicator } from "./SaveIndicator";
 import { SpreadsheetLoader } from "./SpreadsheetLoader";
 
@@ -93,6 +94,7 @@ export default function SpreadsheetEditorPage() {
   useMacroRecorder();
   useHydrateFromServer();
   useAutoSave(id);
+  useRealtimeConnection(id);
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [titleInput, setTitleInput] = useState("");
