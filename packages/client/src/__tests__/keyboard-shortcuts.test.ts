@@ -12,7 +12,10 @@ import { useHistoryStore } from "../stores/historyStore";
 import { useClipboardStore } from "../stores/clipboardStore";
 import { useFormatStore } from "../stores/formatStore";
 import { useFindReplaceStore } from "../stores/findReplaceStore";
-import { performPasteSpecial } from "../hooks/useKeyboardShortcuts";
+import {
+  performPasteSpecial,
+  cycleReference,
+} from "../hooks/useKeyboardShortcuts";
 
 function resetStores(): void {
   const sheetId = useSpreadsheetStore.getState().activeSheetId;
@@ -274,6 +277,66 @@ describe("Sprint 8 — Keyboard Shortcuts", () => {
       expect(useUIStore.getState().isFormatCellsDialogOpen).toBe(true);
       useUIStore.getState().setFormatCellsDialogOpen(false);
       expect(useUIStore.getState().isFormatCellsDialogOpen).toBe(false);
+    });
+  });
+
+  // Ctrl+` toggle show all formulas
+  describe("Ctrl+` toggle show all formulas", () => {
+    it("toggleShowFormulas toggles the showFormulas flag", () => {
+      expect(useUIStore.getState().showFormulas).toBe(false);
+      useUIStore.getState().toggleShowFormulas();
+      expect(useUIStore.getState().showFormulas).toBe(true);
+      useUIStore.getState().toggleShowFormulas();
+      expect(useUIStore.getState().showFormulas).toBe(false);
+    });
+  });
+
+  // F4 cycle absolute/relative reference
+  describe("F4 cycle absolute/relative reference", () => {
+    it("cycles A1 → $A$1", () => {
+      expect(cycleReference("=SUM(A1)")).toBe("=SUM($A$1)");
+    });
+
+    it("cycles $A$1 → A$1", () => {
+      expect(cycleReference("=SUM($A$1)")).toBe("=SUM(A$1)");
+    });
+
+    it("cycles A$1 → $A1", () => {
+      expect(cycleReference("=SUM(A$1)")).toBe("=SUM($A1)");
+    });
+
+    it("cycles $A1 → A1", () => {
+      expect(cycleReference("=SUM($A1)")).toBe("=SUM(A1)");
+    });
+
+    it("cycles the last reference in a multi-reference formula", () => {
+      expect(cycleReference("=A1+B2")).toBe("=A1+$B$2");
+    });
+
+    it("returns unchanged formula when no reference present", () => {
+      expect(cycleReference("=1+2")).toBe("=1+2");
+    });
+  });
+
+  // Ctrl+Shift+; insert current time
+  describe("Ctrl+Shift+; insert current time", () => {
+    it("inserts current time in h:mm:ss AM/PM format", () => {
+      const sheetId = useSpreadsheetStore.getState().activeSheetId;
+      const pos = useUIStore.getState().selectedCell;
+      expect(pos).not.toBeNull();
+      useHistoryStore.getState().pushUndo();
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, "0");
+      const seconds = now.getSeconds().toString().padStart(2, "0");
+      const period = hours >= 12 ? "PM" : "AM";
+      const h12 = hours % 12 || 12;
+      const timeStr = `${h12}:${minutes}:${seconds} ${period}`;
+      useCellStore
+        .getState()
+        .setCell(sheetId, pos!.row, pos!.col, { value: timeStr });
+      const cell = useCellStore.getState().getCell(sheetId, pos!.row, pos!.col);
+      expect(cell?.value).toMatch(/^\d{1,2}:\d{2}:\d{2} (AM|PM)$/);
     });
   });
 

@@ -30,6 +30,43 @@ const NUMBER_FORMAT_MAP: Record<string, string> = {
   "6": "0.00E+00", // Scientific
 };
 
+/**
+ * Cycle the last cell reference in a formula through absolute/relative modes:
+ * A1 → $A$1 → A$1 → $A1 → A1
+ */
+export function cycleReference(formula: string): string {
+  // Match the last cell reference in the formula (possibly with $ signs)
+  const refPattern = /(\$?[A-Z]{1,3})(\$?\d+)(?!.*\$?[A-Z]{1,3}\$?\d+)/i;
+  const match = refPattern.exec(formula);
+  if (!match) return formula;
+
+  const colPart = match[1];
+  const rowPart = match[2];
+  const colLocked = colPart.startsWith("$");
+  const rowLocked = rowPart.startsWith("$");
+  const bareCol = colPart.replace("$", "");
+  const bareRow = rowPart.replace("$", "");
+
+  let newRef: string;
+  if (!colLocked && !rowLocked) {
+    // A1 → $A$1
+    newRef = `$${bareCol}$${bareRow}`;
+  } else if (colLocked && rowLocked) {
+    // $A$1 → A$1
+    newRef = `${bareCol}$${bareRow}`;
+  } else if (!colLocked && rowLocked) {
+    // A$1 → $A1
+    newRef = `$${bareCol}${bareRow}`;
+  } else {
+    // $A1 → A1
+    newRef = `${bareCol}${bareRow}`;
+  }
+
+  const start = match.index;
+  const end = start + match[0].length;
+  return formula.substring(0, start) + newRef + formula.substring(end);
+}
+
 export function useKeyboardShortcuts(handlers?: ShortcutHandlers): void {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -100,6 +137,50 @@ export function useKeyboardShortcuts(handlers?: ShortcutHandlers): void {
           // Let the browser handle undo/redo in other inputs
           return;
         }
+      }
+
+      // Ctrl+` — toggle show all formulas
+      if (ctrl && !shift && key === "`") {
+        e.preventDefault();
+        useUIStore.getState().toggleShowFormulas();
+        return;
+      }
+
+      // Ctrl+Shift+; — insert current time
+      if (ctrl && shift && key === ";") {
+        e.preventDefault();
+        const sheetId = useSpreadsheetStore.getState().activeSheetId;
+        const pos = ui.selectedCell;
+        if (pos && sheetId) {
+          useHistoryStore.getState().pushUndo();
+          const now = new Date();
+          const hours = now.getHours();
+          const minutes = now.getMinutes().toString().padStart(2, "0");
+          const seconds = now.getSeconds().toString().padStart(2, "0");
+          const period = hours >= 12 ? "PM" : "AM";
+          const h12 = hours % 12 || 12;
+          const timeStr = `${h12}:${minutes}:${seconds} ${period}`;
+          const existing = useCellStore
+            .getState()
+            .getCell(sheetId, pos.row, pos.col);
+          useCellStore.getState().setCell(sheetId, pos.row, pos.col, {
+            value: timeStr,
+            formula: existing?.formula,
+            format: existing?.format,
+            comment: existing?.comment,
+          });
+        }
+        return;
+      }
+
+      // F4 — cycle absolute/relative reference in formula edit mode
+      if (key === "F4" && ui.isEditing && ui.isFormulaMode) {
+        e.preventDefault();
+        const newValue = cycleReference(ui.editValue);
+        if (newValue !== ui.editValue) {
+          ui.setEditValue(newValue);
+        }
+        return;
       }
 
       // Ctrl+/ — keyboard shortcuts help
