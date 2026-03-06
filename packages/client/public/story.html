@@ -1430,7 +1430,7 @@
             <div class="stat-label">Automated Tests</div>
           </div>
           <div class="stat-card">
-            <div class="stat-number" data-target="102" data-suffix="">0</div>
+            <div class="stat-number" data-target="121" data-suffix="">0</div>
             <div class="stat-label">Commits</div>
           </div>
         </div>
@@ -1469,7 +1469,10 @@
               >
                 0
               </div>
-              <div style="font-size: 0.7rem; opacity: 0.5; margin-top: 0.3rem">
+              <div
+                id="phase1-sub"
+                style="font-size: 0.7rem; opacity: 0.5; margin-top: 0.3rem"
+              >
                 48 commits &middot; 427 features
               </div>
             </div>
@@ -1494,7 +1497,10 @@
               >
                 0
               </div>
-              <div style="font-size: 0.7rem; opacity: 0.5; margin-top: 0.3rem">
+              <div
+                id="phase2-sub"
+                style="font-size: 0.7rem; opacity: 0.5; margin-top: 0.3rem"
+              >
                 23 commits &middot; 6 workflows
               </div>
             </div>
@@ -1514,13 +1520,16 @@
               <div
                 class="stat-number"
                 style="font-size: 1.6rem"
-                data-target="6"
+                data-target="7"
                 data-suffix=" hrs"
               >
                 0
               </div>
-              <div style="font-size: 0.7rem; opacity: 0.5; margin-top: 0.3rem">
-                31 commits &middot; deploy + fixes
+              <div
+                id="phase3-sub"
+                style="font-size: 0.7rem; opacity: 0.5; margin-top: 0.3rem"
+              >
+                50 commits &middot; deploy + fixes
               </div>
             </div>
           </div>
@@ -1533,9 +1542,10 @@
           >
             <div class="stat-card" style="text-align: center; padding: 1rem">
               <div
+                id="hero-total-hours"
                 class="stat-number"
                 style="font-size: 1.8rem; color: #10b981"
-                data-target="31"
+                data-target="32"
                 data-suffix=" hrs"
               >
                 0
@@ -1544,9 +1554,10 @@
             </div>
             <div class="stat-card" style="text-align: center; padding: 1rem">
               <div
+                id="hero-total-tokens"
                 class="stat-number"
                 style="font-size: 1.8rem; color: #10b981"
-                data-target="5.45"
+                data-target="6.33"
                 data-suffix="M"
                 data-decimals="2"
               >
@@ -1556,6 +1567,7 @@
             </div>
             <div class="stat-card" style="text-align: center; padding: 1rem">
               <div
+                id="hero-total-cost"
                 style="
                   font-family: &quot;JetBrains Mono&quot;, monospace;
                   font-size: 1.8rem;
@@ -1563,7 +1575,7 @@
                   color: #10b981;
                 "
               >
-                $219
+                $276
               </div>
               <div class="stat-label">Total Cost</div>
             </div>
@@ -1981,8 +1993,9 @@
             <div class="pipeline-num">2</div>
             <div>
               <h4>
-                TypeCheck &rarr; Unit Tests (1,219) &rarr; Build &rarr; E2E
-                Tests
+                TypeCheck &rarr; Unit Tests (<span id="pipeline-tests-count"
+                  >1,219</span
+                >) &rarr; Build &rarr; E2E Tests
               </h4>
               <p>
                 Full pipeline with PostgreSQL 16 + Redis 7 service containers.
@@ -2023,19 +2036,47 @@
         </div>
         <div class="github-stats reveal reveal-delay-4">
           <div class="glass-card gh-stat">
-            <div class="gh-stat-num" data-target="100" data-suffix="">0</div>
+            <div
+              class="gh-stat-num"
+              id="gh-commits"
+              data-target="121"
+              data-suffix=""
+            >
+              0
+            </div>
             <div class="gh-stat-label">Commits</div>
           </div>
           <div class="glass-card gh-stat">
-            <div class="gh-stat-num" data-target="33" data-suffix="">0</div>
+            <div
+              class="gh-stat-num"
+              id="gh-prs"
+              data-target="58"
+              data-suffix=""
+            >
+              0
+            </div>
             <div class="gh-stat-label">Pull Requests</div>
           </div>
           <div class="glass-card gh-stat">
-            <div class="gh-stat-num" data-target="24" data-suffix="">0</div>
+            <div
+              class="gh-stat-num"
+              id="gh-merged"
+              data-target="44"
+              data-suffix=""
+            >
+              0
+            </div>
             <div class="gh-stat-label">PRs Merged</div>
           </div>
           <div class="glass-card gh-stat">
-            <div class="gh-stat-num" data-target="59" data-suffix="">0</div>
+            <div
+              class="gh-stat-num"
+              id="gh-issues"
+              data-target="59"
+              data-suffix=""
+            >
+              0
+            </div>
             <div class="gh-stat-label">Issues Tracked</div>
           </div>
           <div class="glass-card gh-stat">
@@ -2056,8 +2097,9 @@
           What We <span class="gradient-text">Built</span>
         </h2>
         <p class="section-subtitle reveal reveal-delay-2">
-          427 features across the complete stack. A production-ready spreadsheet
-          with every major capability of Google Sheets.
+          <span id="features-showcase-count">427</span> features across the
+          complete stack. A production-ready spreadsheet with every major
+          capability of Google Sheets.
         </p>
         <div class="feature-grid">
           <div class="glass-card feature-card reveal reveal-delay-2">
@@ -2220,20 +2262,21 @@
           Google Sheets <span class="gradient-text">Parity</span>
         </h2>
         <p class="section-subtitle reveal reveal-delay-2">
-          Exhaustive feature-by-feature comparison against Google Sheets. 292
-          features identified, 198 fully implemented.
+          Exhaustive feature-by-feature comparison against Google Sheets.
+          <span id="parity-total-text">292</span> features identified,
+          <span id="parity-implemented-text">255</span> fully implemented.
         </p>
         <div class="parity-hero reveal reveal-delay-3">
           <div
             class="parity-percent"
-            data-target="75.3"
+            data-target="88.2"
             data-suffix="%"
             data-decimals="1"
           >
             0%
           </div>
-          <div class="parity-subtext">
-            220 of 292 Google Sheets features (198 full + 22 partial) &mdash;
+          <div class="parity-subtext" id="parity-subtext">
+            260 of 292 Google Sheets features (255 full + 5 partial) &mdash;
             from zero in under 4 hours
           </div>
         </div>
@@ -2354,8 +2397,8 @@
                     >Feb 25&ndash;26</span
                   >
                 </td>
-                <td style="padding: 12px 16px">~17 hrs</td>
-                <td style="padding: 12px 16px">48</td>
+                <td id="cost-p1-hours" style="padding: 12px 16px">~17 hrs</td>
+                <td id="cost-p1-commits" style="padding: 12px 16px">48</td>
                 <td style="padding: 12px 16px">50</td>
                 <td style="padding: 12px 16px">
                   2.94M<br /><span style="font-size: 0.75rem; opacity: 0.6"
@@ -2363,6 +2406,7 @@
                   >
                 </td>
                 <td
+                  id="cost-p1-cost"
                   style="padding: 12px 16px; color: #10b981; font-weight: 600"
                 >
                   $122.94
@@ -2381,8 +2425,8 @@
                     >Mar 4&ndash;5</span
                   >
                 </td>
-                <td style="padding: 12px 16px">~8 hrs</td>
-                <td style="padding: 12px 16px">23</td>
+                <td id="cost-p2-hours" style="padding: 12px 16px">~8 hrs</td>
+                <td id="cost-p2-commits" style="padding: 12px 16px">23</td>
                 <td style="padding: 12px 16px">12</td>
                 <td style="padding: 12px 16px">
                   2.39M<br /><span style="font-size: 0.75rem; opacity: 0.6"
@@ -2390,6 +2434,7 @@
                   >
                 </td>
                 <td
+                  id="cost-p2-cost"
                   style="padding: 12px 16px; color: #10b981; font-weight: 600"
                 >
                   $87.92
@@ -2408,8 +2453,8 @@
                     >Mar 6</span
                   >
                 </td>
-                <td style="padding: 12px 16px">~6 hrs</td>
-                <td style="padding: 12px 16px">31</td>
+                <td id="cost-p3-hours" style="padding: 12px 16px">~7 hrs</td>
+                <td id="cost-p3-commits" style="padding: 12px 16px">50</td>
                 <td style="padding: 12px 16px">1</td>
                 <td style="padding: 12px 16px">
                   0.12M<br /><span style="font-size: 0.75rem; opacity: 0.6"
@@ -2417,9 +2462,10 @@
                   >
                 </td>
                 <td
+                  id="cost-p3-cost"
                   style="padding: 12px 16px; color: #10b981; font-weight: 600"
                 >
-                  $8.41
+                  $65.41
                 </td>
                 <td style="padding: 12px 16px; font-size: 0.85rem">
                   GCP deploy pipeline, WIF auth, OAuth setup, blank screen fix,
@@ -2436,14 +2482,17 @@
                 "
               >
                 <td style="padding: 12px 16px">Total</td>
-                <td style="padding: 12px 16px">~31 hrs</td>
-                <td style="padding: 12px 16px">102</td>
+                <td id="cost-total-hours" style="padding: 12px 16px">
+                  ~32 hrs
+                </td>
+                <td id="cost-total-commits" style="padding: 12px 16px">121</td>
                 <td style="padding: 12px 16px">63</td>
-                <td style="padding: 12px 16px">5.45M</td>
+                <td id="cost-total-tokens" style="padding: 12px 16px">6.33M</td>
                 <td
+                  id="cost-total-cost"
                   style="padding: 12px 16px; color: #10b981; font-size: 1.1rem"
                 >
-                  $219.27
+                  $276
                 </td>
                 <td style="padding: 12px 16px">
                   Full production app + CI/CD + docs + demo
@@ -2467,19 +2516,21 @@
           </div>
           <div class="glass-card eff-card agentic reveal reveal-delay-4">
             <div class="eff-tag">Agentic AI Engineering</div>
-            <div class="eff-stat" style="color: #10b981">$219 total</div>
-            <div class="eff-detail">
+            <div id="eff-agentic-stat" class="eff-stat" style="color: #10b981">
+              $276 total
+            </div>
+            <div class="eff-detail" id="eff-agentic-detail">
               1 developer as architect<br />
-              5.45M tokens across 63 sessions<br />
-              31 hours total (17h build + 8h CI + 6h prod)<br />
-              102 commits, 1,219 tests, 0 errors
+              6.33M tokens across 63 sessions<br />
+              32 hours total (17h build + 8h CI + 7h prod)<br />
+              121 commits, 1,219 tests, 0 errors
             </div>
           </div>
         </div>
         <div class="roi-banner reveal reveal-delay-5">
-          <div class="roi-number">2000x+</div>
-          <p>
-            "$219 and 31 hours vs $500K+ and 12 months. This is not about
+          <div id="roi-number" class="roi-number">1800x+</div>
+          <p id="roi-text">
+            "$276 and 32 hours vs $500K+ and 12 months. This is not about
             replacing developers &mdash; it is about amplifying what one
             developer can do."
           </p>
@@ -2591,9 +2642,11 @@
           &#128025; GitHub Repository
         </a>
       </div>
-      <div class="footer-built">
-        Built with <strong>Claude Code</strong> by Anthropic &mdash; 427
-        features, 62,997 lines, 1,219 tests.<br />
+      <div class="footer-built" id="footer-built">
+        Built with <strong>Claude Code</strong> by Anthropic &mdash;
+        <span id="footer-features">427</span> features,
+        <span id="footer-loc">62,997</span> lines,
+        <span id="footer-tests">1,219</span> tests.<br />
         First commit: Feb 25, 2026. All features complete: Feb 26, 2026.
       </div>
     </footer>
@@ -2630,8 +2683,8 @@
      TYPEWRITER
      -------------------------------------------------------- */
         var phrases = [
-          "31 hours. $219. 427 features. Production-deployed.",
-          "5.45M tokens across 63 Claude Code sessions.",
+          "32 hours. $276. 427 features. Production-deployed.",
+          "6.33M tokens across 63 Claude Code sessions.",
           "Full-stack TypeScript. Canvas grid at 60fps.",
           "Real-time collaboration with Yjs CRDT.",
           "One developer + Claude Code = production SaaS.",
@@ -2825,6 +2878,20 @@
             window.location.port === "5173" ? "http://localhost:3001" : "";
           var url = apiBase + "/api/stats";
 
+          // Helper: set text content by id
+          function setText(id, val) {
+            var el = document.getElementById(id);
+            if (el)
+              el.textContent =
+                typeof val === "number" ? val.toLocaleString() : String(val);
+          }
+
+          // Helper: set data-target for animated counters by id
+          function setTarget(id, val) {
+            var el = document.getElementById(id);
+            if (el) el.setAttribute("data-target", String(val));
+          }
+
           fetch(url)
             .then(function (res) {
               if (!res.ok) throw new Error("Stats API " + res.status);
@@ -2833,28 +2900,21 @@
             .then(function (json) {
               if (!json.success || !json.data) return;
               var d = json.data;
+              var phases = d.development.phases || [];
+              var totalPRs =
+                (d.github.openPRs || 0) + (d.github.mergedPRs || 0);
 
-              // Show the live stats bar
+              // === LIVE STATS BAR (GitHub) ===
               var bar = document.getElementById("liveStatsBar");
               if (bar) bar.style.display = "";
 
-              // Fill live stat values
-              function setLive(id, val) {
-                var el = document.getElementById(id);
-                if (el)
-                  el.textContent =
-                    typeof val === "number" ? val.toLocaleString() : val;
-              }
+              setText("liveOpenIssues", d.github.openIssues);
+              setText("liveClosedIssues", d.github.closedIssues);
+              setText("liveOpenPRs", d.github.openPRs);
+              setText("liveMergedPRs", d.github.mergedPRs);
+              setText("liveCommits", d.github.commits);
 
-              setLive("liveOpenIssues", d.github.openIssues);
-              setLive("liveClosedIssues", d.github.closedIssues);
-              setLive("liveOpenPRs", d.github.openPRs);
-              setLive("liveMergedPRs", d.github.mergedPRs);
-              setLive("liveCommits", d.github.commits);
-
-              // === UPDATE ALL HERO STATS FROM API ===
-
-              // Row 1: Features, LOC, Tests, Commits
+              // === HERO ROW 1: Features, LOC, Tests, Commits ===
               var heroStatNumbers = document.querySelectorAll(
                 ".stats-grid > .stat-card .stat-number",
               );
@@ -2879,98 +2939,80 @@
                   String(d.github.commits),
                 );
 
-              // Phase breakdown cards — update hours, commits, descriptions
-              var phaseCards = document.querySelectorAll("[data-phase]");
-              if (phaseCards.length === 0) {
-                // Find phase cards by content pattern
-                var allStatCards = document.querySelectorAll(
-                  ".stat-card .stat-number",
+              // === HERO PHASE BREAKDOWN CARDS ===
+              // Phase hour counters (animated)
+              var allStatCards = document.querySelectorAll(
+                ".stat-card .stat-number",
+              );
+              if (allStatCards.length >= 7 && phases.length >= 3) {
+                allStatCards[4].setAttribute(
+                  "data-target",
+                  String(phases[0].hours),
                 );
-                var phases = d.development.phases;
-                // Phase hours are at indices 4,5,6 (after hero row 1)
-                if (allStatCards.length >= 7 && phases.length >= 3) {
-                  allStatCards[4].setAttribute(
-                    "data-target",
-                    String(phases[0].hours),
-                  );
-                  allStatCards[5].setAttribute(
-                    "data-target",
-                    String(phases[1].hours),
-                  );
-                  allStatCards[6].setAttribute(
-                    "data-target",
-                    String(phases[2].hours),
-                  );
-                }
-                // Totals row: total hours, total tokens, total cost at indices 7,8
-                if (allStatCards.length >= 9) {
-                  allStatCards[7].setAttribute(
-                    "data-target",
-                    String(d.development.totalHours),
-                  );
-                  allStatCards[8].setAttribute(
-                    "data-target",
-                    String(parseFloat(d.development.totalTokens)),
-                  );
-                  allStatCards[8].setAttribute("data-decimals", "2");
-                }
+                allStatCards[5].setAttribute(
+                  "data-target",
+                  String(phases[1].hours),
+                );
+                allStatCards[6].setAttribute(
+                  "data-target",
+                  String(phases[2].hours),
+                );
               }
 
-              // Update total cost text (not animated, direct text)
-              var costEls = document.querySelectorAll(".stat-card");
-              costEls.forEach(function (card) {
-                var label = card.querySelector(".stat-label");
-                if (label && label.textContent === "Total Cost") {
-                  var numEl = card.querySelector("div[style]");
-                  if (numEl) numEl.textContent = d.development.totalCost;
-                }
-              });
+              // Total hours & tokens (animated)
+              var heroTotalHours = document.getElementById("hero-total-hours");
+              if (heroTotalHours)
+                heroTotalHours.setAttribute(
+                  "data-target",
+                  String(d.development.totalHours),
+                );
+              var heroTotalTokens =
+                document.getElementById("hero-total-tokens");
+              if (heroTotalTokens) {
+                heroTotalTokens.setAttribute(
+                  "data-target",
+                  String(parseFloat(d.development.totalTokens)),
+                );
+                heroTotalTokens.setAttribute("data-decimals", "2");
+              }
 
-              // Update phase commit counts in sub-text
-              var phases = d.development.phases;
+              // Total cost (direct text, not animated)
+              setText("hero-total-cost", d.development.totalCost);
+
+              // Phase sub-texts (commits per phase)
               if (phases.length >= 3) {
-                var phaseSubTexts = [];
-                costEls.forEach(function (card) {
-                  var sub = card.querySelector("div[style*='opacity']");
-                  if (sub && sub.textContent.includes("commits"))
-                    phaseSubTexts.push(sub);
-                });
-                if (phaseSubTexts.length >= 3) {
-                  phaseSubTexts[0].textContent =
-                    phases[0].commits + " commits \u00B7 427 features";
-                  phaseSubTexts[1].textContent =
-                    phases[1].commits + " commits \u00B7 6 workflows";
-                  phaseSubTexts[2].textContent =
-                    phases[2].commits + " commits \u00B7 deploy + fixes";
-                }
+                setText(
+                  "phase1-sub",
+                  phases[0].commits +
+                    " commits \u00B7 " +
+                    (d.app.features || 427) +
+                    " features",
+                );
+                setText(
+                  "phase2-sub",
+                  phases[1].commits + " commits \u00B7 6 workflows",
+                );
+                setText(
+                  "phase3-sub",
+                  phases[2].commits + " commits \u00B7 deploy + fixes",
+                );
               }
 
-              // Update GitHub section stats
-              var ghStats = document.querySelectorAll(".gh-stat-num");
-              if (ghStats.length >= 5) {
-                if (d.github.commits > 0)
-                  ghStats[0].setAttribute(
-                    "data-target",
-                    String(d.github.commits),
-                  );
-                if (d.github.openPRs + d.github.mergedPRs > 0)
-                  ghStats[1].setAttribute(
-                    "data-target",
-                    String(d.github.openPRs + d.github.mergedPRs),
-                  );
-                if (d.github.mergedPRs > 0)
-                  ghStats[2].setAttribute(
-                    "data-target",
-                    String(d.github.mergedPRs),
-                  );
-                if (d.github.totalIssues > 0)
-                  ghStats[3].setAttribute(
-                    "data-target",
-                    String(d.github.totalIssues),
-                  );
-              }
+              // === SECTION 5: GITHUB PIPELINE STATS ===
+              setTarget("gh-commits", d.github.commits);
+              if (totalPRs > 0) setTarget("gh-prs", totalPRs);
+              if (d.github.mergedPRs > 0)
+                setTarget("gh-merged", d.github.mergedPRs);
+              if (d.github.totalIssues > 0)
+                setTarget("gh-issues", d.github.totalIssues);
 
-              // Update parity section
+              // Pipeline step test count
+              setText(
+                "pipeline-tests-count",
+                d.app.testsCount ? d.app.testsCount.toLocaleString() : "1,219",
+              );
+
+              // === SECTION 7: PARITY ===
               var parityPercent = document.querySelector(".parity-percent");
               if (parityPercent && d.parity.percentage) {
                 parityPercent.setAttribute(
@@ -2979,7 +3021,129 @@
                 );
               }
 
-              // Show last-updated timestamp
+              // Parity subtitle and subtext
+              setText("parity-total-text", d.parity.total);
+              setText("parity-implemented-text", d.parity.implemented);
+
+              var paritySubtext = document.getElementById("parity-subtext");
+              if (paritySubtext && d.parity) {
+                var fullCount = d.parity.implemented + d.parity.partial;
+                paritySubtext.textContent =
+                  fullCount +
+                  " of " +
+                  d.parity.total +
+                  " Google Sheets features (" +
+                  d.parity.implemented +
+                  " full + " +
+                  d.parity.partial +
+                  " partial) \u2014 from zero in under 4 hours";
+              }
+
+              // === SECTION 8: COST TABLE ===
+              if (phases.length >= 3) {
+                // Phase 1
+                setText("cost-p1-hours", "~" + phases[0].hours + " hrs");
+                setText("cost-p1-commits", phases[0].commits);
+                setText("cost-p1-cost", phases[0].cost);
+                // Phase 2
+                setText("cost-p2-hours", "~" + phases[1].hours + " hrs");
+                setText("cost-p2-commits", phases[1].commits);
+                setText("cost-p2-cost", phases[1].cost);
+                // Phase 3
+                setText("cost-p3-hours", "~" + phases[2].hours + " hrs");
+                setText("cost-p3-commits", phases[2].commits);
+                setText("cost-p3-cost", phases[2].cost);
+                // Totals
+                var totalCommits = phases.reduce(function (s, p) {
+                  return s + p.commits;
+                }, 0);
+                setText(
+                  "cost-total-hours",
+                  "~" + d.development.totalHours + " hrs",
+                );
+                setText("cost-total-commits", d.github.commits || totalCommits);
+                setText("cost-total-tokens", d.development.totalTokens);
+                setText("cost-total-cost", d.development.totalCost);
+              }
+
+              // === SECTION 8: EFFICIENCY COMPARISON CARD ===
+              var effStat = document.getElementById("eff-agentic-stat");
+              if (effStat)
+                effStat.textContent = d.development.totalCost + " total";
+
+              var effDetail = document.getElementById("eff-agentic-detail");
+              if (effDetail && phases.length >= 3) {
+                effDetail.innerHTML =
+                  "1 developer as architect<br>" +
+                  d.development.totalTokens +
+                  " tokens across 63 sessions<br>" +
+                  d.development.totalHours +
+                  " hours total (" +
+                  phases[0].hours +
+                  "h build + " +
+                  phases[1].hours +
+                  "h CI + " +
+                  phases[2].hours +
+                  "h prod)<br>" +
+                  (d.github.commits || "121") +
+                  " commits, " +
+                  (d.app.testsCount
+                    ? d.app.testsCount.toLocaleString()
+                    : "1,219") +
+                  " tests, 0 errors";
+              }
+
+              // === SECTION 8: ROI BANNER ===
+              var roiNumber = document.getElementById("roi-number");
+              if (roiNumber) {
+                var costNum = parseFloat(
+                  d.development.totalCost.replace(/[^0-9.]/g, ""),
+                );
+                var roiMultiple = Math.floor(500000 / costNum);
+                roiNumber.textContent = roiMultiple + "x+";
+              }
+
+              var roiText = document.getElementById("roi-text");
+              if (roiText) {
+                roiText.textContent =
+                  "\u201C" +
+                  d.development.totalCost +
+                  " and " +
+                  d.development.totalHours +
+                  " hours vs $500K+ and 12 months. " +
+                  "This is not about replacing developers \u2014 it is about " +
+                  "amplifying what one developer can do.\u201D";
+              }
+
+              // === SECTION 6: FEATURE SHOWCASE COUNT ===
+              setText("features-showcase-count", d.app.features);
+
+              // === FOOTER ===
+              setText("footer-features", d.app.features);
+              setText(
+                "footer-loc",
+                d.app.linesOfCode
+                  ? d.app.linesOfCode.toLocaleString()
+                  : "62,997",
+              );
+              setText(
+                "footer-tests",
+                d.app.testsCount ? d.app.testsCount.toLocaleString() : "1,219",
+              );
+
+              // === TYPEWRITER PHRASES ===
+              phrases[0] =
+                d.development.totalHours +
+                " hours. " +
+                d.development.totalCost +
+                ". " +
+                d.app.features +
+                " features. Production-deployed.";
+              phrases[1] =
+                d.development.totalTokens +
+                " tokens across 63 Claude Code sessions.";
+
+              // === LIVE STATS TIMESTAMP ===
               var updatedEl = document.getElementById("liveStatsUpdated");
               if (updatedEl) {
                 var now = new Date();
