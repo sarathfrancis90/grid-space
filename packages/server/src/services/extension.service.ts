@@ -245,7 +245,7 @@ export async function updatePermissions(
   if (!ext) throw new NotFoundError("Extension not found");
   if (ext.userId !== userId) throw new ForbiddenError("Access denied");
 
-  const manifest = ext.manifest as ExtensionManifest;
+  const manifest = validateManifest(ext.manifest);
   for (const perm of grantedPermissions) {
     if (!manifest.permissions.includes(perm)) {
       throw new ValidationError(

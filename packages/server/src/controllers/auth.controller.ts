@@ -242,7 +242,7 @@ export function oauthGoogleCallback(
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
       res.redirect(
-        `${env.CLIENT_URL}/auth/callback?token=${result.tokens.accessToken}`,
+        `${env.CLIENT_URL}/oauth/callback?token=${result.tokens.accessToken}`,
       );
     },
   )(req, res, next);
@@ -283,7 +283,7 @@ export function oauthGithubCallback(
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
       res.redirect(
-        `${env.CLIENT_URL}/auth/callback?token=${result.tokens.accessToken}`,
+        `${env.CLIENT_URL}/oauth/callback?token=${result.tokens.accessToken}`,
       );
     },
   )(req, res, next);

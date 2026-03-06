@@ -14,10 +14,10 @@ export const globalLimiter = rateLimit({
   },
 });
 
-/** Auth endpoints: 5 requests per minute (disabled in test) */
-export const authLimiter = rateLimit({
+/** High-risk auth endpoints: 10 requests per minute (disabled in test) */
+export const authAttemptLimiter = rateLimit({
   windowMs: 60 * 1000,
-  limit: isTest ? 10000 : 5,
+  limit: isTest ? 10000 : 10,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: {
@@ -25,6 +25,24 @@ export const authLimiter = rateLimit({
     error: {
       code: 429,
       message: "Too many auth attempts, please try again later",
+    },
+  },
+});
+
+/**
+ * Session/auth utility endpoints need a higher ceiling because clients can
+ * legitimately call refresh/logout repeatedly across tabs/devices.
+ */
+export const authSessionLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: isTest ? 10000 : 60,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: {
+      code: 429,
+      message: "Too many auth session requests, please try again later",
     },
   },
 });
