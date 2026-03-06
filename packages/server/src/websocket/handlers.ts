@@ -22,6 +22,7 @@ import * as cellLocks from "./cellLocks";
 import { checkRateLimit, removeClient } from "./rateLimit";
 import logger from "../utils/logger";
 import prisma from "../models/prisma";
+import { fireTriggers } from "../services/trigger.service";
 
 function roomName(spreadsheetId: string): string {
   return `spreadsheet:${spreadsheetId}`;
@@ -102,6 +103,15 @@ export function registerHandlers(io: Server, socket: Socket): void {
 
       // Broadcast join to others
       socket.to(room).emit(WS_EVENTS.USER_JOINED, user);
+
+      // Fire onOpen triggers (non-blocking)
+      fireTriggers(spreadsheetId, "onOpen", {
+        userId,
+        sheetId,
+        tabId,
+      }).catch((err: unknown) => {
+        logger.error({ err, spreadsheetId }, "Failed to fire onOpen triggers");
+      });
 
       logger.debug({ userId, spreadsheetId, tabId }, "User joined spreadsheet");
     }),
@@ -184,6 +194,17 @@ export function registerHandlers(io: Server, socket: Socket): void {
         value,
         formula,
       });
+
+      // Fire onEdit triggers (non-blocking)
+      fireTriggers(spreadsheetId, "onEdit", {
+        sheetId,
+        cell,
+        value,
+        formula,
+        userId,
+      }).catch((err: unknown) => {
+        logger.error({ err, spreadsheetId }, "Failed to fire onEdit triggers");
+      });
     }),
   );
 
@@ -247,6 +268,15 @@ export function registerHandlers(io: Server, socket: Socket): void {
         ...p,
         userId,
       });
+
+      fireTriggers(p.spreadsheetId, "onChange", {
+        type: "sheet-add",
+        sheetId: p.sheetId,
+        name: p.name,
+        userId,
+      }).catch((err: unknown) => {
+        logger.error({ err }, "Failed to fire onChange triggers");
+      });
     }),
   );
 
@@ -260,6 +290,14 @@ export function registerHandlers(io: Server, socket: Socket): void {
         type: "delete",
         ...p,
         userId,
+      });
+
+      fireTriggers(p.spreadsheetId, "onChange", {
+        type: "sheet-delete",
+        sheetId: p.sheetId,
+        userId,
+      }).catch((err: unknown) => {
+        logger.error({ err }, "Failed to fire onChange triggers");
       });
     }),
   );
@@ -275,61 +313,47 @@ export function registerHandlers(io: Server, socket: Socket): void {
         ...p,
         userId,
       });
+
+      fireTriggers(p.spreadsheetId, "onChange", {
+        type: "sheet-rename",
+        sheetId: p.sheetId,
+        name: p.name,
+        userId,
+      }).catch((err: unknown) => {
+        logger.error({ err }, "Failed to fire onChange triggers");
+      });
     }),
   );
 
   // ─── STRUCTURAL CHANGES ─────────────────────────────────
-  socket.on(
-    WS_EVENTS.ROW_INSERT,
-    withRateLimit((payload: unknown) => {
-      const p = payload as StructureChangePayload;
-      if (!data.spreadsheetId || data.spreadsheetId !== p.spreadsheetId) return;
+  function handleStructureChange(payload: unknown): void {
+    const p = payload as StructureChangePayload;
+    if (!data.spreadsheetId || data.spreadsheetId !== p.spreadsheetId) return;
 
-      socket.to(roomName(p.spreadsheetId)).emit(WS_EVENTS.STRUCTURE_SYNC, {
-        ...p,
-        userId,
-      });
-    }),
-  );
+    socket.to(roomName(p.spreadsheetId)).emit(WS_EVENTS.STRUCTURE_SYNC, {
+      ...p,
+      userId,
+    });
 
-  socket.on(
-    WS_EVENTS.ROW_DELETE,
-    withRateLimit((payload: unknown) => {
-      const p = payload as StructureChangePayload;
-      if (!data.spreadsheetId || data.spreadsheetId !== p.spreadsheetId) return;
+    // Fire onChange triggers (non-blocking)
+    fireTriggers(p.spreadsheetId, "onChange", {
+      type: p.type,
+      sheetId: p.sheetId,
+      index: p.index,
+      count: p.count,
+      userId,
+    }).catch((err: unknown) => {
+      logger.error(
+        { err, spreadsheetId: p.spreadsheetId },
+        "Failed to fire onChange triggers",
+      );
+    });
+  }
 
-      socket.to(roomName(p.spreadsheetId)).emit(WS_EVENTS.STRUCTURE_SYNC, {
-        ...p,
-        userId,
-      });
-    }),
-  );
-
-  socket.on(
-    WS_EVENTS.COL_INSERT,
-    withRateLimit((payload: unknown) => {
-      const p = payload as StructureChangePayload;
-      if (!data.spreadsheetId || data.spreadsheetId !== p.spreadsheetId) return;
-
-      socket.to(roomName(p.spreadsheetId)).emit(WS_EVENTS.STRUCTURE_SYNC, {
-        ...p,
-        userId,
-      });
-    }),
-  );
-
-  socket.on(
-    WS_EVENTS.COL_DELETE,
-    withRateLimit((payload: unknown) => {
-      const p = payload as StructureChangePayload;
-      if (!data.spreadsheetId || data.spreadsheetId !== p.spreadsheetId) return;
-
-      socket.to(roomName(p.spreadsheetId)).emit(WS_EVENTS.STRUCTURE_SYNC, {
-        ...p,
-        userId,
-      });
-    }),
-  );
+  socket.on(WS_EVENTS.ROW_INSERT, withRateLimit(handleStructureChange));
+  socket.on(WS_EVENTS.ROW_DELETE, withRateLimit(handleStructureChange));
+  socket.on(WS_EVENTS.COL_INSERT, withRateLimit(handleStructureChange));
+  socket.on(WS_EVENTS.COL_DELETE, withRateLimit(handleStructureChange));
 
   // ─── FORMAT SYNC ────────────────────────────────────────
   socket.on(

@@ -30,6 +30,7 @@ model User {
   notifications      Notification[]
   notificationPrefs  NotificationPreference[]
   extensions         Extension[]
+  triggers           Trigger[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -62,6 +63,7 @@ model Spreadsheet {
   webhooks       Webhook[]
   comments       Comment[]
   notifications  Notification[]
+  triggers       Trigger[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -300,6 +302,55 @@ model NotificationPreference {
   @@unique([userId, spreadsheetId])
   @@index([userId])
   @@map("notification_preferences")
+}
+
+// ─── TRIGGER ────────────────────────────────────────────
+model Trigger {
+  id             String      @id @default(cuid())
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  spreadsheetId  String      @map("spreadsheet_id")
+  spreadsheet    Spreadsheet @relation(fields: [spreadsheetId], references: [id], onDelete: Cascade)
+
+  macroId        String      @map("macro_id")
+  eventType      String      @map("event_type")  // "onEdit" | "onOpen" | "onChange" | "timeBased"
+  isEnabled      Boolean     @default(true) @map("is_enabled")
+
+  // Time-based trigger config (cron-like)
+  intervalMinutes Int?       @map("interval_minutes")
+  lastFiredAt    DateTime?   @map("last_fired_at")
+  nextFireAt     DateTime?   @map("next_fire_at")
+
+  logs           TriggerLog[]
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@unique([userId, spreadsheetId, macroId, eventType])
+  @@index([spreadsheetId, eventType])
+  @@index([userId])
+  @@index([nextFireAt])
+  @@map("triggers")
+}
+
+// ─── TRIGGER LOG ────────────────────────────────────────
+model TriggerLog {
+  id             String      @id @default(cuid())
+
+  triggerId      String      @map("trigger_id")
+  trigger        Trigger     @relation(fields: [triggerId], references: [id], onDelete: Cascade)
+
+  status         String      @default("success") // "success" | "error"
+  message        String?
+  durationMs     Int?        @map("duration_ms")
+  eventPayload   Json?       @map("event_payload")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@index([triggerId, createdAt])
+  @@map("trigger_logs")
 }
 
 // ─── EXTENSION ──────────────────────────────────────────

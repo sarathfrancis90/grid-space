@@ -67,6 +67,7 @@ interface UIState {
   isAIAnalysisOpen: boolean;
   isNamedFunctionsDialogOpen: boolean;
   isKeyboardShortcutsOpen: boolean;
+  isTriggerManagerOpen: boolean;
   /** S2-001: whether user is in formula editing mode (started typing "=") */
   isFormulaMode: boolean;
   /** S2-004: colored references parsed from the current formula */
@@ -99,6 +100,7 @@ interface UIState {
   setAIAnalysisOpen: (open: boolean) => void;
   setNamedFunctionsDialogOpen: (open: boolean) => void;
   setKeyboardShortcutsOpen: (open: boolean) => void;
+  setTriggerManagerOpen: (open: boolean) => void;
   /** S2-001: enter/exit formula mode */
   setFormulaMode: (active: boolean) => void;
   /** S2-003: insert a cell reference at the cursor in the formula */
@@ -134,6 +136,7 @@ export const useUIStore = create<UIState>()(
     isAIAnalysisOpen: false,
     isNamedFunctionsDialogOpen: false,
     isKeyboardShortcutsOpen: false,
+    isTriggerManagerOpen: false,
     isFormulaMode: false,
     formulaReferences: [],
 
@@ -330,6 +333,12 @@ export const useUIStore = create<UIState>()(
     setKeyboardShortcutsOpen: (open: boolean) => {
       set((state) => {
         state.isKeyboardShortcutsOpen = open;
+      });
+    },
+
+    setTriggerManagerOpen: (open: boolean) => {
+      set((state) => {
+        state.isTriggerManagerOpen = open;
       });
     },
 

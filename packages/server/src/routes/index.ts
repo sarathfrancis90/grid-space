@@ -20,6 +20,7 @@ import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
 import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
 import extensionRoutes from "./extension.routes";
+import triggerRoutes from "./trigger.routes";
 
 const router = Router();
 
@@ -82,6 +83,9 @@ router.use("/users/me/api-keys", apiKeyRoutes);
 
 // Extensions
 router.use("/extensions", extensionRoutes);
+
+// Triggers (nested under spreadsheets)
+router.use("/spreadsheets/:id/triggers", triggerRoutes);
 
 // Webhook management
 router.use("/webhooks", webhookRoutes);

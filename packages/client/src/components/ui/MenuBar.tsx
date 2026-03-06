@@ -538,6 +538,14 @@ export function MenuBar() {
           },
         },
         {
+          label: "Manage Triggers...",
+          testId: "menu-tools-manage-triggers",
+          action: () => {
+            useUIStore.getState().setTriggerManagerOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Explore data",
           testId: "menu-tools-explore",
           separator: true,

@@ -58,6 +58,9 @@ export const WS_EVENTS = {
   // Comment reactions
   REACTION_TOGGLE: "reaction-toggle",
   REACTION_UPDATE: "reaction-update",
+
+  // Trigger events
+  TRIGGER_FIRED: "trigger-fired",
 } as const;
 
 export interface PresenceUser {
