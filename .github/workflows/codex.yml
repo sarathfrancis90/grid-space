@@ -136,7 +136,7 @@ jobs:
           codex-args: "--search"
           prompt-file: .github/prompts/codex-implement.md
           output-file: .codex-output/implement.json
-          safety-strategy: warn
+          safety-strategy: unprivileged-user
           allow-bots: true
 
       - name: Move issue to In review
