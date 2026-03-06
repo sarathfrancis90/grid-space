@@ -12,6 +12,18 @@ import type {
 } from "../../types/formula";
 import { isFormulaError } from "../../types/formula";
 import { getFunction, hasFunction } from "./functions";
+import { parseFormula as parseFormulaImport } from "./parser";
+import type { NamedFunction } from "../../types/grid";
+
+let namedFunctionResolver:
+  | ((name: string) => NamedFunction | undefined)
+  | null = null;
+
+export function setNamedFunctionResolver(
+  resolver: ((name: string) => NamedFunction | undefined) | null,
+): void {
+  namedFunctionResolver = resolver;
+}
 
 export class EvaluationError extends Error {
   constructor(
@@ -130,6 +142,13 @@ function evaluateFunction(
   const upperName = name.toUpperCase();
 
   if (!hasFunction(upperName)) {
+    // Check named functions before returning #NAME?
+    if (namedFunctionResolver) {
+      const namedFn = namedFunctionResolver(upperName);
+      if (namedFn) {
+        return evaluateNamedFunction(namedFn, argNodes, getCellValue);
+      }
+    }
     return "#NAME?" as FormulaError;
   }
 
@@ -634,6 +653,61 @@ function evaluateCall(
   // Substitute bindings into the body and evaluate
   const substitutedBody = substituteBindings(lambda.body, bindings);
   return evaluate(substitutedBody, lambda.getCellValue);
+}
+
+// ---------------------------------------------------------------------------
+// Named Functions — user-defined reusable functions (Google Sheets parity)
+// ---------------------------------------------------------------------------
+
+let namedFunctionCallDepth = 0;
+const MAX_NAMED_FUNCTION_DEPTH = 32;
+
+function evaluateNamedFunction(
+  namedFn: NamedFunction,
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+): FormulaValue {
+  // Prevent infinite recursion
+  if (namedFunctionCallDepth >= MAX_NAMED_FUNCTION_DEPTH) {
+    return "#VALUE!" as FormulaError;
+  }
+
+  // Arity check
+  if (argNodes.length !== namedFn.arguments.length) {
+    return "#VALUE!" as FormulaError;
+  }
+
+  // Evaluate call arguments
+  const callArgs: FormulaValue[] = [];
+  for (const argNode of argNodes) {
+    callArgs.push(evaluateArg(argNode, getCellValue));
+  }
+
+  // Build bindings from parameter names to argument values
+  const bindings = new Map<string, FormulaValue>();
+  for (let i = 0; i < namedFn.arguments.length; i++) {
+    bindings.set(namedFn.arguments[i].name.toUpperCase(), callArgs[i]);
+  }
+
+  // Parse the formula body and substitute bindings
+  try {
+    const bodyAST = parseFormulaImport(namedFn.formulaBody);
+    const substituted = substituteBindings(bodyAST, bindings);
+
+    namedFunctionCallDepth++;
+    try {
+      return evaluate(substituted, getCellValue);
+    } finally {
+      namedFunctionCallDepth--;
+    }
+  } catch {
+    return "#VALUE!" as FormulaError;
+  }
+}
+
+/** Reset named function call depth (call before each top-level evaluation). */
+export function resetNamedFunctionCallDepth(): void {
+  namedFunctionCallDepth = 0;
 }
 
 /**

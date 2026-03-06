@@ -144,6 +144,21 @@ export interface NamedRange {
   endCol: number;
 }
 
+// Named Functions (Google Sheets parity)
+export interface NamedFunctionArgument {
+  name: string;
+  description: string;
+}
+
+export interface NamedFunction {
+  name: string;
+  formulaBody: string;
+  description: string;
+  arguments: NamedFunctionArgument[];
+  createdAt: number;
+  updatedAt: number;
+}
+
 // Pivot Tables
 export type PivotAggregation = "SUM" | "COUNT" | "AVERAGE" | "MIN" | "MAX";
 

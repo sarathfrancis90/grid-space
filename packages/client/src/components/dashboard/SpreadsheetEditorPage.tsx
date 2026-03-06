@@ -42,6 +42,7 @@ import { ViewSwitcher, KanbanView, TimelineView, CalendarView } from "../views";
 import { MacroRecorderBar } from "../macros/MacroRecorderBar";
 import { MacroManagerDialog } from "../macros/MacroManagerDialog";
 import { ScriptEditor } from "../macros/ScriptEditor";
+import { NamedFunctionsDialog } from "../ui/NamedFunctionsDialog";
 import { AIAnalysisPanel } from "../data/AIAnalysisPanel";
 import { useMacroRecorder } from "../../hooks/useMacroRecorder";
 import { useAutoSave } from "../../hooks/useAutoSave";
@@ -294,6 +295,7 @@ export default function SpreadsheetEditorPage() {
       <SlicerControl />
       <MacroManagerDialog />
       <ScriptEditor />
+      <NamedFunctionsDialog />
       <OfflineIndicator />
       <Suspense fallback={null}>
         <ChartOverlay />
