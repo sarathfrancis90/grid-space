@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useTableStore } from "../../stores/tableStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import type { TableStylePreset } from "../../types/grid";
@@ -24,7 +25,7 @@ const STYLE_PRESETS: { value: TableStylePreset; label: string }[] = [
 
 export function TableManager({ isOpen, onClose }: TableManagerProps) {
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
-  const tables = useTableStore((s) => s.getTablesForSheet(sheetId));
+  const tables = useTableStore(useShallow((s) => s.getTablesForSheet(sheetId)));
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
 
   if (!isOpen) return null;
