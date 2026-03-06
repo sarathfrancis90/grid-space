@@ -215,15 +215,15 @@ export function SheetTabs() {
             &#9776;
           </button>
           {showHiddenMenu && (
-            <div
-              data-testid="hidden-sheets-menu-backdrop"
-              className="fixed top-0 left-0 w-screen h-screen z-[200]"
-              onClick={() => setShowHiddenMenu(false)}
-            >
+            <>
+              <div
+                data-testid="hidden-sheets-menu-backdrop"
+                className="fixed inset-0 z-[200]"
+                onClick={() => setShowHiddenMenu(false)}
+              />
               <div
                 data-testid="hidden-sheets-menu"
-                className="absolute bg-white border border-gray-300 rounded shadow-lg min-w-[140px] py-1 z-[201]"
-                style={{ bottom: "40px", left: "0" }}
+                className="absolute bottom-full left-0 mb-1 z-[201] bg-white border border-gray-300 rounded shadow-lg min-w-[140px] py-1"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="px-4 py-1.5 text-xs text-gray-500">
@@ -240,7 +240,7 @@ export function SheetTabs() {
                   </div>
                 ))}
               </div>
-            </div>
+            </>
           )}
         </div>
       )}
