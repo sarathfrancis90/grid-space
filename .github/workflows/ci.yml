@@ -134,6 +134,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Generate feature count
         run: node scripts/generate-feature-count.js
+      - name: Build Server
+        run: npm run build --workspace=packages/server
       - name: Run Prisma Migrations
         run: npx prisma migrate deploy --schema packages/server/prisma/schema.prisma
       - name: Seed Test Database

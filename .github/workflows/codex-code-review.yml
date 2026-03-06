@@ -20,7 +20,7 @@ jobs:
       )
     runs-on: ubuntu-latest
     concurrency:
-      group: codex-review-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+      group: codex-global
       cancel-in-progress: false
     permissions:
       contents: write
@@ -63,15 +63,42 @@ jobs:
             echo "Review iteration $((REVIEW_COUNT + 1)) of 3 for PR #${{ steps.pr.outputs.number }}"
           fi
 
+      - name: Ensure Codex output directory
+        run: mkdir -p .codex-output
+
+      - name: Build Codex review runtime prompt
+        if: steps.pr.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUNTIME_PROMPT=".codex-output/codex-review.runtime.md"
+          cat .github/prompts/codex-review.md > "$RUNTIME_PROMPT"
+
+          {
+            echo
+            echo "## Runtime Trigger Context"
+            echo "- Event: ${{ github.event_name }}"
+            echo "- PR Number: ${{ steps.pr.outputs.number }}"
+            echo "- Actor: ${{ github.actor }}"
+          } >> "$RUNTIME_PROMPT"
+
+          if [ -n "${{ steps.pr.outputs.number }}" ]; then
+            echo >> "$RUNTIME_PROMPT"
+            echo "### PR Snapshot" >> "$RUNTIME_PROMPT"
+            gh pr view "${{ steps.pr.outputs.number }}" \
+              --json number,title,body,files \
+              --jq '{number,title,body,files:[.files[].path]}' >> "$RUNTIME_PROMPT" || true
+          fi
+
       - name: Run Codex Review
         if: steps.pr.outputs.number != '' && steps.check-iterations.outputs.max_reached != 'true'
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           model: gpt-5-codex
-          effort: high
+          effort: medium
           sandbox: workspace-write
-          prompt-file: .github/prompts/codex-review.md
+          prompt-file: .codex-output/codex-review.runtime.md
           output-file: .codex-output/review.json
           safety-strategy: unsafe
           allow-bots: true
