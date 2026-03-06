@@ -12,6 +12,7 @@ import type {
 } from "../../types/formula";
 import { isFormulaError } from "../../types/formula";
 import { getFunction, hasFunction } from "./functions";
+import { parseFormula } from "./parser";
 
 export class EvaluationError extends Error {
   constructor(
@@ -21,6 +22,23 @@ export class EvaluationError extends Error {
     super(message);
     this.name = "EvaluationError";
   }
+}
+
+export interface NamedFunctionDef {
+  formula: string;
+  argNames: string[];
+}
+
+export type NamedFunctionResolver = (
+  name: string,
+) => NamedFunctionDef | undefined;
+
+let namedFunctionResolver: NamedFunctionResolver | null = null;
+
+export function setNamedFunctionResolver(
+  resolver: NamedFunctionResolver | null,
+): void {
+  namedFunctionResolver = resolver;
 }
 
 /**
@@ -130,7 +148,7 @@ function evaluateFunction(
   const upperName = name.toUpperCase();
 
   if (!hasFunction(upperName)) {
-    return "#NAME?" as FormulaError;
+    return evaluateNamedFunction(upperName, argNodes, getCellValue);
   }
 
   const fn = getFunction(upperName);
@@ -328,6 +346,39 @@ function toBoolValue(val: FormulaValue): boolean {
   if (typeof val === "number") return val !== 0;
   if (val === null) return false;
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// Named Functions — user-defined reusable formulas
+// ---------------------------------------------------------------------------
+
+function evaluateNamedFunction(
+  name: string,
+  argNodes: ASTNode[],
+  getCellValue: CellValueGetter,
+): FormulaValue {
+  if (!namedFunctionResolver) return "#NAME?" as FormulaError;
+
+  const def = namedFunctionResolver(name);
+  if (!def) return "#NAME?" as FormulaError;
+
+  if (argNodes.length !== def.argNames.length) {
+    return "#VALUE!" as FormulaError;
+  }
+
+  const bindings = new Map<string, FormulaValue>();
+  for (let i = 0; i < def.argNames.length; i++) {
+    const argValue = evaluateArg(argNodes[i], getCellValue);
+    bindings.set(def.argNames[i].toUpperCase(), argValue);
+  }
+
+  try {
+    const bodyAst = parseFormula(def.formula);
+    const substituted = substituteBindings(bodyAst, bindings);
+    return evaluate(substituted, getCellValue);
+  } catch {
+    return "#VALUE!" as FormulaError;
+  }
 }
 
 // ---------------------------------------------------------------------------

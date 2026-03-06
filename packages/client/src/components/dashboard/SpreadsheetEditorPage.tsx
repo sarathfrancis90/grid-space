@@ -43,6 +43,7 @@ import { MacroRecorderBar } from "../macros/MacroRecorderBar";
 import { MacroManagerDialog } from "../macros/MacroManagerDialog";
 import { ScriptEditor } from "../macros/ScriptEditor";
 import { AIAnalysisPanel } from "../data/AIAnalysisPanel";
+import { NamedFunctionsDialog } from "../data/NamedFunctionsDialog";
 import { useMacroRecorder } from "../../hooks/useMacroRecorder";
 import { useAutoSave } from "../../hooks/useAutoSave";
 import { useHydrateFromServer } from "../../hooks/useHydrateFromServer";
@@ -291,6 +292,7 @@ export default function SpreadsheetEditorPage() {
       <RemoveDuplicatesDialog />
       <TextToColumnsDialog />
       <GoalSeekDialog />
+      <NamedFunctionsDialog />
       <SlicerControl />
       <MacroManagerDialog />
       <ScriptEditor />

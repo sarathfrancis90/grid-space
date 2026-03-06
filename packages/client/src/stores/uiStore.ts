@@ -65,6 +65,7 @@ interface UIState {
   isMacroManagerOpen: boolean;
   isScriptEditorOpen: boolean;
   isAIAnalysisOpen: boolean;
+  isNamedFunctionsOpen: boolean;
   /** S2-001: whether user is in formula editing mode (started typing "=") */
   isFormulaMode: boolean;
   /** S2-004: colored references parsed from the current formula */
@@ -95,6 +96,7 @@ interface UIState {
   setMacroManagerOpen: (open: boolean) => void;
   setScriptEditorOpen: (open: boolean) => void;
   setAIAnalysisOpen: (open: boolean) => void;
+  setNamedFunctionsOpen: (open: boolean) => void;
   /** S2-001: enter/exit formula mode */
   setFormulaMode: (active: boolean) => void;
   /** S2-003: insert a cell reference at the cursor in the formula */
@@ -128,6 +130,7 @@ export const useUIStore = create<UIState>()(
     isMacroManagerOpen: false,
     isScriptEditorOpen: false,
     isAIAnalysisOpen: false,
+    isNamedFunctionsOpen: false,
     isFormulaMode: false,
     formulaReferences: [],
 
@@ -312,6 +315,12 @@ export const useUIStore = create<UIState>()(
     setAIAnalysisOpen: (open: boolean) => {
       set((state) => {
         state.isAIAnalysisOpen = open;
+      });
+    },
+
+    setNamedFunctionsOpen: (open: boolean) => {
+      set((state) => {
+        state.isNamedFunctionsOpen = open;
       });
     },
 

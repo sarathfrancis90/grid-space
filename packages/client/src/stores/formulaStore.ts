@@ -330,3 +330,16 @@ export const useFormulaStore = create<FormulaState & FormulaActions>()(
     },
   })),
 );
+
+// Wire up named function resolution
+import { setNamedFunctionResolver } from "../components/formula/evaluator";
+import { useNamedFunctionStore } from "./namedFunctionStore";
+
+setNamedFunctionResolver((name: string) => {
+  const fn = useNamedFunctionStore.getState().getFunction(name);
+  if (!fn) return undefined;
+  return {
+    formula: fn.formula,
+    argNames: fn.args.map((a) => a.name),
+  };
+});

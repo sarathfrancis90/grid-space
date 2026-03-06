@@ -254,6 +254,18 @@ export interface CommentReply {
   createdAt: number;
 }
 
+// Named Functions
+export interface NamedFunctionArg {
+  name: string;
+  description: string;
+}
+
+export interface NamedFunction {
+  name: string;
+  formula: string;
+  description: string;
+  args: NamedFunctionArg[];
+}
 // Hyperlinks
 export interface CellHyperlink {
   url: string;
