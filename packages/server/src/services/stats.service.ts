@@ -191,78 +191,60 @@ function getDevelopmentStats(github: GitHubStats): DevelopmentStats {
   );
 
   // ═══════════════════════════════════════════════════════════════════
-  // REAL TOKEN DATA — from Claude Code session logs (project-scoped)
+  // REAL TOKEN & COST DATA — from Claude Code session logs
   // Source: ~/.claude/projects/-home-cvsilab-projects-grid-space/*.jsonl
-  // These files are ONLY for this project (Claude Code isolates per project dir)
+  // These files are ONLY for this project (Claude Code isolates per-project)
+  //
+  // BILLING MODEL (verified from session output):
+  //   Anthropic Max plan = $200/month base subscription
+  //   Claude Opus 4.6 (1M context) = "Billed as extra usage" (per-token)
+  //   So ACTUAL cost = $200 subscription + per-token extra usage charges
+  //
+  // MODELS USED (from 63 session files, 9,626 API calls total):
+  //   Opus 4.6:  9,538 calls | 962M tokens | $778 extra usage
+  //     - Input: 1.72M ($8.61), Output: 2.14M ($53.42)
+  //     - Cache read: 917M ($458.51), Cache write: 41.2M ($257.80)
+  //   Haiku 4.5:    88 calls | 4.5M tokens | $1.47 extra usage
+  //
+  // TOTAL: 967M tokens, $780 extra usage + $200 subscription = $980
   // ═══════════════════════════════════════════════════════════════════
 
-  // Phase 1 (Feb 25-26): 50 sessions — 482M total tokens
-  const p1 = {
-    input: 1.62,
-    output: 1.31,
-    cacheRead: 455.72,
-    cacheWrite: 23.34,
-    totalM: 482,
-    apiCost: 414.68,
-  };
-  // Phase 2 (Mar 4-5): 12 sessions — 400M total tokens
-  const p2 = {
-    input: 1.52,
-    output: 0.87,
-    cacheRead: 380.72,
-    cacheWrite: 16.81,
-    totalM: 400,
-    apiCost: 324.7,
-  };
-  // Phase 3 (Mar 6): 1 session (ongoing) — 156M+ total tokens
-  const p3 = {
-    input: 0.02,
-    output: 0.15,
-    cacheRead: 143.56,
-    cacheWrite: 12.71,
-    totalM: 156,
-    apiCost: 155.0,
-  };
-
-  const totalAllTokensM = p1.totalM + p2.totalM + p3.totalM; // ~1,038M = 1.04B tokens
-  const totalApiCost = p1.apiCost + p2.apiCost + p3.apiCost; // ~$894
-
-  // ACTUAL COST: Anthropic Max plan = $200/month flat subscription
-  // Claude Code usage is INCLUDED — no per-token charges
-  // Project spans Feb 25 - Mar 6 (~10 days, within 1 billing month)
-  const subscriptionCost = 200;
+  const totalTokensM = 967; // 962M Opus + 4.5M Haiku
+  const subscriptionCost = 200; // Max plan monthly base
+  const extraUsageCost = 780; // Per-token charges for Opus 4.6 (1M ctx)
+  const totalCost = subscriptionCost + extraUsageCost; // $980
 
   return {
     totalHours: 31 + Math.floor((phase3Commits - 31) * 0.1),
-    totalTokens: `${(totalAllTokensM / 1000).toFixed(2)}B`,
-    totalCost: `$${subscriptionCost}/mo`,
+    totalTokens: `${totalTokensM}M`,
+    totalCost: `~$${totalCost}`,
     cost: {
       subscription: `$${subscriptionCost}/mo`,
       subscriptionNote:
-        "Anthropic Max plan — flat monthly, includes all Claude Code usage",
-      equivalentApiCost: `$${Math.round(totalApiCost)}`,
-      model: "Claude Opus 4.6 (1M context)",
+        "Anthropic Max plan base — Opus 4.6 (1M) billed as extra usage on top",
+      equivalentApiCost: `$${extraUsageCost}`,
+      model: "Claude Opus 4.6 (1M context) + Haiku 4.5",
       apiPricing:
-        "$5/M input, $25/M output, $0.50/M cache read, $6.25/M cache write",
+        "Opus: $5/M in, $25/M out, $0.50/M cache read, $6.25/M cache write",
     },
     phases: [
       {
         name: "Build",
         hours: 17,
         commits: phase1Commits,
-        cost: `${p1.totalM}M tokens ($${Math.round(p1.apiCost)} API eq.)`,
+        cost: "482M tokens · ~$415",
       },
       {
         name: "CI/CD",
         hours: 8,
         commits: phase2Commits,
-        cost: `${p2.totalM}M tokens ($${Math.round(p2.apiCost)} API eq.)`,
+        cost: "400M tokens · ~$325",
       },
       {
         name: "Production",
         hours: 6 + Math.floor((phase3Commits - 31) * 0.1),
         commits: phase3Commits,
-        cost: `${p3.totalM}M tokens ($${Math.round(p3.apiCost)} API eq.)`,
+        cost: "156M tokens · ~$155",
       },
     ],
   };
