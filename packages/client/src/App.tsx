@@ -17,7 +17,7 @@ export function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/auth/callback" element={<OAuthCallback />} />
+        <Route path="/oauth/callback" element={<OAuthCallback />} />
 
         {/* Protected routes */}
         <Route

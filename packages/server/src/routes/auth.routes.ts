@@ -14,12 +14,12 @@ import {
   oauthGithubCallback,
 } from "../controllers/auth.controller";
 import { validate } from "../middleware/validate.middleware";
-import { authLimiter } from "../middleware/rateLimit.middleware";
+import {
+  authAttemptLimiter,
+  authSessionLimiter,
+} from "../middleware/rateLimit.middleware";
 
 const router = Router();
-
-// Rate limit all auth endpoints
-router.use(authLimiter);
 
 const registerSchema = {
   body: z.object({
@@ -50,30 +50,40 @@ const resetPasswordSchema = {
 };
 
 // POST /api/auth/register
-router.post("/register", validate(registerSchema), register);
+router.post("/register", authAttemptLimiter, validate(registerSchema), register);
 
 // POST /api/auth/login
-router.post("/login", validate(loginSchema), login);
+router.post("/login", authAttemptLimiter, validate(loginSchema), login);
 
 // POST /api/auth/refresh
-router.post("/refresh", refresh);
+router.post("/refresh", authSessionLimiter, refresh);
 
 // POST /api/auth/logout
-router.post("/logout", logout);
+router.post("/logout", authSessionLimiter, logout);
 
 // POST /api/auth/forgot-password
-router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
+router.post(
+  "/forgot-password",
+  authAttemptLimiter,
+  validate(forgotPasswordSchema),
+  forgotPassword,
+);
 
 // POST /api/auth/reset-password
-router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
+router.post(
+  "/reset-password",
+  authAttemptLimiter,
+  validate(resetPasswordSchema),
+  resetPassword,
+);
 
 // GET /api/auth/verify-email/:token
-router.get("/verify-email/:token", verifyEmailToken);
+router.get("/verify-email/:token", authSessionLimiter, verifyEmailToken);
 
 // OAuth routes (stubs)
-router.get("/oauth/google", oauthGoogleRedirect);
-router.get("/oauth/google/callback", oauthGoogleCallback);
-router.get("/oauth/github", oauthGithubRedirect);
-router.get("/oauth/github/callback", oauthGithubCallback);
+router.get("/oauth/google", authSessionLimiter, oauthGoogleRedirect);
+router.get("/oauth/google/callback", authSessionLimiter, oauthGoogleCallback);
+router.get("/oauth/github", authSessionLimiter, oauthGithubRedirect);
+router.get("/oauth/github/callback", authSessionLimiter, oauthGithubCallback);
 
 export default router;

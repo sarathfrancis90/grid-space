@@ -10,6 +10,7 @@ import type {
 import { useExtensionStore } from "../stores/extensionStore";
 import { useCellStore } from "../stores/cellStore";
 import { useSpreadsheetStore } from "../stores/spreadsheetStore";
+import { cellRefToPosition } from "../utils/coordinates";
 
 type PendingRequest = {
   resolve: (value: unknown) => void;
@@ -24,7 +25,6 @@ interface SandboxInstance {
 }
 
 const sandboxes = new Map<string, SandboxInstance>();
-
 
 /** Checks if the extension has the required permission */
 function checkPermission(
@@ -60,7 +60,8 @@ function handleApiCall(
         }
         const [, cellRef] = args as [string, string];
         const sheetId = useSpreadsheetStore.getState().activeSheetId;
-        const cell = useCellStore.getState().getCellByRef?.(sheetId, cellRef);
+        const { row, col } = cellRefToPosition(cellRef);
+        const cell = useCellStore.getState().getCell(sheetId, row, col);
         respond(cell?.value ?? null);
         break;
       }
