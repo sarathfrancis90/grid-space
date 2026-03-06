@@ -20,7 +20,7 @@ jobs:
       )
     runs-on: ubuntu-latest
     concurrency:
-      group: codex-global
+      group: codex-review-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
       cancel-in-progress: false
     permissions:
       contents: write
