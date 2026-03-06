@@ -14,7 +14,8 @@ import { useSharingStore } from "../../stores/sharingStore";
 import { Grid } from "../grid";
 import { MenuBar } from "../ui/MenuBar";
 import { FormulaBar } from "../formula-bar/FormulaBar";
-import { Toolbar } from "../toolbar";
+import { Toolbar, MobileToolbar } from "../toolbar";
+import { useIsMobile } from "../../hooks/useMediaQuery";
 import { SheetTabs } from "../sheets/SheetTabs";
 import { StatusBar } from "../ui/StatusBar";
 import { ZoomControls } from "../ui/ZoomControls";
@@ -90,6 +91,7 @@ export default function SpreadsheetEditorPage() {
   const user = useAuthStore((s) => s.user);
   const openShareDialog = useSharingStore((s) => s.openDialog);
   const activeView = useViewStore((s) => s.activeView);
+  const isMobile = useIsMobile();
 
   useMacroRecorder();
   useHydrateFromServer();
@@ -243,11 +245,11 @@ export default function SpreadsheetEditorPage() {
       {/* Macro recording bar */}
       <MacroRecorderBar />
 
-      {/* Menu bar */}
-      <MenuBar />
+      {/* Menu bar — hidden on mobile */}
+      {!isMobile && <MenuBar />}
 
-      {/* Toolbar */}
-      <Toolbar />
+      {/* Toolbar — collapses on mobile */}
+      {isMobile ? <MobileToolbar /> : <Toolbar />}
 
       {/* Formula bar */}
       {showFormulaBar && <FormulaBar />}

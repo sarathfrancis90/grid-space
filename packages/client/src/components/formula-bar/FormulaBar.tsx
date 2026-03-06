@@ -125,10 +125,10 @@ export function FormulaBar() {
       className="flex items-center border-b border-gray-200 bg-white h-8"
       style={{ height: "30px" }}
     >
-      {/* Name box */}
+      {/* Name box - narrower on mobile */}
       <div
-        className="flex-shrink-0 w-24 border-r border-gray-300 h-full"
-        style={{ width: "96px" }}
+        className="flex-shrink-0 border-r border-gray-300 h-full"
+        style={{ width: "clamp(56px, 15vw, 96px)" }}
       >
         <input
           ref={nameBoxRef}
@@ -144,9 +144,9 @@ export function FormulaBar() {
         />
       </div>
 
-      {/* fx label */}
+      {/* fx label - hidden on narrow screens */}
       <div
-        className="flex-shrink-0 flex items-center justify-center border-r border-gray-200 text-gray-500 text-[13px] italic select-none"
+        className="flex-shrink-0 items-center justify-center border-r border-gray-200 text-gray-500 text-[13px] italic select-none hidden sm:flex"
         style={{ width: "32px", padding: "0 8px", color: "#5f6368" }}
       >
         <span className="italic">fx</span>
