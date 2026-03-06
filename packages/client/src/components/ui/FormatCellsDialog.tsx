@@ -10,9 +10,11 @@ const NUMBER_FORMATS = [
   { label: "General", value: "" },
   { label: "Number", value: "#,##0.00" },
   { label: "Currency", value: "$#,##0.00" },
+  { label: "Accounting", value: "_($#,##0.00" },
   { label: "Percent", value: "0.00%" },
   { label: "Date", value: "M/d/yyyy" },
   { label: "Time", value: "h:mm:ss AM/PM" },
+  { label: "Duration", value: "[h]:mm:ss" },
   { label: "Scientific", value: "0.00E+00" },
   { label: "Text", value: "@" },
 ];

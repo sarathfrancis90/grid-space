@@ -46,6 +46,7 @@ import { ScriptEditor } from "../macros/ScriptEditor";
 import { NamedFunctionsDialog } from "../ui/NamedFunctionsDialog";
 import { AIAnalysisPanel } from "../data/AIAnalysisPanel";
 import { KeyboardShortcutsDialog } from "../ui/KeyboardShortcutsDialog";
+import { ThemeDialog } from "../ui/ThemeDialog";
 import { useMacroRecorder } from "../../hooks/useMacroRecorder";
 import { useAutoSave } from "../../hooks/useAutoSave";
 import { useHydrateFromServer } from "../../hooks/useHydrateFromServer";
@@ -68,6 +69,12 @@ function KeyboardShortcutsWrapper() {
   return (
     <KeyboardShortcutsDialog isOpen={isOpen} onClose={() => close(false)} />
   );
+}
+
+function ThemeDialogWrapper() {
+  const isOpen = useUIStore((s) => s.isThemeDialogOpen);
+  const close = useUIStore((s) => s.setThemeDialogOpen);
+  return <ThemeDialog isOpen={isOpen} onClose={() => close(false)} />;
 }
 
 function BandedRowsDialogWrapper() {
@@ -310,6 +317,7 @@ export default function SpreadsheetEditorPage() {
       <ScriptEditor />
       <NamedFunctionsDialog />
       <KeyboardShortcutsWrapper />
+      <ThemeDialogWrapper />
       <OfflineIndicator />
       <Suspense fallback={null}>
         <ChartOverlay />

@@ -154,6 +154,30 @@ export function MenuBar() {
           },
         },
         {
+          label: "Download as ODS",
+          testId: "menu-file-download-ods",
+          action: () => {
+            const sheets = useSpreadsheetStore.getState().sheets;
+            const cellStore = useCellStore.getState();
+            const sheetsData = sheets.map((s) => ({
+              name: s.name,
+              cells: cellStore.cells.get(s.id) ?? new Map(),
+            }));
+            import("../../utils/fileOps").then(
+              ({ exportODS, downloadFile: dl }) => {
+                exportODS(sheetsData).then((buf) => {
+                  dl(
+                    buf,
+                    "spreadsheet.ods",
+                    "application/vnd.oasis.opendocument.spreadsheet",
+                  );
+                });
+              },
+            );
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Download as PDF",
           testId: "menu-file-download-pdf",
           action: () => {
@@ -280,6 +304,23 @@ export function MenuBar() {
           testId: "menu-view-zoom",
           action: () => setOpenMenu(null),
         },
+        {
+          label: "Full screen",
+          testId: "menu-view-fullscreen",
+          shortcut: "F11",
+          separator: true,
+          action: () => {
+            const ui = useUIStore.getState();
+            const newFullscreen = !ui.isFullscreen;
+            ui.setFullscreen(newFullscreen);
+            if (newFullscreen && document.documentElement.requestFullscreen) {
+              document.documentElement.requestFullscreen().catch(() => {});
+            } else if (document.exitFullscreen) {
+              document.exitFullscreen().catch(() => {});
+            }
+            setOpenMenu(null);
+          },
+        },
       ],
     },
     {
@@ -403,6 +444,14 @@ export function MenuBar() {
           separator: true,
           action: () => {
             useUIStore.getState().setBandedRowsDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Theme",
+          testId: "menu-format-theme",
+          action: () => {
+            useUIStore.getState().setThemeDialogOpen(true);
             setOpenMenu(null);
           },
         },

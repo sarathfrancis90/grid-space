@@ -67,6 +67,8 @@ interface UIState {
   isAIAnalysisOpen: boolean;
   isNamedFunctionsDialogOpen: boolean;
   isKeyboardShortcutsOpen: boolean;
+  isThemeDialogOpen: boolean;
+  isFullscreen: boolean;
   /** S2-001: whether user is in formula editing mode (started typing "=") */
   isFormulaMode: boolean;
   /** S2-004: colored references parsed from the current formula */
@@ -99,6 +101,8 @@ interface UIState {
   setAIAnalysisOpen: (open: boolean) => void;
   setNamedFunctionsDialogOpen: (open: boolean) => void;
   setKeyboardShortcutsOpen: (open: boolean) => void;
+  setThemeDialogOpen: (open: boolean) => void;
+  setFullscreen: (fullscreen: boolean) => void;
   /** S2-001: enter/exit formula mode */
   setFormulaMode: (active: boolean) => void;
   /** S2-003: insert a cell reference at the cursor in the formula */
@@ -134,6 +138,8 @@ export const useUIStore = create<UIState>()(
     isAIAnalysisOpen: false,
     isNamedFunctionsDialogOpen: false,
     isKeyboardShortcutsOpen: false,
+    isThemeDialogOpen: false,
+    isFullscreen: false,
     isFormulaMode: false,
     formulaReferences: [],
 
@@ -330,6 +336,18 @@ export const useUIStore = create<UIState>()(
     setKeyboardShortcutsOpen: (open: boolean) => {
       set((state) => {
         state.isKeyboardShortcutsOpen = open;
+      });
+    },
+
+    setThemeDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isThemeDialogOpen = open;
+      });
+    },
+
+    setFullscreen: (fullscreen: boolean) => {
+      set((state) => {
+        state.isFullscreen = fullscreen;
       });
     },
 
