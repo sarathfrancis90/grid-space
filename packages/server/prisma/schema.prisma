@@ -30,6 +30,8 @@ model User {
   notifications      Notification[]
   notificationPrefs  NotificationPreference[]
   extensions         Extension[]
+  dataConnectors     DataConnector[]
+  dataConnectorCreds DataConnectorCredential[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -62,6 +64,7 @@ model Spreadsheet {
   webhooks       Webhook[]
   comments       Comment[]
   notifications  Notification[]
+  dataConnectors DataConnector[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -300,6 +303,71 @@ model NotificationPreference {
   @@unique([userId, spreadsheetId])
   @@index([userId])
   @@map("notification_preferences")
+}
+
+// ─── DATA CONNECTOR ─────────────────────────────────────
+model DataConnector {
+  id             String      @id @default(cuid())
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  spreadsheetId  String      @map("spreadsheet_id")
+  spreadsheet    Spreadsheet @relation(fields: [spreadsheetId], references: [id], onDelete: Cascade)
+
+  sheetId        String?     @map("sheet_id")
+
+  name           String
+  type           String      // "bigquery" | "postgresql" | "mysql" | "csv_url"
+  status         String      @default("active") // "active" | "paused" | "error"
+
+  credentialId   String?     @map("credential_id")
+  credential     DataConnectorCredential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+
+  config         Json        @default("{}")
+
+  refreshSchedule String?    @map("refresh_schedule")
+  lastRefreshAt  DateTime?   @map("last_refresh_at")
+  nextRefreshAt  DateTime?   @map("next_refresh_at")
+  lastError      String?     @map("last_error")
+
+  dailyQueryCount   Int      @default(0) @map("daily_query_count")
+  dailyQueryLimit   Int      @default(100) @map("daily_query_limit")
+  dailyBytesScanned BigInt   @default(0) @map("daily_bytes_scanned")
+  dailyBytesLimit   BigInt   @default(1073741824) @map("daily_bytes_limit")
+
+  cacheTtlSeconds   Int      @default(300) @map("cache_ttl_seconds")
+  cachedData        Json?    @map("cached_data")
+  cachedAt          DateTime? @map("cached_at")
+  cacheRowCount     Int      @default(0) @map("cache_row_count")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([spreadsheetId])
+  @@index([nextRefreshAt])
+  @@map("data_connectors")
+}
+
+// ─── DATA CONNECTOR CREDENTIAL ──────────────────────────
+model DataConnectorCredential {
+  id             String      @id @default(cuid())
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name           String
+  type           String
+  encryptedConfig String     @map("encrypted_config")
+
+  connectors     DataConnector[]
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("data_connector_credentials")
 }
 
 // ─── EXTENSION ──────────────────────────────────────────
