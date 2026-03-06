@@ -99,7 +99,7 @@ describe("useRealtimeConnection", () => {
 
     // Simulate socket connect event
     const connectHandler = mockSocket.on.mock.calls.find(
-      (call: [string, () => void]) => call[0] === "connect",
+      (call: unknown[]) => call[0] === "connect",
     )?.[1];
     expect(connectHandler).toBeDefined();
     connectHandler!();
