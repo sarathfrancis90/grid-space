@@ -58,6 +58,11 @@ export const WS_EVENTS = {
   // Comment reactions
   REACTION_TOGGLE: "reaction-toggle",
   REACTION_UPDATE: "reaction-update",
+
+  // Suggestions (track changes)
+  SUGGESTION_CREATED: "suggestion-created",
+  SUGGESTION_REVIEWED: "suggestion-reviewed",
+  SUGGESTION_SYNC: "suggestion-sync",
 } as const;
 
 export interface PresenceUser {
@@ -158,6 +163,23 @@ export interface ReactionTogglePayload {
   spreadsheetId: string;
   commentId: string;
   emoji: string;
+}
+
+export interface SuggestionCreatedPayload {
+  spreadsheetId: string;
+  sheetId: string;
+  cellKey: string;
+  suggestionId: string;
+  oldValue: string | number | boolean | null;
+  newValue: string | number | boolean | null;
+  oldFormula?: string;
+  newFormula?: string;
+}
+
+export interface SuggestionReviewedPayload {
+  spreadsheetId: string;
+  suggestionId: string;
+  action: "accepted" | "rejected";
 }
 
 /** Socket data augmented by auth middleware */

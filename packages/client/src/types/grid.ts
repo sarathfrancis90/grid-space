@@ -328,3 +328,26 @@ export interface CellImage {
   url: string;
   alt?: string;
 }
+
+// Spreadsheet editing mode
+export type SpreadsheetMode = "editing" | "suggesting" | "viewing";
+
+// Suggestions (track changes)
+export type SuggestionStatus = "pending" | "accepted" | "rejected";
+
+export interface Suggestion {
+  id: string;
+  spreadsheetId: string;
+  sheetId: string;
+  cellKey: string;
+  oldValue: string | number | boolean | null;
+  newValue: string | number | boolean | null;
+  oldFormula?: string;
+  newFormula?: string;
+  authorId: string;
+  authorName: string;
+  status: SuggestionStatus;
+  createdAt: number;
+  reviewedAt?: number;
+  reviewedBy?: string;
+}

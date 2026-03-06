@@ -323,3 +323,31 @@ model Extension {
   @@index([userId])
   @@map("extensions")
 }
+
+// ─── SUGGESTION ──────────────────────────────────────────
+model Suggestion {
+  id             String      @id @default(cuid())
+
+  spreadsheetId  String      @map("spreadsheet_id")
+  sheetId        String      @map("sheet_id")
+  cellKey        String      @map("cell_key")
+
+  oldValue       String?     @map("old_value")
+  newValue       String?     @map("new_value")
+  oldFormula     String?     @map("old_formula")
+  newFormula     String?     @map("new_formula")
+
+  authorId       String      @map("author_id")
+  status         String      @default("pending")
+
+  reviewedById   String?     @map("reviewed_by_id")
+  reviewedAt     DateTime?   @map("reviewed_at")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@index([spreadsheetId])
+  @@index([spreadsheetId, sheetId])
+  @@index([authorId])
+  @@index([status])
+  @@map("suggestions")
+}

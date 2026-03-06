@@ -164,3 +164,24 @@ describe("getCellKey", () => {
     expect(getCellKey(5, 10)).toBe("5,10");
   });
 });
+
+import { parseCellKey } from "../utils/coordinates";
+
+describe("parseCellKey", () => {
+  it("parses a valid cell key", () => {
+    expect(parseCellKey("0,0")).toEqual({ row: 0, col: 0 });
+    expect(parseCellKey("5,10")).toEqual({ row: 5, col: 10 });
+  });
+
+  it("returns null for invalid keys", () => {
+    expect(parseCellKey("abc")).toBeNull();
+    expect(parseCellKey("")).toBeNull();
+    expect(parseCellKey("1,2,3")).toBeNull();
+  });
+
+  it("round-trips with getCellKey", () => {
+    const key = getCellKey(3, 7);
+    const parsed = parseCellKey(key);
+    expect(parsed).toEqual({ row: 3, col: 7 });
+  });
+});

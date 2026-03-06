@@ -20,6 +20,7 @@ import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
 import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
 import extensionRoutes from "./extension.routes";
+import suggestionRoutes from "./suggestion.routes";
 
 const router = Router();
 
@@ -79,6 +80,9 @@ router.use("/templates", templateRoutes);
 
 // API Key management
 router.use("/users/me/api-keys", apiKeyRoutes);
+
+// Suggestions (track changes)
+router.use("/spreadsheets/:id/suggestions", suggestionRoutes);
 
 // Extensions
 router.use("/extensions", extensionRoutes);

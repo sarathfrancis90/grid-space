@@ -39,6 +39,9 @@ const WS_EVENTS = {
   TYPING_START: "typing-start",
   TYPING_END: "typing-end",
   TYPING_INDICATOR: "typing-indicator",
+  SUGGESTION_CREATED: "suggestion-created",
+  SUGGESTION_REVIEWED: "suggestion-reviewed",
+  SUGGESTION_SYNC: "suggestion-sync",
 } as const;
 
 const WS_URL = import.meta.env.VITE_WS_URL || "";
@@ -212,6 +215,11 @@ export function connectSocket(): Socket {
   // ─── CHART SYNC ───────────────────────────────────────
   socket.on(WS_EVENTS.CHART_SYNC, (data: Record<string, unknown>) => {
     chartSyncListeners.forEach((cb) => cb(data));
+  });
+
+  // ─── SUGGESTION SYNC ───────────────────────────────────
+  socket.on(WS_EVENTS.SUGGESTION_SYNC, (data: Record<string, unknown>) => {
+    suggestionSyncListeners.forEach((cb) => cb(data));
   });
 
   // ─── CONNECTION ERRORS ────────────────────────────────
@@ -436,6 +444,42 @@ export function emitChartUpdate(
   });
 }
 
+// ─── SUGGESTION EMIT HELPERS ──────────────────────────
+
+export function emitSuggestionCreated(
+  spreadsheetId: string,
+  sheetId: string,
+  cellKey: string,
+  suggestionId: string,
+  oldValue: string | number | boolean | null,
+  newValue: string | number | boolean | null,
+  oldFormula?: string,
+  newFormula?: string,
+): void {
+  socket?.emit(WS_EVENTS.SUGGESTION_CREATED, {
+    spreadsheetId,
+    sheetId,
+    cellKey,
+    suggestionId,
+    oldValue,
+    newValue,
+    oldFormula,
+    newFormula,
+  });
+}
+
+export function emitSuggestionReviewed(
+  spreadsheetId: string,
+  suggestionId: string,
+  action: "accepted" | "rejected",
+): void {
+  socket?.emit(WS_EVENTS.SUGGESTION_REVIEWED, {
+    spreadsheetId,
+    suggestionId,
+    action,
+  });
+}
+
 // ─── LISTENER REGISTRATIONS ────────────────────────────
 
 type CellUpdateCallback = (data: {
@@ -454,6 +498,7 @@ const sheetSyncListeners = new Set<SyncCallback>();
 const structureSyncListeners = new Set<SyncCallback>();
 const formatSyncListeners = new Set<SyncCallback>();
 const chartSyncListeners = new Set<SyncCallback>();
+const suggestionSyncListeners = new Set<SyncCallback>();
 const errorListeners = new Set<ErrorCallback>();
 
 export function onRemoteCellUpdate(cb: CellUpdateCallback): () => void {
@@ -479,6 +524,11 @@ export function onFormatSync(cb: SyncCallback): () => void {
 export function onChartSync(cb: SyncCallback): () => void {
   chartSyncListeners.add(cb);
   return () => chartSyncListeners.delete(cb);
+}
+
+export function onSuggestionSync(cb: SyncCallback): () => void {
+  suggestionSyncListeners.add(cb);
+  return () => suggestionSyncListeners.delete(cb);
 }
 
 export function onConnectionError(cb: ErrorCallback): () => void {

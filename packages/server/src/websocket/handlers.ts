@@ -15,6 +15,8 @@ import type {
   ChartUpdatePayload,
   TypingPayload,
   ReactionTogglePayload,
+  SuggestionCreatedPayload,
+  SuggestionReviewedPayload,
   SocketData,
 } from "./types";
 import * as presence from "./presence";
@@ -372,6 +374,36 @@ export function registerHandlers(io: Server, socket: Socket): void {
         userName: data.user.name ?? "Unknown",
         commentId,
         emoji,
+      });
+    }),
+  );
+
+  // ─── SUGGESTIONS ────────────────────────────────────────
+  socket.on(
+    WS_EVENTS.SUGGESTION_CREATED,
+    withRateLimit((payload: unknown) => {
+      const p = payload as SuggestionCreatedPayload;
+      if (!data.spreadsheetId || data.spreadsheetId !== p.spreadsheetId) return;
+
+      socket.to(roomName(p.spreadsheetId)).emit(WS_EVENTS.SUGGESTION_SYNC, {
+        type: "created",
+        ...p,
+        userId,
+        userName: data.user.name ?? "Unknown",
+      });
+    }),
+  );
+
+  socket.on(
+    WS_EVENTS.SUGGESTION_REVIEWED,
+    withRateLimit((payload: unknown) => {
+      const p = payload as SuggestionReviewedPayload;
+      if (!data.spreadsheetId || data.spreadsheetId !== p.spreadsheetId) return;
+
+      socket.to(roomName(p.spreadsheetId)).emit(WS_EVENTS.SUGGESTION_SYNC, {
+        type: "reviewed",
+        ...p,
+        userId,
       });
     }),
   );

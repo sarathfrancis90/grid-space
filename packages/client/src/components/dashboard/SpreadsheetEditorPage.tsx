@@ -50,6 +50,8 @@ import { useAutoSave } from "../../hooks/useAutoSave";
 import { useHydrateFromServer } from "../../hooks/useHydrateFromServer";
 import { SaveIndicator } from "./SaveIndicator";
 import { SpreadsheetLoader } from "./SpreadsheetLoader";
+import { SuggestionPanel } from "../suggestions/SuggestionPanel";
+import { useSuggestionStore } from "../../stores/suggestionStore";
 
 const ChartOverlay = lazy(() =>
   import("../charts/ChartOverlay").then((m) => ({ default: m.ChartOverlay })),
@@ -72,6 +74,23 @@ function BandedRowsDialogWrapper() {
   const isOpen = useUIStore((s) => s.isBandedRowsDialogOpen);
   const close = useUIStore((s) => s.setBandedRowsDialogOpen);
   return <BandedRowsDialog isOpen={isOpen} onClose={() => close(false)} />;
+}
+
+function SuggestionsSidebar() {
+  const mode = useSuggestionStore((s) => s.mode);
+  const suggestions = useSuggestionStore((s) => s.suggestions);
+  const hasPending = Array.from(suggestions.values()).some(
+    (s) => s.status === "pending",
+  );
+  if (mode !== "suggesting" && !hasPending) return null;
+  return (
+    <div
+      className="w-72 border-l border-gray-200 bg-white overflow-hidden flex flex-col"
+      data-testid="suggestions-sidebar"
+    >
+      <SuggestionPanel />
+    </div>
+  );
 }
 
 export default function SpreadsheetEditorPage() {
@@ -270,6 +289,7 @@ export default function SpreadsheetEditorPage() {
           <VersionHistorySidebar spreadsheetId={id ?? ""} />
         </Suspense>
         <CommentsSidebar currentUserId={user?.id} />
+        <SuggestionsSidebar />
         <AIAnalysisPanel />
       </div>
 

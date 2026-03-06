@@ -17,6 +17,7 @@ import { CellEditor } from "./CellEditor";
 import { ContextMenu } from "./ContextMenu";
 import type { CellData, CellPosition } from "../../types/grid";
 import { formatCellValue } from "../../utils/numberFormat";
+import { useSuggestionStore } from "../../stores/suggestionStore";
 
 const GRID_LINE_COLOR = "#e2e2e2";
 const HEADER_BG = "#f8f9fa";
@@ -728,6 +729,30 @@ export function Grid() {
             ctx.fillStyle = "#ff9800";
             ctx.fill();
           }
+
+          // Suggestion indicator — green triangle in top-left corner
+          const pendingSuggestions = useSuggestionStore
+            .getState()
+            .getSuggestionsForCell(activeSheetId, cellKey);
+          if (pendingSuggestions.length > 0) {
+            // Green background tint
+            ctx.fillStyle = "rgba(52, 168, 83, 0.08)";
+            ctx.fillRect(
+              Math.round(cellX),
+              Math.round(cellY),
+              Math.round(cellW),
+              Math.round(cellH),
+            );
+            // Green triangle indicator
+            const triSize = 6;
+            ctx.beginPath();
+            ctx.moveTo(Math.round(cellX), Math.round(cellY));
+            ctx.lineTo(Math.round(cellX) + triSize, Math.round(cellY));
+            ctx.lineTo(Math.round(cellX), Math.round(cellY) + triSize);
+            ctx.closePath();
+            ctx.fillStyle = "#34a853";
+            ctx.fill();
+          }
         }
       }
     }
@@ -1033,6 +1058,42 @@ export function Grid() {
       const { row, col } = ui.editingCell;
       const cellStore = useCellStore.getState();
       const existing = cellStore.getCell(activeSheetId, row, col);
+
+      // Suggestion mode: create suggestion record instead of direct edit
+      const suggestionMode = useSuggestionStore.getState().mode;
+      if (suggestionMode === "viewing") {
+        commitEdit();
+        return;
+      }
+      if (suggestionMode === "suggesting") {
+        const cellKey = getCellKey(row, col);
+        const suggestion = {
+          id: `suggestion-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          spreadsheetId: "",
+          sheetId: activeSheetId,
+          cellKey,
+          oldValue: existing?.value ?? null,
+          newValue: value === "" ? null : value,
+          oldFormula: existing?.formula,
+          newFormula: value.startsWith("=") ? value : undefined,
+          authorId: "current-user",
+          authorName: "You",
+          status: "pending" as const,
+          createdAt: Date.now(),
+        };
+        useSuggestionStore.getState().addSuggestion(suggestion);
+
+        const gs = useGridStore.getState();
+        const nextPos = { ...ui.editingCell };
+        if (direction === "down") {
+          nextPos.row = Math.min(ui.editingCell.row + 1, gs.totalRows - 1);
+        } else if (direction === "right") {
+          nextPos.col = Math.min(ui.editingCell.col + 1, gs.totalCols - 1);
+        }
+        commitEdit();
+        setSelectedCell(nextPos);
+        return;
+      }
 
       // Build a cell value resolver for the formula engine
       const buildGetCellValue = (): CellValueGetter => {
@@ -1655,6 +1716,8 @@ export function Grid() {
         .getCell(activeSheetId, pos.row, pos.col);
       const currentValue =
         cellData?.value != null ? String(cellData.value) : "";
+      // Block editing in viewing mode
+      if (useSuggestionStore.getState().mode === "viewing") return;
       startEditing(pos, currentValue);
     },
     [screenToGrid, startEditing, getResizeCol, autoFitColumn, getActiveSheetId],

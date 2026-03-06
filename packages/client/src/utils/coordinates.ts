@@ -40,3 +40,12 @@ export function formatCellRef(row: number, col: number): string {
 export function getCellKey(row: number, col: number): string {
   return `${row},${col}`;
 }
+
+export function parseCellKey(key: string): CellPosition | null {
+  const parts = key.split(",");
+  if (parts.length !== 2) return null;
+  const row = parseInt(parts[0], 10);
+  const col = parseInt(parts[1], 10);
+  if (isNaN(row) || isNaN(col)) return null;
+  return { row, col };
+}
