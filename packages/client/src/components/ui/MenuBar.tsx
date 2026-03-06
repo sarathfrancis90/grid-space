@@ -540,6 +540,26 @@ export function MenuBar() {
         },
       ],
     },
+    {
+      label: "Help",
+      testId: "menu-help",
+      items: [
+        {
+          label: "Keyboard shortcuts",
+          shortcut: "Ctrl+/",
+          testId: "menu-help-keyboard-shortcuts",
+          action: () => {
+            useUIStore.getState().setKeyboardShortcutsOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Function list",
+          testId: "menu-help-functions",
+          action: () => setOpenMenu(null),
+        },
+      ],
+    },
   ];
 
   return (
