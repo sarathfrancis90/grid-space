@@ -2745,12 +2745,20 @@
           obs.observe(el);
         }
 
-        // Hero stat counters
-        document.querySelectorAll(".stat-number").forEach(animateCounter);
-        // GitHub stats
-        document.querySelectorAll(".gh-stat-num").forEach(animateCounter);
-        // Parity percent
-        document.querySelectorAll(".parity-percent").forEach(animateCounter);
+        // Counter initialization is deferred until after API data loads (see fetchLiveStats).
+        // Fallback: if API fails, start counters after 3 seconds with hardcoded values.
+        function initAllCounters() {
+          document.querySelectorAll(".stat-number").forEach(animateCounter);
+          document.querySelectorAll(".gh-stat-num").forEach(animateCounter);
+          document.querySelectorAll(".parity-percent").forEach(animateCounter);
+        }
+        var countersInitialized = false;
+        var counterFallbackTimer = setTimeout(function () {
+          if (!countersInitialized) {
+            countersInitialized = true;
+            initAllCounters();
+          }
+        }, 3000);
 
         /* --------------------------------------------------------
      PARITY BAR ANIMATION
@@ -2982,9 +2990,21 @@
                     minute: "2-digit",
                   });
               }
+
+              // NOW start counter animations with live data in place
+              if (!countersInitialized) {
+                countersInitialized = true;
+                clearTimeout(counterFallbackTimer);
+                initAllCounters();
+              }
             })
             .catch(function () {
-              // Graceful fallback — hardcoded values already in the HTML remain
+              // Graceful fallback — start counters with hardcoded values
+              if (!countersInitialized) {
+                countersInitialized = true;
+                clearTimeout(counterFallbackTimer);
+                initAllCounters();
+              }
             });
         })();
       })();
