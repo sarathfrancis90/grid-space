@@ -3,7 +3,7 @@
  * @mention autocomplete, and resolve/unresolve.
  * S7-018 to S7-020, S15-001 to S15-005
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useCommentStore } from "../../stores/commentStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useCellStore } from "../../stores/cellStore";
@@ -18,6 +18,7 @@ import { ReactionPicker } from "./ReactionPicker";
 export function CommentPanel() {
   const activeCell = useCommentStore((s) => s.activeCommentCell);
   const activeSheet = useCommentStore((s) => s.activeSheetForComment);
+  const commentsMap = useCommentStore((s) => s.comments);
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
   const effectiveSheet = activeSheet ?? sheetId;
 
@@ -27,9 +28,12 @@ export function CommentPanel() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
 
-  const comments = activeCell
-    ? useCommentStore.getState().getCommentsForCell(effectiveSheet, activeCell)
-    : [];
+  const comments = useMemo(() => {
+    if (!activeCell) return [];
+    return useCommentStore
+      .getState()
+      .getCommentsForCell(effectiveSheet, activeCell);
+  }, [activeCell, effectiveSheet, commentsMap]);
 
   const handleAddComment = useCallback(() => {
     if (!activeCell || !newText.trim()) return;
