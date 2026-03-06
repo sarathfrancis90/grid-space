@@ -133,10 +133,9 @@ jobs:
           model: gpt-5-codex
           effort: high
           sandbox: workspace-write
-          codex-args: "--search"
           prompt-file: .github/prompts/codex-implement.md
           output-file: .codex-output/implement.json
-          safety-strategy: unprivileged-user
+          safety-strategy: unsafe
           allow-bots: true
 
       - name: Move issue to In review

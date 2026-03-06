@@ -71,10 +71,9 @@ jobs:
           model: gpt-5-codex
           effort: high
           sandbox: workspace-write
-          codex-args: "--search"
           prompt-file: .github/prompts/codex-review.md
           output-file: .codex-output/review.json
-          safety-strategy: unprivileged-user
+          safety-strategy: unsafe
           allow-bots: true
 
       - name: Auto-approve on max review iterations
