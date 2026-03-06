@@ -28,6 +28,7 @@ model User {
   commentReplies     CommentReply[]
   notifications      Notification[]
   notificationPrefs  NotificationPreference[]
+  extensions         Extension[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -277,4 +278,26 @@ model NotificationPreference {
   @@unique([userId, spreadsheetId])
   @@index([userId])
   @@map("notification_preferences")
+}
+
+// ─── EXTENSION ──────────────────────────────────────────
+model Extension {
+  id             String      @id @default(cuid())
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  extensionId    String      @map("extension_id")
+  manifest       Json
+  status         String      @default("installed")
+  grantedPerms   String[]    @default([]) @map("granted_perms")
+  localStorage   Json        @default("{}") @map("local_storage")
+  errorMessage   String?     @map("error_message")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@unique([userId, extensionId])
+  @@index([userId])
+  @@map("extensions")
 }
