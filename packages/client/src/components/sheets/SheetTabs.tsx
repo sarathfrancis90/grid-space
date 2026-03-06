@@ -28,11 +28,17 @@ export function SheetTabs() {
   const duplicateSheet = useSpreadsheetStore((s) => s.duplicateSheet);
   const reorderSheet = useSpreadsheetStore((s) => s.reorderSheet);
   const setTabColor = useSpreadsheetStore((s) => s.setTabColor);
+  const hideSheet = useSpreadsheetStore((s) => s.hideSheet);
+  const showSheet = useSpreadsheetStore((s) => s.showSheet);
+
+  const visibleSheets = sheets.filter((s) => !s.hidden);
+  const hiddenSheets = sheets.filter((s) => s.hidden);
 
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [contextMenu, setContextMenu] = useState<TabContextMenu | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [showHiddenMenu, setShowHiddenMenu] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleTabClick = useCallback(
@@ -107,6 +113,22 @@ export function SheetTabs() {
     [setTabColor],
   );
 
+  const handleHide = useCallback(
+    (sheetId: string) => {
+      hideSheet(sheetId);
+      setContextMenu(null);
+    },
+    [hideSheet],
+  );
+
+  const handleShow = useCallback(
+    (sheetId: string) => {
+      showSheet(sheetId);
+      setShowHiddenMenu(false);
+    },
+    [showSheet],
+  );
+
   return (
     <div
       data-testid="sheet-tabs-container"
@@ -122,7 +144,7 @@ export function SheetTabs() {
         +
       </button>
       <div className="flex gap-px overflow-x-auto flex-1 items-end h-full">
-        {sheets.map((sheet, idx) => (
+        {visibleSheets.map((sheet, idx) => (
           <div
             key={sheet.id}
             data-testid={`sheet-tab-${sheet.id}`}
@@ -176,6 +198,48 @@ export function SheetTabs() {
         ))}
       </div>
 
+      {hiddenSheets.length > 0 && (
+        <div className="relative ml-1">
+          <button
+            data-testid="show-hidden-sheets-btn"
+            onClick={() => setShowHiddenMenu(!showHiddenMenu)}
+            className="w-7 h-7 rounded hover:bg-gray-200 cursor-pointer text-xs text-gray-600 flex items-center justify-center transition-colors"
+            style={{ width: "28px", height: "28px" }}
+            title="Show hidden sheets"
+          >
+            &#9776;
+          </button>
+          {showHiddenMenu && (
+            <div
+              data-testid="hidden-sheets-menu-backdrop"
+              className="fixed top-0 left-0 w-screen h-screen z-[200]"
+              onClick={() => setShowHiddenMenu(false)}
+            >
+              <div
+                data-testid="hidden-sheets-menu"
+                className="absolute bg-white border border-gray-300 rounded shadow-lg min-w-[140px] py-1 z-[201]"
+                style={{ bottom: "40px", left: "0" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="px-4 py-1.5 text-xs text-gray-500">
+                  Hidden sheets
+                </div>
+                {hiddenSheets.map((sheet) => (
+                  <div
+                    key={sheet.id}
+                    data-testid={`show-sheet-${sheet.id}`}
+                    onClick={() => handleShow(sheet.id)}
+                    className="px-4 py-1.5 cursor-pointer text-[13px] hover:bg-blue-50"
+                  >
+                    {sheet.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {contextMenu && (
         <div
           data-testid="sheet-context-menu-backdrop"
@@ -225,6 +289,17 @@ export function SheetTabs() {
               }`}
             >
               Delete
+            </div>
+            <div
+              data-testid="ctx-hide"
+              onClick={() => handleHide(contextMenu.sheetId)}
+              className={`px-4 py-1.5 text-[13px] ${
+                visibleSheets.length <= 1
+                  ? "cursor-default text-gray-400"
+                  : "cursor-pointer text-gray-700 hover:bg-blue-50"
+              }`}
+            >
+              Hide sheet
             </div>
             <div className="h-px bg-gray-200 my-1" />
             <div className="px-4 py-1.5 text-xs text-gray-500">Tab color</div>

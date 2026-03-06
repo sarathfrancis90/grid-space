@@ -9,6 +9,7 @@ import { useFormulaStore } from "../../stores/formulaStore";
 import { useFindReplaceStore } from "../../stores/findReplaceStore";
 import { useValidationStore } from "../../stores/validationStore";
 import { useDataStore } from "../../stores/dataStore";
+import { useHistoryStore } from "../../stores/historyStore";
 import { colToLetter, getCellKey } from "../../utils/coordinates";
 import { cellId, parseCellId } from "../formula/cellUtils";
 import type { CellValueGetter } from "../../types/formula";
@@ -35,7 +36,13 @@ const CHECKBOX_SIZE = 14;
 const HYPERLINK_COLOR = "#1a73e8";
 const GROUP_BTN_SIZE = 12;
 
-type DragMode = "none" | "select" | "resize-col" | "resize-row" | "fill-handle";
+type DragMode =
+  | "none"
+  | "select"
+  | "resize-col"
+  | "resize-row"
+  | "fill-handle"
+  | "move-selection";
 
 interface ContextMenuState {
   x: number;
@@ -60,6 +67,8 @@ export function Grid() {
   const resizeStartSizeRef = useRef<number>(0);
   const fillHandleStartRef = useRef<CellPosition | null>(null);
   const fillHandleEndRef = useRef<CellPosition | null>(null);
+  const moveSelectionStartRef = useRef<CellPosition | null>(null);
+  const moveTargetRef = useRef<CellPosition | null>(null);
 
   const [containerWidth, setContainerWidth] = useState(0);
   const [containerHeight, setContainerHeight] = useState(0);
@@ -176,6 +185,52 @@ export function Grid() {
         Math.abs(screenX - handleX) < FILL_HANDLE_SIZE &&
         Math.abs(screenY - handleY) < FILL_HANDLE_SIZE
       );
+    },
+    [],
+  );
+
+  const BORDER_HIT_WIDTH = 6;
+
+  // Check if mouse is on the selection border (for drag-move)
+  const isOnSelectionBorder = useCallback(
+    (screenX: number, screenY: number): boolean => {
+      const ui = useUIStore.getState();
+      if (ui.selections.length === 0 || ui.isEditing) return false;
+      const gs = useGridStore.getState();
+      const sel = ui.selections[ui.selections.length - 1];
+      const minRow = Math.min(sel.start.row, sel.end.row);
+      const maxRow = Math.max(sel.start.row, sel.end.row);
+      const minCol = Math.min(sel.start.col, sel.end.col);
+      const maxCol = Math.max(sel.start.col, sel.end.col);
+
+      const left = gs.getColumnX(minCol) - gs.scrollLeft + gs.rowHeaderWidth;
+      const right =
+        gs.getColumnX(maxCol) +
+        (gs.columnWidths.get(maxCol) ?? gs.defaultColWidth) -
+        gs.scrollLeft +
+        gs.rowHeaderWidth;
+      const top = gs.getRowY(minRow) - gs.scrollTop + gs.colHeaderHeight;
+      const bottom =
+        gs.getRowY(maxRow) +
+        (gs.rowHeights.get(maxRow) ?? gs.defaultRowHeight) -
+        gs.scrollTop +
+        gs.colHeaderHeight;
+
+      const inXRange =
+        screenX >= left - BORDER_HIT_WIDTH &&
+        screenX <= right + BORDER_HIT_WIDTH;
+      const inYRange =
+        screenY >= top - BORDER_HIT_WIDTH &&
+        screenY <= bottom + BORDER_HIT_WIDTH;
+
+      if (!inXRange || !inYRange) return false;
+
+      const onLeft = Math.abs(screenX - left) < BORDER_HIT_WIDTH;
+      const onRight = Math.abs(screenX - right) < BORDER_HIT_WIDTH;
+      const onTop = Math.abs(screenY - top) < BORDER_HIT_WIDTH;
+      const onBottom = Math.abs(screenY - bottom) < BORDER_HIT_WIDTH;
+
+      return onLeft || onRight || onTop || onBottom;
     },
     [],
   );
@@ -812,6 +867,59 @@ export function Grid() {
       ctx.restore();
     }
 
+    // Ghost outline for drag-move
+    const moveSel =
+      ui.selections.length > 0 ? ui.selections[ui.selections.length - 1] : null;
+    if (
+      dragModeRef.current === "move-selection" &&
+      moveSelectionStartRef.current &&
+      moveTargetRef.current &&
+      moveSel
+    ) {
+      const origMinRow = Math.min(moveSel.start.row, moveSel.end.row);
+      const origMinCol = Math.min(moveSel.start.col, moveSel.end.col);
+      const origMaxRow = Math.max(moveSel.start.row, moveSel.end.row);
+      const origMaxCol = Math.max(moveSel.start.col, moveSel.end.col);
+      const orig = moveSelectionStartRef.current;
+      const target = moveTargetRef.current;
+      const dRow = target.row - orig.row;
+      const dCol = target.col - orig.col;
+      const newMinRow = origMinRow + dRow;
+      const newMinCol = origMinCol + dCol;
+      const newMaxRow = origMaxRow + dRow;
+      const newMaxCol = origMaxCol + dCol;
+
+      const ghostX = gs.getColumnX(newMinCol) - gs.scrollLeft + rhw;
+      const ghostY = gs.getRowY(newMinRow) - gs.scrollTop + chh;
+      let ghostW = 0;
+      for (let c = newMinCol; c <= newMaxCol; c++) {
+        ghostW += gs.columnWidths.get(c) ?? gs.defaultColWidth;
+      }
+      let ghostH = 0;
+      for (let r = newMinRow; r <= newMaxRow; r++) {
+        ghostH += gs.rowHeights.get(r) ?? gs.defaultRowHeight;
+      }
+
+      ctx.save();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = SELECTION_BORDER;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(
+        Math.round(ghostX),
+        Math.round(ghostY),
+        Math.round(ghostW),
+        Math.round(ghostH),
+      );
+      ctx.fillStyle = "rgba(26, 115, 232, 0.08)";
+      ctx.fillRect(
+        Math.round(ghostX),
+        Math.round(ghostY),
+        Math.round(ghostW),
+        Math.round(ghostH),
+      );
+      ctx.restore();
+    }
+
     // Frozen pane lines
     if (gs.frozenRows > 0) {
       const frozenY = Math.round(gs.getRowY(gs.frozenRows) + chh) + 0.5;
@@ -1397,6 +1505,20 @@ export function Grid() {
         return;
       }
 
+      // Check selection border for drag-move
+      if (isOnSelectionBorder(x, y) && !isOnFillHandle(x, y)) {
+        dragModeRef.current = "move-selection";
+        const ui = useUIStore.getState();
+        const sel = ui.selections[ui.selections.length - 1];
+        moveSelectionStartRef.current = {
+          row: Math.min(sel.start.row, sel.end.row),
+          col: Math.min(sel.start.col, sel.end.col),
+        };
+        const pos = screenToGrid(x, y);
+        moveTargetRef.current = pos;
+        return;
+      }
+
       // Check row group toggle buttons
       if (x < gs.rowHeaderWidth && y > gs.colHeaderHeight) {
         const activeSheetId = getActiveSheetId();
@@ -1547,6 +1669,7 @@ export function Grid() {
       getResizeCol,
       getResizeRow,
       isOnFillHandle,
+      isOnSelectionBorder,
       setSelectedCell,
       setSelections,
       handleCommitEdit,
@@ -1564,12 +1687,16 @@ export function Grid() {
       // Update cursor based on position
       const scrollContainer = scrollContainerRef.current;
       if (scrollContainer) {
-        if (isOnFillHandle(x, y)) {
+        if (dragModeRef.current === "move-selection") {
+          scrollContainer.style.cursor = "grabbing";
+        } else if (isOnFillHandle(x, y)) {
           scrollContainer.style.cursor = "crosshair";
         } else if (getResizeCol(x, y) >= 0) {
           scrollContainer.style.cursor = "col-resize";
         } else if (getResizeRow(x, y) >= 0) {
           scrollContainer.style.cursor = "row-resize";
+        } else if (isOnSelectionBorder(x, y) && !isOnFillHandle(x, y)) {
+          scrollContainer.style.cursor = "grab";
         } else {
           // Check if hovering over a hyperlink cell
           const pos = screenToGrid(x, y);
@@ -1609,27 +1736,84 @@ export function Grid() {
         if (pos) {
           fillHandleEndRef.current = pos;
         }
+      } else if (dragModeRef.current === "move-selection") {
+        const pos = screenToGrid(x, y);
+        if (pos) {
+          moveTargetRef.current = pos;
+          scheduleRedraw();
+        }
       }
     },
     [
       screenToGrid,
       setSelections,
       isOnFillHandle,
+      isOnSelectionBorder,
       getResizeCol,
       getResizeRow,
       getActiveSheetId,
+      scheduleRedraw,
     ],
   );
 
   const handleMouseUp = useCallback(() => {
     if (dragModeRef.current === "fill-handle") {
       executeFill();
+    } else if (dragModeRef.current === "move-selection") {
+      // Execute the move
+      if (moveSelectionStartRef.current && moveTargetRef.current) {
+        const ui = useUIStore.getState();
+        const sel = ui.selections[ui.selections.length - 1];
+        if (sel) {
+          const minRow = Math.min(sel.start.row, sel.end.row);
+          const maxRow = Math.max(sel.start.row, sel.end.row);
+          const minCol = Math.min(sel.start.col, sel.end.col);
+          const maxCol = Math.max(sel.start.col, sel.end.col);
+          const origStart = moveSelectionStartRef.current;
+          const target = moveTargetRef.current;
+          const deltaRow = target.row - origStart.row;
+          const deltaCol = target.col - origStart.col;
+
+          if (deltaRow !== 0 || deltaCol !== 0) {
+            const activeSheetId = getActiveSheetId();
+            // Push undo before moving
+            useHistoryStore.getState().pushUndo();
+
+            const toRow = minRow + deltaRow;
+            const toCol = minCol + deltaCol;
+            useCellStore
+              .getState()
+              .moveCells(
+                activeSheetId,
+                minRow,
+                minCol,
+                maxRow,
+                maxCol,
+                toRow,
+                toCol,
+              );
+
+            // Update selection to the new position
+            const rowSpan = maxRow - minRow;
+            const colSpan = maxCol - minCol;
+            setSelectedCell({ row: toRow, col: toCol });
+            setSelections([
+              {
+                start: { row: toRow, col: toCol },
+                end: { row: toRow + rowSpan, col: toCol + colSpan },
+              },
+            ]);
+          }
+        }
+      }
     }
     dragModeRef.current = "none";
     dragStartRef.current = null;
     fillHandleStartRef.current = null;
     fillHandleEndRef.current = null;
-  }, [executeFill]);
+    moveSelectionStartRef.current = null;
+    moveTargetRef.current = null;
+  }, [executeFill, getActiveSheetId, setSelectedCell, setSelections]);
 
   // Double-click
   const handleDoubleClick = useCallback(

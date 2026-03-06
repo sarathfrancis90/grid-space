@@ -31,6 +31,10 @@ interface SpreadsheetState {
   duplicateSheet: (sheetId: string) => void;
   reorderSheet: (fromIndex: number, toIndex: number) => void;
   setTabColor: (sheetId: string, color: string | undefined) => void;
+  hideSheet: (sheetId: string) => void;
+  showSheet: (sheetId: string) => void;
+  getHiddenSheets: () => SheetData[];
+  getVisibleSheets: () => SheetData[];
 }
 
 export const useSpreadsheetStore = create<SpreadsheetState>()(
@@ -116,6 +120,42 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
           sheet.tabColor = color;
         }
       });
+    },
+
+    hideSheet: (sheetId: string) => {
+      set((state) => {
+        const visibleSheets = state.sheets.filter((s) => !s.hidden);
+        if (visibleSheets.length <= 1) return;
+        const sheet = state.sheets.find((s) => s.id === sheetId);
+        if (!sheet) return;
+        sheet.hidden = true;
+        if (state.activeSheetId === sheetId) {
+          const nextVisible = state.sheets.find(
+            (s) => !s.hidden && s.id !== sheetId,
+          );
+          if (nextVisible) {
+            state.activeSheetId = nextVisible.id;
+          }
+        }
+      });
+    },
+
+    showSheet: (sheetId: string) => {
+      set((state) => {
+        const sheet = state.sheets.find((s) => s.id === sheetId);
+        if (sheet) {
+          sheet.hidden = false;
+          state.activeSheetId = sheetId;
+        }
+      });
+    },
+
+    getHiddenSheets: () => {
+      return get().sheets.filter((s) => s.hidden);
+    },
+
+    getVisibleSheets: () => {
+      return get().sheets.filter((s) => !s.hidden);
     },
   })),
 );

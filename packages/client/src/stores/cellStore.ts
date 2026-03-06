@@ -47,6 +47,15 @@ interface CellState {
     totalCols: number,
   ) => void;
   deleteCols: (sheetId: string, cols: number[], totalCols: number) => void;
+  moveCells: (
+    sheetId: string,
+    fromStartRow: number,
+    fromStartCol: number,
+    fromEndRow: number,
+    fromEndCol: number,
+    toRow: number,
+    toCol: number,
+  ) => void;
   ensureSheet: (sheetId: string) => void;
   getLastDataPosition: (sheetId: string) => { row: number; col: number };
 }
@@ -255,6 +264,43 @@ export const useCellStore = create<CellState>()(
           );
         }
         state.cells.set(sheetId, newMap);
+      });
+    },
+
+    moveCells: (
+      sheetId: string,
+      fromStartRow: number,
+      fromStartCol: number,
+      fromEndRow: number,
+      fromEndCol: number,
+      toRow: number,
+      toCol: number,
+    ) => {
+      set((state) => {
+        const sheetCells = state.cells.get(sheetId);
+        if (!sheetCells) return;
+        const minR = Math.min(fromStartRow, fromEndRow);
+        const maxR = Math.max(fromStartRow, fromEndRow);
+        const minC = Math.min(fromStartCol, fromEndCol);
+        const maxC = Math.max(fromStartCol, fromEndCol);
+
+        // Collect cells from source range
+        const moved: Array<{ dr: number; dc: number; data: CellData }> = [];
+        for (let r = minR; r <= maxR; r++) {
+          for (let c = minC; c <= maxC; c++) {
+            const key = getCellKey(r, c);
+            const data = sheetCells.get(key);
+            if (data) {
+              moved.push({ dr: r - minR, dc: c - minC, data });
+            }
+            sheetCells.delete(key);
+          }
+        }
+
+        // Place cells at target
+        for (const { dr, dc, data } of moved) {
+          sheetCells.set(getCellKey(toRow + dr, toCol + dc), data);
+        }
       });
     },
 

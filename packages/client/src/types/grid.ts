@@ -78,6 +78,7 @@ export interface SheetData {
   hiddenRows: Set<number>;
   hiddenCols: Set<number>;
   tabColor?: string;
+  hidden?: boolean;
 }
 
 export type SortDirection = "asc" | "desc";
