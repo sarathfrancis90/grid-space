@@ -191,39 +191,48 @@ function getDevelopmentStats(github: GitHubStats): DevelopmentStats {
   );
 
   // ═══════════════════════════════════════════════════════════════════
-  // REAL TOKEN & COST DATA — from Claude Code session logs
-  // Source: ~/.claude/projects/-home-cvsilab-projects-grid-space/*.jsonl
-  // These files are ONLY for this project (Claude Code isolates per-project)
+  // ACTUAL COST DATA — verified via ccusage (npx ccusage@latest)
+  // Filtered: Feb 25 - Mar 6, 2026 (GridSpace project dates only)
   //
-  // BILLING MODEL (verified from session output):
-  //   Anthropic Max plan = $200/month base subscription
-  //   Claude Opus 4.6 (1M context) = "Billed as extra usage" (per-token)
-  //   So ACTUAL cost = $200 subscription + per-token extra usage charges
+  // ccusage reads Claude Code session logs and calculates costs using
+  // the latest LiteLLM pricing data. This is the authoritative source.
   //
-  // MODELS USED (from 63 session files, 9,626 API calls total):
-  //   Opus 4.6:  9,538 calls | 962M tokens | $778 extra usage
-  //     - Input: 1.72M ($8.61), Output: 2.14M ($53.42)
-  //     - Cache read: 917M ($458.51), Cache write: 41.2M ($257.80)
-  //   Haiku 4.5:    88 calls | 4.5M tokens | $1.47 extra usage
+  // BILLING: Anthropic Max plan ($200/mo) + extra usage for Opus 4.6
+  //   Opus 4.6 with 1M context = "Billed as extra usage" (per-token)
   //
-  // TOTAL: 967M tokens, $780 extra usage + $200 subscription = $980
+  // DAILY BREAKDOWN (from ccusage --since 20260225 --until 20260307):
+  //   Feb 25:  $35.80 |  60M tokens (project bootstrap)
+  //   Feb 26: $201.89 | 299M tokens (main build — 427 features)
+  //   Feb 27:  $39.67 |  68M tokens (bug fixes, polish)
+  //   Mar 04:  $10.70 |  17M tokens (CI/CD setup)
+  //   Mar 05:   $9.75 |  11M tokens (automation, Codex)
+  //   Mar 06: $145.20 | 124M tokens (production, deploy, demo)
+  //   TOTAL:  $443.01 | 580M tokens
+  //
+  // MODELS: Claude Opus 4.6 (primary) + Claude Haiku 4.5 (sub-agents)
   // ═══════════════════════════════════════════════════════════════════
 
-  const totalTokensM = 967; // 962M Opus + 4.5M Haiku
-  const subscriptionCost = 200; // Max plan monthly base
-  const extraUsageCost = 780; // Per-token charges for Opus 4.6 (1M ctx)
-  const totalCost = subscriptionCost + extraUsageCost; // $980
+  // Verified totals from ccusage
+  const totalTokensM = 580;
+  const totalExtraUsage = 443;
+  const subscriptionCost = 200;
+  const totalCost = subscriptionCost + totalExtraUsage;
+
+  // Phase costs from ccusage daily breakdown
+  const p1Cost = 35.8 + 201.89 + 39.67; // Feb 25-27: $277.36
+  const p2Cost = 10.7 + 9.75; // Mar 4-5:   $20.45
+  const p3Cost = 145.2; // Mar 6:     $145.20
 
   return {
     totalHours: 31 + Math.floor((phase3Commits - 31) * 0.1),
     totalTokens: `${totalTokensM}M`,
-    totalCost: `~$${totalCost}`,
+    totalCost: `$${totalCost}`,
     cost: {
       subscription: `$${subscriptionCost}/mo`,
       subscriptionNote:
-        "Anthropic Max plan base — Opus 4.6 (1M) billed as extra usage on top",
-      equivalentApiCost: `$${extraUsageCost}`,
-      model: "Claude Opus 4.6 (1M context) + Haiku 4.5",
+        "Anthropic Max plan ($200/mo) + $443 extra usage for Opus 4.6 (1M context)",
+      equivalentApiCost: `$${totalExtraUsage}`,
+      model: "Claude Opus 4.6 (1M context) + Haiku 4.5 (sub-agents)",
       apiPricing:
         "Opus: $5/M in, $25/M out, $0.50/M cache read, $6.25/M cache write",
     },
@@ -232,19 +241,19 @@ function getDevelopmentStats(github: GitHubStats): DevelopmentStats {
         name: "Build",
         hours: 17,
         commits: phase1Commits,
-        cost: "482M tokens · ~$415",
+        cost: `427M tokens · $${Math.round(p1Cost)}`,
       },
       {
         name: "CI/CD",
         hours: 8,
         commits: phase2Commits,
-        cost: "400M tokens · ~$325",
+        cost: `28M tokens · $${Math.round(p2Cost)}`,
       },
       {
         name: "Production",
         hours: 6 + Math.floor((phase3Commits - 31) * 0.1),
         commits: phase3Commits,
-        cost: "156M tokens · ~$155",
+        cost: `124M tokens · $${Math.round(p3Cost)}`,
       },
     ],
   };
