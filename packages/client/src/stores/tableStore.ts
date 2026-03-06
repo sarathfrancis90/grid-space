@@ -1,13 +1,6 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import type {
-  TableConfig,
-  TableColumn,
-  TableStylePreset,
-  CellData,
-  SortCriterion,
-  ColumnFilter,
-} from "../types/grid";
+import type { TableConfig, TableStylePreset, CellData } from "../types/grid";
 import { getCellKey } from "../utils/coordinates";
 
 interface TableState {
@@ -313,6 +306,26 @@ export const useTableStore = create<TableState>()(
           endRow: currentRow,
           endCol: table.endCol,
         };
+      }
+
+      // [@ColumnName] — current row intersected with specific column
+      if (normalized.startsWith("@") && normalized.length > 1) {
+        if (currentRow === undefined) return null;
+        if (currentRow < dataStartRow || currentRow > dataEndRow) return null;
+        const colName = specifier.trim().slice(1).trim().toLowerCase();
+        const atColIdx = table.columns.findIndex(
+          (c) => c.headerName.toLowerCase() === colName,
+        );
+        if (atColIdx >= 0) {
+          const col = table.startCol + atColIdx;
+          return {
+            startRow: currentRow,
+            startCol: col,
+            endRow: currentRow,
+            endCol: col,
+          };
+        }
+        return null;
       }
 
       // Column reference: [ColumnName] — data column only

@@ -384,6 +384,51 @@ describe("tableStore", () => {
         .resolveStructuredRef("sales", "#Data");
       expect(result).not.toBeNull();
     });
+
+    it("resolves @ColumnName to current row intersected with column", () => {
+      const result = useTableStore
+        .getState()
+        .resolveStructuredRef("Sales", "@Price", 3);
+      expect(result).toEqual({
+        startRow: 3,
+        startCol: 2,
+        endRow: 3,
+        endCol: 2,
+      });
+    });
+
+    it("@ColumnName is case-insensitive", () => {
+      const result = useTableStore
+        .getState()
+        .resolveStructuredRef("Sales", "@quantity", 2);
+      expect(result).toEqual({
+        startRow: 2,
+        startCol: 1,
+        endRow: 2,
+        endCol: 1,
+      });
+    });
+
+    it("returns null for @ColumnName without currentRow", () => {
+      const result = useTableStore
+        .getState()
+        .resolveStructuredRef("Sales", "@Price");
+      expect(result).toBeNull();
+    });
+
+    it("returns null for @ColumnName outside data range", () => {
+      const result = useTableStore
+        .getState()
+        .resolveStructuredRef("Sales", "@Price", 0);
+      expect(result).toBeNull();
+    });
+
+    it("returns null for @ColumnName with unknown column", () => {
+      const result = useTableStore
+        .getState()
+        .resolveStructuredRef("Sales", "@Missing", 3);
+      expect(result).toBeNull();
+    });
   });
 
   describe("header-aware operations", () => {
