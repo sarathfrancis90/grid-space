@@ -130,19 +130,14 @@ jobs:
           PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           model: gpt-5-codex
           effort: high
           sandbox: workspace-write
           codex-args: "--search"
           prompt-file: .github/prompts/codex-implement.md
-          instructions-file: AGENTS.md
-          mcp-config-file: .mcp.json
           output-file: .codex-output/implement.json
-          output-logs: true
-          retention-days: 14
-          safety-strategy: warn
-          allow-bots: "claude[bot],github-actions[bot]"
+          safety-strategy: unprivileged-user
+          allow-bots: true
 
       - name: Move issue to In review
         if: success() && steps.context.outputs.kind == 'issue' && steps.context.outputs.number != ''
