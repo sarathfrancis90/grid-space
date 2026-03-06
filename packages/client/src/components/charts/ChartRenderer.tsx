@@ -2,7 +2,7 @@
  * ChartRenderer — renders the appropriate Chart.js component based on chart type.
  * Handles histogram binning, waterfall, candlestick, radar, stacking, and trendlines.
  */
-import { useRef, useMemo, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -128,7 +128,7 @@ function addTrendlineDatasets(
 }
 
 export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
-  const chartRef = useRef<ChartJS | null>(null);
+  const chartCanvasId = `chart-canvas-${chart.id}`;
 
   const options = useMemo(() => buildBaseOptions(chart), [chart]);
 
@@ -225,13 +225,15 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
       };
     }
 
-    // Standard datasets
+    // Standard datasets — clone data arrays to avoid mutating source
     let datasets = chartData.datasets.map((ds, i) => {
       const bgColor = colors ? colors[i % colors.length] : ds.backgroundColor;
+      const clonedData = [...ds.data];
 
       if (chart.type === "line" || chart.type === "scatter") {
         return {
           ...ds,
+          data: clonedData,
           backgroundColor:
             typeof bgColor === "string" ? bgColor : ds.borderColor,
           borderColor: ds.borderColor,
@@ -241,6 +243,7 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
       if (chart.type === "area") {
         return {
           ...ds,
+          data: clonedData,
           backgroundColor: ds.borderColor ? ds.borderColor + "40" : undefined,
           borderColor: ds.borderColor,
           fill: true,
@@ -249,13 +252,18 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
       if (chart.type === "radar") {
         return {
           ...ds,
+          data: clonedData,
           backgroundColor: ds.borderColor ? ds.borderColor + "30" : undefined,
           borderColor: ds.borderColor,
           fill: true,
           pointBackgroundColor: ds.borderColor,
         };
       }
-      return { ...ds, backgroundColor: bgColor ?? ds.backgroundColor };
+      return {
+        ...ds,
+        data: clonedData,
+        backgroundColor: bgColor ?? ds.backgroundColor,
+      };
     });
 
     // Percent stacked: normalize to 100
@@ -287,17 +295,18 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
         pointRadius: 0,
         type: "line" as const,
       }));
-      datasets = [...datasets, ...trendFormatted];
+      datasets = [...datasets, ...(trendFormatted as typeof datasets)];
     }
 
     // Combo: alternate bar and line
     if (chart.type === "combo") {
+      const comboDatasets = datasets.map((ds, i) => ({
+        ...ds,
+        type: (i % 2 === 0 ? "bar" : "line") as "bar" | "line",
+      }));
       return {
         labels: chartData.labels,
-        datasets: datasets.map((ds, i) => ({
-          ...ds,
-          type: (i % 2 === 0 ? "bar" : "line") as "bar" | "line",
-        })),
+        datasets: comboDatasets as typeof datasets,
       };
     }
 
@@ -305,14 +314,14 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
   }, [chartData, chart.type, chart.colors, chart.stackMode, chart.trendline]);
 
   const handleExport = useCallback(() => {
-    const chartInstance = chartRef.current;
+    const chartInstance = ChartJS.getChart(chartCanvasId);
     if (!chartInstance) return;
     const url = chartInstance.toBase64Image();
     const link = document.createElement("a");
     link.download = `${chart.title ?? "chart"}.png`;
     link.href = url;
     link.click();
-  }, [chart.title]);
+  }, [chart.title, chartCanvasId]);
 
   const waterfallOptions = useMemo(() => {
     if (chart.type !== "waterfall") return options;
@@ -354,37 +363,51 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
     switch (chart.type) {
       case "column":
       case "histogram":
-        return <Bar ref={chartRef} data={dataConfig} options={options} />;
+        return <Bar id={chartCanvasId} data={dataConfig} options={options} />;
       case "bar":
         return (
           <Bar
-            ref={chartRef}
+            id={chartCanvasId}
             data={dataConfig}
             options={{ ...options, indexAxis: "y" as const }}
           />
         );
       case "line":
-        return <Line ref={chartRef} data={dataConfig} options={options} />;
+        return <Line id={chartCanvasId} data={dataConfig} options={options} />;
       case "area":
-        return <Line ref={chartRef} data={dataConfig} options={options} />;
+        return <Line id={chartCanvasId} data={dataConfig} options={options} />;
       case "pie":
-        return <Pie ref={chartRef} data={dataConfig} options={options} />;
+        return <Pie id={chartCanvasId} data={dataConfig} options={options} />;
       case "scatter":
-        return <Scatter ref={chartRef} data={dataConfig} options={options} />;
+        return (
+          <Scatter id={chartCanvasId} data={dataConfig} options={options} />
+        );
       case "combo":
-        return <Bar ref={chartRef} data={dataConfig} options={options} />;
-      case "radar":
-        return <Radar ref={chartRef} data={dataConfig} options={options} />;
+        return <Bar id={chartCanvasId} data={dataConfig} options={options} />;
+      case "radar": {
+        const { scales: _scales, ...radarOptions } = options;
+        return (
+          <Radar id={chartCanvasId} data={dataConfig} options={radarOptions} />
+        );
+      }
       case "waterfall":
         return (
-          <Bar ref={chartRef} data={dataConfig} options={waterfallOptions} />
+          <Bar
+            id={chartCanvasId}
+            data={dataConfig}
+            options={waterfallOptions}
+          />
         );
       case "candlestick":
         return (
-          <Bar ref={chartRef} data={dataConfig} options={candlestickOptions} />
+          <Bar
+            id={chartCanvasId}
+            data={dataConfig}
+            options={candlestickOptions}
+          />
         );
       default:
-        return <Bar ref={chartRef} data={dataConfig} options={options} />;
+        return <Bar id={chartCanvasId} data={dataConfig} options={options} />;
     }
   };
 
