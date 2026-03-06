@@ -1,8 +1,10 @@
 import { test, expect } from "@playwright/test";
 
+const apiBaseUrl = process.env.E2E_API_BASE_URL ?? "http://localhost:3001";
+
 test.describe("Smoke tests", () => {
   test("backend API health endpoint is reachable", async ({ request }) => {
-    const response = await request.get("/health");
+    const response = await request.get(`${apiBaseUrl}/health`);
     expect(response.ok()).toBe(true);
     const body = await response.json();
     expect(body.status).toBe("ok");
