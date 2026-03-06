@@ -71,7 +71,6 @@ jobs:
           model: gpt-5-codex
           effort: high
           sandbox: workspace-write
-          codex-args: "--search"
           prompt-file: .github/prompts/codex-review.md
           output-file: .codex-output/review.json
           safety-strategy: unsafe
