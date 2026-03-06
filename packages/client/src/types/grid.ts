@@ -6,6 +6,7 @@ export interface CellData {
   hyperlink?: CellHyperlink;
   image?: CellImage;
   note?: string;
+  smartChips?: SmartChip[];
 }
 
 export interface CellFormat {
@@ -327,4 +328,86 @@ export interface CellHyperlink {
 export interface CellImage {
   url: string;
   alt?: string;
+}
+
+// Smart Chips (Google Sheets parity)
+export type SmartChipType =
+  | "person"
+  | "file"
+  | "date"
+  | "event"
+  | "place"
+  | "finance"
+  | "custom";
+
+export interface SmartChipBase {
+  id: string;
+  type: SmartChipType;
+  displayText: string;
+}
+
+export interface PersonChip extends SmartChipBase {
+  type: "person";
+  email: string;
+  name: string;
+  avatarUrl?: string;
+}
+
+export interface FileChip extends SmartChipBase {
+  type: "file";
+  fileId: string;
+  fileName: string;
+  mimeType?: string;
+  url?: string;
+}
+
+export interface DateChip extends SmartChipBase {
+  type: "date";
+  date: string;
+  format?: string;
+}
+
+export interface EventChip extends SmartChipBase {
+  type: "event";
+  eventId: string;
+  title: string;
+  startDate: string;
+  endDate?: string;
+  location?: string;
+}
+
+export interface PlaceChip extends SmartChipBase {
+  type: "place";
+  placeId: string;
+  placeName: string;
+  address?: string;
+  lat?: number;
+  lng?: number;
+}
+
+export interface FinanceChip extends SmartChipBase {
+  type: "finance";
+  ticker: string;
+  exchange?: string;
+}
+
+export interface CustomChip extends SmartChipBase {
+  type: "custom";
+  icon?: string;
+  color?: string;
+  metadata?: Record<string, string>;
+}
+
+export type SmartChip =
+  | PersonChip
+  | FileChip
+  | DateChip
+  | EventChip
+  | PlaceChip
+  | FinanceChip
+  | CustomChip;
+
+export interface SmartChipSuggestion {
+  chip: SmartChip;
+  score: number;
 }
