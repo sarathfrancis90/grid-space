@@ -138,6 +138,68 @@ function fnAVERAGEIFS(...args: FormulaValue[]): FormulaValue {
   return sum / count;
 }
 
+function fnMAXIFS(...args: FormulaValue[]): FormulaValue {
+  // MAXIFS(max_range, criteria_range1, criteria1, criteria_range2, criteria2, ...)
+  if (args.length < 3 || (args.length - 1) % 2 !== 0) {
+    return "#VALUE!" as FormulaError;
+  }
+  const maxRange = flattenArgs([args[0]]);
+  const pairs: Array<{ range: FormulaValue[]; criteria: FormulaValue }> = [];
+  for (let i = 1; i < args.length; i += 2) {
+    pairs.push({
+      range: flattenArgs([args[i]]),
+      criteria: args[i + 1],
+    });
+  }
+
+  let max = -Infinity;
+  let found = false;
+  for (let i = 0; i < maxRange.length; i++) {
+    const allMatch = pairs.every(
+      (p) => i < p.range.length && matchesCriteria(p.range[i], p.criteria),
+    );
+    if (allMatch) {
+      const n = toNumber(maxRange[i], false);
+      if (n !== null) {
+        if (n > max) max = n;
+        found = true;
+      }
+    }
+  }
+  return found ? max : 0;
+}
+
+function fnMINIFS(...args: FormulaValue[]): FormulaValue {
+  // MINIFS(min_range, criteria_range1, criteria1, criteria_range2, criteria2, ...)
+  if (args.length < 3 || (args.length - 1) % 2 !== 0) {
+    return "#VALUE!" as FormulaError;
+  }
+  const minRange = flattenArgs([args[0]]);
+  const pairs: Array<{ range: FormulaValue[]; criteria: FormulaValue }> = [];
+  for (let i = 1; i < args.length; i += 2) {
+    pairs.push({
+      range: flattenArgs([args[i]]),
+      criteria: args[i + 1],
+    });
+  }
+
+  let min = Infinity;
+  let found = false;
+  for (let i = 0; i < minRange.length; i++) {
+    const allMatch = pairs.every(
+      (p) => i < p.range.length && matchesCriteria(p.range[i], p.criteria),
+    );
+    if (allMatch) {
+      const n = toNumber(minRange[i], false);
+      if (n !== null) {
+        if (n < min) min = n;
+        found = true;
+      }
+    }
+  }
+  return found ? min : 0;
+}
+
 export const conditionalFunctions: Record<string, FormulaFunction> = {
   SUMIF: fnSUMIF,
   COUNTIF: fnCOUNTIF,
@@ -145,4 +207,6 @@ export const conditionalFunctions: Record<string, FormulaFunction> = {
   SUMIFS: fnSUMIFS,
   COUNTIFS: fnCOUNTIFS,
   AVERAGEIFS: fnAVERAGEIFS,
+  MAXIFS: fnMAXIFS,
+  MINIFS: fnMINIFS,
 };
