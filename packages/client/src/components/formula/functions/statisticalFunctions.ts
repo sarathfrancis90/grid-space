@@ -178,9 +178,27 @@ function fnFORECAST(...args: FormulaValue[]): FormulaValue {
   return intercept + slope * (x as number);
 }
 
+function fnSTDEVP(...args: FormulaValue[]): FormulaValue {
+  const nums = extractNumbers(args);
+  if (nums.length === 0) return "#DIV/0!" as FormulaError;
+  const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
+  const variance =
+    nums.reduce((sum, x) => sum + (x - mean) ** 2, 0) / nums.length;
+  return Math.sqrt(variance);
+}
+
+function fnVARP(...args: FormulaValue[]): FormulaValue {
+  const nums = extractNumbers(args);
+  if (nums.length === 0) return "#DIV/0!" as FormulaError;
+  const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
+  return nums.reduce((sum, x) => sum + (x - mean) ** 2, 0) / nums.length;
+}
+
 export const statisticalFunctions: Record<string, FormulaFunction> = {
   STDEV: fnSTDEV,
+  STDEVP: fnSTDEVP,
   VAR: fnVAR,
+  VARP: fnVARP,
   MEDIAN: fnMEDIAN,
   MODE: fnMODE,
   PERCENTILE: fnPERCENTILE,
