@@ -96,7 +96,7 @@ jobs:
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           model: gpt-5-codex
-          effort: medium
+          effort: low
           sandbox: workspace-write
           prompt-file: .codex-output/codex-review.runtime.md
           output-file: .codex-output/review.json
