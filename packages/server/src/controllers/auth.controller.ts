@@ -207,6 +207,15 @@ interface OAuthResult {
   tokens: { accessToken: string; refreshToken: string };
 }
 
+export function oauthProviders(_req: Request, res: Response): void {
+  res.json(
+    apiSuccess({
+      google: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
+      github: Boolean(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET),
+    }),
+  );
+}
+
 export function oauthGoogleRedirect(
   req: Request,
   res: Response,

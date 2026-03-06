@@ -215,6 +215,16 @@ describe("Auth Routes", () => {
   });
 
   describe("OAuth stubs", () => {
+    it("GET /api/auth/oauth/providers returns available providers", async () => {
+      const res = await request(app).get("/api/auth/oauth/providers");
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toEqual({
+        google: false,
+        github: false,
+      });
+    });
+
     it("GET /api/auth/oauth/google returns 501", async () => {
       const res = await request(app).get("/api/auth/oauth/google");
       expect(res.status).toBe(501);

@@ -8,6 +8,7 @@ import {
   forgotPassword,
   resetPassword,
   verifyEmailToken,
+  oauthProviders,
   oauthGoogleRedirect,
   oauthGoogleCallback,
   oauthGithubRedirect,
@@ -50,7 +51,12 @@ const resetPasswordSchema = {
 };
 
 // POST /api/auth/register
-router.post("/register", authAttemptLimiter, validate(registerSchema), register);
+router.post(
+  "/register",
+  authAttemptLimiter,
+  validate(registerSchema),
+  register,
+);
 
 // POST /api/auth/login
 router.post("/login", authAttemptLimiter, validate(loginSchema), login);
@@ -79,6 +85,9 @@ router.post(
 
 // GET /api/auth/verify-email/:token
 router.get("/verify-email/:token", authSessionLimiter, verifyEmailToken);
+
+// OAuth provider availability (public, no auth needed)
+router.get("/oauth/providers", oauthProviders);
 
 // OAuth routes (stubs)
 router.get("/oauth/google", authSessionLimiter, oauthGoogleRedirect);
