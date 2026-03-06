@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useViewStore } from "../../stores/viewStore";
 import { useSheetData } from "../../hooks/useSheetData";
 import { ViewSetupDialog } from "./ViewSetupDialog";
@@ -50,6 +50,19 @@ export function TimelineView() {
     y: number;
     item: TimelineItem;
   } | null>(null);
+  const [showSetup, setShowSetup] = useState(false);
+
+  // Auto-assign default config when first switching to Timeline
+  useEffect(() => {
+    if (!config && headers.length >= 2) {
+      setConfig({
+        startDateCol: 0,
+        endDateCol: headers.length > 2 ? 2 : null,
+        titleCol: Math.min(1, headers.length - 1),
+        colorCol: null,
+      });
+    }
+  }, [config, headers.length, setConfig]);
 
   const items: TimelineItem[] = useMemo(() => {
     if (!config) return [];
@@ -157,12 +170,21 @@ export function TimelineView() {
 
   if (!config) {
     return (
-      <ViewSetupDialog
-        viewType="timeline"
-        headers={headers}
-        onApply={handleSetup}
-        onCancel={() => setActiveView("grid")}
-      />
+      <div
+        className="flex h-full items-center justify-center bg-white"
+        data-testid="timeline-view"
+      >
+        <div className="text-center text-gray-400">
+          <p>Not enough columns to display Timeline view.</p>
+          <button
+            onClick={() => setActiveView("grid")}
+            className="mt-2 rounded bg-gray-200 px-4 py-1.5 text-sm text-gray-600 hover:bg-gray-300"
+            data-testid="timeline-back-to-grid"
+          >
+            Back to Grid
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -171,6 +193,28 @@ export function TimelineView() {
       className="flex h-full flex-col overflow-hidden bg-white"
       data-testid="timeline-view"
     >
+      {/* Configure columns button */}
+      <div className="flex items-center justify-end px-4 py-1 border-b border-gray-200 bg-white">
+        <button
+          onClick={() => setShowSetup(!showSetup)}
+          className="rounded px-3 py-1 text-xs text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+          data-testid="timeline-configure-btn"
+        >
+          {showSetup ? "Close Setup" : "Configure Columns"}
+        </button>
+      </div>
+      {showSetup && (
+        <ViewSetupDialog
+          viewType="timeline"
+          headers={headers}
+          onApply={(cfg) => {
+            handleSetup(cfg);
+            setShowSetup(false);
+          }}
+          onCancel={() => setShowSetup(false)}
+          inline
+        />
+      )}
       {items.length === 0 ? (
         <div className="flex flex-1 items-center justify-center text-gray-400">
           No items with valid dates found.
