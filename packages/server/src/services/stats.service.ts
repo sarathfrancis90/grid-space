@@ -254,7 +254,7 @@ function getDevelopmentStats(github: GitHubStats): DevelopmentStats {
       subscription: `$${subscriptionCost}/mo`,
       subscriptionNote:
         "Anthropic Max plan ($200/mo) + $443 extra usage for Opus 4.6 (1M context)",
-      equivalentApiCost: `$${totalExtraUsage}`,
+      equivalentApiCost: `$${extraUsageBilled - unusedBalance}`,
       model: "Claude Opus 4.6 (1M context) + Haiku 4.5 (sub-agents)",
       apiPricing:
         "Opus: $5/M in, $25/M out, $0.50/M cache read, $6.25/M cache write",
