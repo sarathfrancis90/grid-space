@@ -8,6 +8,7 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const [checked, setChecked] = useState(false);
@@ -16,7 +17,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     let isMounted = true;
 
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
       setChecked(true);
       return;
     }
@@ -26,19 +27,17 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
       return;
     }
 
-    if (!isLoading) {
-      attemptedRefreshRef.current = true;
-      refreshToken().finally(() => {
-        if (isMounted) {
-          setChecked(true);
-        }
-      });
-    }
+    attemptedRefreshRef.current = true;
+    refreshToken().finally(() => {
+      if (isMounted) {
+        setChecked(true);
+      }
+    });
 
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, isLoading, refreshToken]);
+  }, [isAuthenticated, user, isLoading, refreshToken]);
 
   if (!checked || isLoading) {
     return (
@@ -51,7 +50,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
 

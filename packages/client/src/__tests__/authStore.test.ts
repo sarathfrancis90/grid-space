@@ -145,4 +145,125 @@ describe("authStore", () => {
     useAuthStore.getState().setUser(user);
     expect(useAuthStore.getState().user?.name).toBe("Updated Name");
   });
+
+  describe("refreshToken", () => {
+    it("sets isAuthenticated true on valid refresh response", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            user: {
+              id: "user-1",
+              email: "test@example.com",
+              name: "Test",
+              avatarUrl: null,
+              emailVerified: true,
+              createdAt: "2026-01-01",
+            },
+            accessToken: "new-access-token",
+          },
+        }),
+      });
+
+      await useAuthStore.getState().refreshToken();
+
+      const state = useAuthStore.getState();
+      expect(state.isAuthenticated).toBe(true);
+      expect(state.user?.id).toBe("user-1");
+      expect(state.isLoading).toBe(false);
+    });
+
+    it("sets isAuthenticated false when refresh returns 401", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({
+          success: false,
+          error: { code: 401, message: "No refresh token" },
+        }),
+      });
+
+      await useAuthStore.getState().refreshToken();
+
+      const state = useAuthStore.getState();
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.user).toBeNull();
+      expect(state.isLoading).toBe(false);
+    });
+
+    it("sets isAuthenticated false when refresh returns empty data", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {},
+        }),
+      });
+
+      await useAuthStore.getState().refreshToken();
+
+      const state = useAuthStore.getState();
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.user).toBeNull();
+      expect(state.isLoading).toBe(false);
+    });
+
+    it("sets isAuthenticated false when refresh returns user without id", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            user: { email: "test@example.com" },
+            accessToken: "token",
+          },
+        }),
+      });
+
+      await useAuthStore.getState().refreshToken();
+
+      const state = useAuthStore.getState();
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.user).toBeNull();
+      expect(state.isLoading).toBe(false);
+    });
+
+    it("sets isAuthenticated false when refresh returns no accessToken", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            user: {
+              id: "user-1",
+              email: "test@example.com",
+              name: "Test",
+              avatarUrl: null,
+              emailVerified: true,
+              createdAt: "2026-01-01",
+            },
+          },
+        }),
+      });
+
+      await useAuthStore.getState().refreshToken();
+
+      const state = useAuthStore.getState();
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.user).toBeNull();
+      expect(state.isLoading).toBe(false);
+    });
+
+    it("sets isAuthenticated false when network error occurs", async () => {
+      mockFetch.mockRejectedValueOnce(new Error("Network error"));
+
+      await useAuthStore.getState().refreshToken();
+
+      const state = useAuthStore.getState();
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.user).toBeNull();
+      expect(state.isLoading).toBe(false);
+    });
+  });
 });
