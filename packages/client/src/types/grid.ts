@@ -233,6 +233,12 @@ export interface ChartConfig {
 }
 
 // Comments
+export interface CommentReaction {
+  emoji: string;
+  userIds: string[];
+  userNames: string[];
+}
+
 export interface CellComment {
   id: string;
   cellKey: string;
@@ -244,6 +250,7 @@ export interface CellComment {
   updatedAt?: number;
   resolved?: boolean;
   replies?: CommentReply[];
+  reactions?: CommentReaction[];
 }
 
 export interface CommentReply {

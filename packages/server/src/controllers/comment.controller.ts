@@ -147,6 +147,31 @@ export async function unresolveComment(
   }
 }
 
+export async function toggleReaction(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) throw new AppError(401, "Authentication required");
+
+    const spreadsheetId = paramStr(req.params.id);
+    const commentId = paramStr(req.params.commentId);
+    const { emoji } = req.body;
+
+    const result = await commentService.toggleReaction(
+      spreadsheetId,
+      req.user.id,
+      commentId,
+      emoji,
+    );
+
+    res.json(apiSuccess(result));
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function addReply(
   req: AuthRequest,
   res: Response,

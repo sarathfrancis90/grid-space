@@ -14,6 +14,7 @@ import type {
   FormatUpdatePayload,
   ChartUpdatePayload,
   TypingPayload,
+  CommentReactionPayload,
   SocketData,
 } from "./types";
 import * as presence from "./presence";
@@ -355,6 +356,23 @@ export function registerHandlers(io: Server, socket: Socket): void {
         ...p,
         userId,
       });
+    }),
+  );
+
+  // ─── COMMENT REACTIONS ─────────────────────────────────
+  socket.on(
+    WS_EVENTS.COMMENT_REACTION,
+    withRateLimit((payload: unknown) => {
+      const p = payload as CommentReactionPayload;
+      if (!data.spreadsheetId || data.spreadsheetId !== p.spreadsheetId) return;
+
+      socket
+        .to(roomName(p.spreadsheetId))
+        .emit(WS_EVENTS.COMMENT_REACTION_SYNC, {
+          ...p,
+          userId,
+          userName: data.user.name ?? "Anonymous",
+        });
     }),
   );
 

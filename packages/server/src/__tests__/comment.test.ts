@@ -91,6 +91,7 @@ describe("Comment Routes", () => {
             avatarUrl: null,
           },
           replies: [],
+          reactions: [],
         },
       ]);
 
@@ -133,6 +134,7 @@ describe("Comment Routes", () => {
           avatarUrl: null,
         },
         replies: [],
+        reactions: [],
       };
 
       mockPrisma.comment.create.mockResolvedValue(newComment);
@@ -185,6 +187,7 @@ describe("Comment Routes", () => {
           avatarUrl: null,
         },
         replies: [],
+        reactions: [],
       };
 
       mockPrisma.comment.update.mockResolvedValue(resolved);

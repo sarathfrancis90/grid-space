@@ -1,6 +1,6 @@
 /**
  * CommentPanel — add, view, edit, delete comments with threaded replies,
- * @mention autocomplete, and resolve/unresolve.
+ * @mention autocomplete, resolve/unresolve, and emoji reactions.
  * S7-018 to S7-020, S15-001 to S15-005
  */
 import { useState, useCallback } from "react";
@@ -8,6 +8,7 @@ import { useCommentStore } from "../../stores/commentStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useCellStore } from "../../stores/cellStore";
 import { getCellKey } from "../../utils/coordinates";
+import { EmojiReactionPicker } from "./EmojiReactionPicker";
 import type { CellComment, CommentReply } from "../../types/grid";
 
 export function CommentPanel() {
@@ -37,6 +38,7 @@ export function CommentPanel() {
       createdAt: Date.now(),
       replies: [],
       resolved: false,
+      reactions: [],
     };
     useCommentStore.getState().addComment(effectiveSheet, comment);
     setNewText("");
@@ -88,6 +90,21 @@ export function CommentPanel() {
       setReplyText("");
     },
     [effectiveSheet, replyText],
+  );
+
+  const handleToggleReaction = useCallback(
+    (commentId: string, emoji: string) => {
+      useCommentStore
+        .getState()
+        .toggleReaction(
+          effectiveSheet,
+          commentId,
+          emoji,
+          "current-user",
+          "You",
+        );
+    },
+    [effectiveSheet],
   );
 
   const handleClose = useCallback(() => {
@@ -219,6 +236,13 @@ export function CommentPanel() {
                 </div>
               </div>
             )}
+
+            {/* Emoji reactions */}
+            <EmojiReactionPicker
+              reactions={c.reactions ?? []}
+              currentUserId="current-user"
+              onToggleReaction={(emoji) => handleToggleReaction(c.id, emoji)}
+            />
 
             {/* Threaded replies */}
             {c.replies && c.replies.length > 0 && (

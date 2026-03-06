@@ -2,6 +2,14 @@ import prisma from "../models/prisma";
 import { NotFoundError, ForbiddenError } from "../utils/AppError";
 import logger from "../utils/logger";
 
+interface ReactionInfo {
+  id: string;
+  emoji: string;
+  userId: string;
+  userName: string | null;
+  createdAt: Date;
+}
+
 interface CommentWithReplies {
   id: string;
   spreadsheetId: string;
@@ -30,6 +38,7 @@ interface CommentWithReplies {
       avatarUrl: string | null;
     };
   }>;
+  reactions: ReactionInfo[];
 }
 
 const COMMENT_SELECT = {
@@ -57,7 +66,81 @@ const COMMENT_SELECT = {
       },
     },
   },
+  reactions: {
+    orderBy: { createdAt: "asc" as const },
+    select: {
+      id: true,
+      emoji: true,
+      userId: true,
+      createdAt: true,
+      user: {
+        select: { name: true },
+      },
+    },
+  },
 };
+
+/** Map Prisma reaction result to flat ReactionInfo */
+function mapReactions(
+  reactions: Array<{
+    id: string;
+    emoji: string;
+    userId: string;
+    createdAt: Date;
+    user: { name: string | null };
+  }>,
+): ReactionInfo[] {
+  return reactions.map((r) => ({
+    id: r.id,
+    emoji: r.emoji,
+    userId: r.userId,
+    userName: r.user.name,
+    createdAt: r.createdAt,
+  }));
+}
+
+/** Map a Prisma comment (with nested user in reactions) to CommentWithReplies */
+function mapComment(raw: {
+  id: string;
+  spreadsheetId: string;
+  sheetId: string;
+  cellKey: string;
+  text: string;
+  resolved: boolean;
+  mentions: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  author: {
+    id: string;
+    name: string | null;
+    email: string;
+    avatarUrl: string | null;
+  };
+  replies: Array<{
+    id: string;
+    text: string;
+    mentions: string[];
+    createdAt: Date;
+    author: {
+      id: string;
+      name: string | null;
+      email: string;
+      avatarUrl: string | null;
+    };
+  }>;
+  reactions: Array<{
+    id: string;
+    emoji: string;
+    userId: string;
+    createdAt: Date;
+    user: { name: string | null };
+  }>;
+}): CommentWithReplies {
+  return {
+    ...raw,
+    reactions: mapReactions(raw.reactions),
+  };
+}
 
 /** Check if user has at least viewer access to the spreadsheet */
 async function checkAccess(
@@ -107,7 +190,7 @@ export async function listComments(
     orderBy: { createdAt: "desc" },
   });
 
-  return comments;
+  return comments.map(mapComment);
 }
 
 /** Add a comment */
@@ -139,7 +222,7 @@ export async function addComment(
     "Comment added",
   );
 
-  return comment;
+  return mapComment(comment);
 }
 
 /** Edit a comment (only author can edit) */
@@ -172,7 +255,7 @@ export async function editComment(
     select: COMMENT_SELECT,
   });
 
-  return comment;
+  return mapComment(comment);
 }
 
 /** Delete a comment (only author or spreadsheet owner) */
@@ -224,7 +307,7 @@ export async function resolveComment(
     select: COMMENT_SELECT,
   });
 
-  return comment;
+  return mapComment(comment);
 }
 
 /** Unresolve a comment thread */
@@ -250,7 +333,7 @@ export async function unresolveComment(
     select: COMMENT_SELECT,
   });
 
-  return comment;
+  return mapComment(comment);
 }
 
 /** Add a reply to a comment thread */
@@ -290,5 +373,55 @@ export async function addReply(
 
   logger.info({ userId, spreadsheetId, commentId }, "Reply added to comment");
 
-  return comment!;
+  return mapComment(comment!);
+}
+
+/** Toggle an emoji reaction on a comment (add if not present, remove if present) */
+export async function toggleReaction(
+  spreadsheetId: string,
+  userId: string,
+  commentId: string,
+  emoji: string,
+): Promise<{ added: boolean; comment: CommentWithReplies }> {
+  await checkAccess(spreadsheetId, userId);
+
+  const existing = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: { spreadsheetId: true },
+  });
+
+  if (!existing || existing.spreadsheetId !== spreadsheetId) {
+    throw new NotFoundError("Comment not found");
+  }
+
+  // Check if reaction already exists
+  const existingReaction = await prisma.commentReaction.findUnique({
+    where: {
+      commentId_userId_emoji: { commentId, userId, emoji },
+    },
+  });
+
+  if (existingReaction) {
+    // Remove the reaction
+    await prisma.commentReaction.delete({
+      where: { id: existingReaction.id },
+    });
+  } else {
+    // Add the reaction
+    await prisma.commentReaction.create({
+      data: { commentId, userId, emoji },
+    });
+  }
+
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: COMMENT_SELECT,
+  });
+
+  logger.info(
+    { userId, spreadsheetId, commentId, emoji, added: !existingReaction },
+    "Reaction toggled on comment",
+  );
+
+  return { added: !existingReaction, comment: mapComment(comment!) };
 }
