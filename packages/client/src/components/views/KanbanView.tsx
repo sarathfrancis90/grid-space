@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useViewStore } from "../../stores/viewStore";
 import { useCellStore } from "../../stores/cellStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
@@ -39,6 +39,19 @@ export function KanbanView() {
   const { headers, rows } = useSheetData();
 
   const [dragRow, setDragRow] = useState<number | null>(null);
+  const [showSetup, setShowSetup] = useState(false);
+
+  // Auto-assign default config when first switching to Kanban
+  useEffect(() => {
+    if (!config && headers.length >= 2) {
+      setConfig({
+        statusCol: 0,
+        titleCol: Math.min(1, headers.length - 1),
+        descCol: headers.length > 2 ? 2 : null,
+        colorCol: null,
+      });
+    }
+  }, [config, headers.length, setConfig]);
 
   const lanes: Lane[] = useMemo(() => {
     if (!config) return [];
@@ -125,85 +138,120 @@ export function KanbanView() {
 
   if (!config) {
     return (
-      <ViewSetupDialog
-        viewType="kanban"
-        headers={headers}
-        onApply={handleSetup}
-        onCancel={() => setActiveView("grid")}
-      />
+      <div
+        className="flex h-full items-center justify-center bg-gray-50"
+        data-testid="kanban-view"
+      >
+        <div className="text-center text-gray-400">
+          <p>Not enough columns to display Kanban view.</p>
+          <button
+            onClick={() => setActiveView("grid")}
+            className="mt-2 rounded bg-gray-200 px-4 py-1.5 text-sm text-gray-600 hover:bg-gray-300"
+            data-testid="kanban-back-to-grid"
+          >
+            Back to Grid
+          </button>
+        </div>
+      </div>
     );
   }
 
   return (
     <div
-      className="flex h-full gap-4 overflow-x-auto bg-gray-50 p-4"
-      style={{ padding: "16px", gap: "16px" }}
+      className="flex h-full flex-col overflow-hidden bg-gray-50"
       data-testid="kanban-view"
     >
-      {lanes.length === 0 && (
-        <div className="flex flex-1 items-center justify-center text-gray-400">
-          No data to display. Add rows with status values in your sheet.
-        </div>
-      )}
-      {lanes.map((lane) => (
-        <div
-          key={lane.name}
-          className="flex w-[280px] flex-shrink-0 flex-col rounded-lg bg-gray-100"
-          style={{ width: "280px" }}
-          onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, lane.name)}
-          data-testid={`kanban-lane-${lane.name}`}
+      {/* Configure columns button */}
+      <div className="flex items-center justify-end px-4 py-1 border-b border-gray-200 bg-gray-50">
+        <button
+          onClick={() => setShowSetup(!showSetup)}
+          className="rounded px-3 py-1 text-xs text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+          data-testid="kanban-configure-btn"
         >
-          <div
-            className="flex items-center justify-between rounded-t-lg px-3 py-2"
-            style={{ padding: "8px 12px" }}
-          >
-            <span className="text-sm font-semibold text-gray-700">
-              {lane.name}
-            </span>
-            <span className="rounded-full bg-gray-300 px-2 py-0.5 text-xs text-gray-600">
-              {lane.cards.length}
-            </span>
+          {showSetup ? "Close Setup" : "Configure Columns"}
+        </button>
+      </div>
+      {showSetup && (
+        <ViewSetupDialog
+          viewType="kanban"
+          headers={headers}
+          onApply={(cfg) => {
+            handleSetup(cfg);
+            setShowSetup(false);
+          }}
+          onCancel={() => setShowSetup(false)}
+          inline
+        />
+      )}
+      <div
+        className="flex flex-1 gap-4 overflow-x-auto p-4"
+        style={{ padding: "16px", gap: "16px" }}
+      >
+        {lanes.length === 0 && (
+          <div className="flex flex-1 items-center justify-center text-gray-400">
+            No data to display. Add rows with status values in your sheet.
           </div>
+        )}
+        {lanes.map((lane) => (
           <div
-            className="flex flex-1 flex-col gap-2 overflow-y-auto p-2"
-            style={{ padding: "8px", gap: "8px" }}
+            key={lane.name}
+            className="flex w-[280px] flex-shrink-0 flex-col rounded-lg bg-gray-100"
+            style={{ width: "280px" }}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, lane.name)}
+            data-testid={`kanban-lane-${lane.name}`}
           >
-            {lane.cards.length === 0 && (
-              <div className="py-4 text-center text-xs text-gray-400">
-                No items in this lane
-              </div>
-            )}
-            {lane.cards.map((card) => (
-              <div
-                key={card.row}
-                draggable
-                onDragStart={(e) => handleDragStart(e, card.row)}
-                className="cursor-grab rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing"
-                style={{
-                  padding: "12px",
-                  borderLeft: `4px solid ${card.color}`,
-                }}
-                data-testid={`kanban-card-${card.row}`}
-              >
-                <div className="flex items-start justify-between">
-                  <span className="text-sm font-medium text-gray-800">
-                    {card.title || "(untitled)"}
-                  </span>
-                  <span className="ml-2 flex-shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">
-                    R{card.row + 1}
-                  </span>
+            <div
+              className="flex items-center justify-between rounded-t-lg px-3 py-2"
+              style={{ padding: "8px 12px" }}
+            >
+              <span className="text-sm font-semibold text-gray-700">
+                {lane.name}
+              </span>
+              <span className="rounded-full bg-gray-300 px-2 py-0.5 text-xs text-gray-600">
+                {lane.cards.length}
+              </span>
+            </div>
+            <div
+              className="flex flex-1 flex-col gap-2 overflow-y-auto p-2"
+              style={{ padding: "8px", gap: "8px" }}
+            >
+              {lane.cards.length === 0 && (
+                <div className="py-4 text-center text-xs text-gray-400">
+                  No items in this lane
                 </div>
-                {card.desc && (
-                  <p className="mt-1 text-xs text-gray-500 line-clamp-2">
-                    {card.desc}
-                  </p>
-                )}
-              </div>
-            ))}
+              )}
+              {lane.cards.map((card) => (
+                <div
+                  key={card.row}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, card.row)}
+                  className="cursor-grab rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing"
+                  style={{
+                    padding: "12px",
+                    borderLeft: `4px solid ${card.color}`,
+                  }}
+                  data-testid={`kanban-card-${card.row}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <span className="text-sm font-medium text-gray-800">
+                      {card.title || "(untitled)"}
+                    </span>
+                    <span className="ml-2 flex-shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">
+                      R{card.row + 1}
+                    </span>
+                  </div>
+                  {card.desc && (
+                    <p className="mt-1 text-xs text-gray-500 line-clamp-2">
+                      {card.desc}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

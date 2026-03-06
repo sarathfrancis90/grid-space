@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useViewStore } from "../../stores/viewStore";
 import { useSheetData } from "../../hooks/useSheetData";
 import { ViewSetupDialog } from "./ViewSetupDialog";
@@ -51,6 +51,18 @@ export function CalendarView() {
 
   const [viewDate, setViewDate] = useState(() => new Date());
   const [expandedDay, setExpandedDay] = useState<Date | null>(null);
+  const [showSetup, setShowSetup] = useState(false);
+
+  // Auto-assign default config when first switching to Calendar
+  useEffect(() => {
+    if (!config && headers.length >= 2) {
+      setConfig({
+        dateCol: 0,
+        titleCol: Math.min(1, headers.length - 1),
+        colorCol: null,
+      });
+    }
+  }, [config, headers.length, setConfig]);
 
   const events: CalendarEvent[] = useMemo(() => {
     if (!config) return [];
@@ -143,17 +155,38 @@ export function CalendarView() {
 
   if (!config) {
     return (
-      <ViewSetupDialog
-        viewType="calendar"
-        headers={headers}
-        onApply={handleSetup}
-        onCancel={() => setActiveView("grid")}
-      />
+      <div
+        className="flex h-full items-center justify-center bg-white"
+        data-testid="calendar-view"
+      >
+        <div className="text-center text-gray-400">
+          <p>Not enough columns to display Calendar view.</p>
+          <button
+            onClick={() => setActiveView("grid")}
+            className="mt-2 rounded bg-gray-200 px-4 py-1.5 text-sm text-gray-600 hover:bg-gray-300"
+            data-testid="calendar-back-to-grid"
+          >
+            Back to Grid
+          </button>
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="flex h-full flex-col bg-white" data-testid="calendar-view">
+      {showSetup && (
+        <ViewSetupDialog
+          viewType="calendar"
+          headers={headers}
+          onApply={(cfg) => {
+            handleSetup(cfg);
+            setShowSetup(false);
+          }}
+          onCancel={() => setShowSetup(false)}
+          inline
+        />
+      )}
       {/* Calendar header */}
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-2">
         <div className="flex items-center gap-2">
@@ -175,13 +208,22 @@ export function CalendarView() {
             &rarr;
           </button>
         </div>
-        <button
-          onClick={goToday}
-          className="rounded border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
-          data-testid="calendar-today-btn"
-        >
-          Today
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={goToday}
+            className="rounded border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+            data-testid="calendar-today-btn"
+          >
+            Today
+          </button>
+          <button
+            onClick={() => setShowSetup(!showSetup)}
+            className="rounded px-3 py-1 text-xs text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+            data-testid="calendar-configure-btn"
+          >
+            {showSetup ? "Close Setup" : "Configure Columns"}
+          </button>
+        </div>
       </div>
 
       {/* Weekday headers */}
