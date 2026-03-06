@@ -71,22 +71,27 @@ export function SheetTabs() {
     [],
   );
 
-  const handleDragStart = useCallback((idx: number) => {
-    setDragIdx(idx);
-  }, []);
+  const handleDragStart = useCallback(
+    (visibleIdx: number) => {
+      const fullIdx = sheets.indexOf(visibleSheets[visibleIdx]);
+      setDragIdx(fullIdx);
+    },
+    [sheets, visibleSheets],
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
   }, []);
 
   const handleDrop = useCallback(
-    (toIdx: number) => {
-      if (dragIdx !== null && dragIdx !== toIdx) {
-        reorderSheet(dragIdx, toIdx);
+    (toVisibleIdx: number) => {
+      const fullToIdx = sheets.indexOf(visibleSheets[toVisibleIdx]);
+      if (dragIdx !== null && dragIdx !== fullToIdx) {
+        reorderSheet(dragIdx, fullToIdx);
       }
       setDragIdx(null);
     },
-    [dragIdx, reorderSheet],
+    [dragIdx, reorderSheet, sheets, visibleSheets],
   );
 
   const handleDelete = useCallback(
@@ -292,7 +297,9 @@ export function SheetTabs() {
             </div>
             <div
               data-testid="ctx-hide"
-              onClick={() => handleHide(contextMenu.sheetId)}
+              onClick={() => {
+                if (visibleSheets.length > 1) handleHide(contextMenu.sheetId);
+              }}
               className={`px-4 py-1.5 text-[13px] ${
                 visibleSheets.length <= 1
                   ? "cursor-default text-gray-400"
