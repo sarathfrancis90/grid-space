@@ -6,6 +6,7 @@
 import { useState, useCallback } from "react";
 import { useCommentStore } from "../../stores/commentStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
+import { useAuthStore } from "../../stores/authStore";
 import { useCellStore } from "../../stores/cellStore";
 import { getCellKey } from "../../utils/coordinates";
 import { EmojiReactionPicker } from "./EmojiReactionPicker";
@@ -15,6 +16,7 @@ export function CommentPanel() {
   const activeCell = useCommentStore((s) => s.activeCommentCell);
   const activeSheet = useCommentStore((s) => s.activeSheetForComment);
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
+  const user = useAuthStore((s) => s.user);
   const effectiveSheet = activeSheet ?? sheetId;
 
   const [newText, setNewText] = useState("");
@@ -34,7 +36,7 @@ export function CommentPanel() {
       cellKey: activeCell,
       sheetId: effectiveSheet,
       text: newText.trim(),
-      author: "You",
+      author: user?.name ?? "You",
       createdAt: Date.now(),
       replies: [],
       resolved: false,
@@ -42,7 +44,7 @@ export function CommentPanel() {
     };
     useCommentStore.getState().addComment(effectiveSheet, comment);
     setNewText("");
-  }, [activeCell, effectiveSheet, newText]);
+  }, [activeCell, effectiveSheet, newText, user]);
 
   const handleEdit = useCallback(
     (commentId: string) => {
@@ -82,14 +84,14 @@ export function CommentPanel() {
       const reply: CommentReply = {
         id: `reply-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         text: replyText.trim(),
-        author: "You",
+        author: user?.name ?? "You",
         createdAt: Date.now(),
       };
       useCommentStore.getState().addReply(effectiveSheet, commentId, reply);
       setReplyingTo(null);
       setReplyText("");
     },
-    [effectiveSheet, replyText],
+    [effectiveSheet, replyText, user],
   );
 
   const handleToggleReaction = useCallback(
@@ -100,11 +102,11 @@ export function CommentPanel() {
           effectiveSheet,
           commentId,
           emoji,
-          "current-user",
-          "You",
+          user?.id ?? "anonymous",
+          user?.name ?? "You",
         );
     },
-    [effectiveSheet],
+    [effectiveSheet, user],
   );
 
   const handleClose = useCallback(() => {
@@ -240,7 +242,7 @@ export function CommentPanel() {
             {/* Emoji reactions */}
             <EmojiReactionPicker
               reactions={c.reactions ?? []}
-              currentUserId="current-user"
+              currentUserId={user?.id ?? "anonymous"}
               onToggleReaction={(emoji) => handleToggleReaction(c.id, emoji)}
             />
 

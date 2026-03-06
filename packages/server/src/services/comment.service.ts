@@ -394,34 +394,36 @@ export async function toggleReaction(
     throw new NotFoundError("Comment not found");
   }
 
-  // Check if reaction already exists
-  const existingReaction = await prisma.commentReaction.findUnique({
-    where: {
-      commentId_userId_emoji: { commentId, userId, emoji },
-    },
-  });
-
-  if (existingReaction) {
-    // Remove the reaction
-    await prisma.commentReaction.delete({
-      where: { id: existingReaction.id },
+  // Use a transaction to prevent race conditions on concurrent toggle requests
+  const { added, updatedComment } = await prisma.$transaction(async (tx) => {
+    const existingReaction = await tx.commentReaction.findUnique({
+      where: {
+        commentId_userId_emoji: { commentId, userId, emoji },
+      },
     });
-  } else {
-    // Add the reaction
-    await prisma.commentReaction.create({
-      data: { commentId, userId, emoji },
-    });
-  }
 
-  const comment = await prisma.comment.findUnique({
-    where: { id: commentId },
-    select: COMMENT_SELECT,
+    if (existingReaction) {
+      await tx.commentReaction.delete({
+        where: { id: existingReaction.id },
+      });
+    } else {
+      await tx.commentReaction.create({
+        data: { commentId, userId, emoji },
+      });
+    }
+
+    const comment = await tx.comment.findUnique({
+      where: { id: commentId },
+      select: COMMENT_SELECT,
+    });
+
+    return { added: !existingReaction, updatedComment: comment! };
   });
 
   logger.info(
-    { userId, spreadsheetId, commentId, emoji, added: !existingReaction },
+    { userId, spreadsheetId, commentId, emoji, added },
     "Reaction toggled on comment",
   );
 
-  return { added: !existingReaction, comment: mapComment(comment!) };
+  return { added, comment: mapComment(updatedComment) };
 }
