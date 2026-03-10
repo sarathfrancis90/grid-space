@@ -11,6 +11,18 @@ vi.mock("../models/prisma", () => {
       update: vi.fn(),
       delete: vi.fn(),
     },
+    pendingInvite: {
+      findMany: vi.fn().mockResolvedValue([]),
+      deleteMany: vi.fn(),
+    },
+    spreadsheetAccess: {
+      upsert: vi.fn(),
+    },
+    $transaction: vi
+      .fn()
+      .mockImplementation((fn: (tx: unknown) => Promise<void>) =>
+        fn(mockPrisma),
+      ),
     $disconnect: vi.fn(),
   };
   return { default: mockPrisma };
