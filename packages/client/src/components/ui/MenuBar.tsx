@@ -14,6 +14,8 @@ import { useChartStore } from "../../stores/chartStore";
 import { useMacroStore } from "../../stores/macroStore";
 import { useCloudStore } from "../../stores/cloudStore";
 import { useVersionStore } from "../../stores/versionStore";
+import { useCommentStore } from "../../stores/commentStore";
+import { useValidationStore } from "../../stores/validationStore";
 import { exportXLSX, downloadFile } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
 import { performPasteSpecial } from "../../hooks/useKeyboardShortcuts";
@@ -518,6 +520,59 @@ export function MenuBar() {
           shortcut: "Ctrl+K",
           action: () => {
             useUIStore.getState().setHyperlinkDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Comment",
+          testId: "menu-insert-comment",
+          shortcut: "Ctrl+Alt+M",
+          separator: true,
+          action: () => {
+            useCommentStore.getState().openPanel();
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Checkbox",
+          testId: "menu-insert-checkbox",
+          separator: true,
+          action: () => {
+            const sel = useUIStore.getState().selectedCell;
+            if (sel) {
+              const sid = useSpreadsheetStore.getState().activeSheetId;
+              useHistoryStore.getState().pushUndo();
+              useCellStore.getState().setCell(sid, sel.row, sel.col, {
+                value: false,
+              });
+              useValidationStore.getState().setRule(sid, sel.row, sel.col, {
+                type: "checkbox",
+              });
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Dropdown",
+          testId: "menu-insert-dropdown",
+          action: () => {
+            const sel = useUIStore.getState().selectedCell;
+            if (sel) {
+              const sid = useSpreadsheetStore.getState().activeSheetId;
+              useValidationStore.getState().setRule(sid, sel.row, sel.col, {
+                type: "dropdown-list",
+                listValues: ["Option 1", "Option 2", "Option 3"],
+              });
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "New sheet",
+          testId: "menu-insert-new-sheet",
+          separator: true,
+          action: () => {
+            useSpreadsheetStore.getState().addSheet();
             setOpenMenu(null);
           },
         },
