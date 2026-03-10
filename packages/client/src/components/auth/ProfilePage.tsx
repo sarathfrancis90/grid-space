@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useState, useRef } from "react";
+import type { FormEvent, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import { api } from "../../services/api";
@@ -14,12 +14,29 @@ interface UserProfile {
   createdAt: string;
 }
 
+const AVATAR_MAX_SIZE = 2 * 1024 * 1024; // 2MB
+const AVATAR_ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/gif"];
+
+function readFileAsDataUri(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, setUser, logout } = useAuthStore();
   const [name, setName] = useState(user?.name || "");
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  // Avatar state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
 
   // Change password state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -40,6 +57,59 @@ export default function ProfilePage() {
       setMessage(err instanceof Error ? err.message : "Update failed");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleAvatarChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset the input so the same file can be re-selected
+    e.target.value = "";
+
+    if (!AVATAR_ACCEPTED_TYPES.includes(file.type)) {
+      setAvatarMessage("Please select a PNG, JPG, or GIF image");
+      return;
+    }
+
+    if (file.size > AVATAR_MAX_SIZE) {
+      setAvatarMessage("Image must be under 2MB");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    setAvatarMessage(null);
+
+    try {
+      const dataUri = await readFileAsDataUri(file);
+      const updated = await api.post<UserProfile>("/users/me/avatar", {
+        avatar: dataUri,
+      });
+      setUser(updated);
+      setAvatarMessage("Avatar updated");
+    } catch (err) {
+      setAvatarMessage(
+        err instanceof Error ? err.message : "Avatar upload failed",
+      );
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  }
+
+  async function handleRemoveAvatar() {
+    setIsUploadingAvatar(true);
+    setAvatarMessage(null);
+
+    try {
+      const updated = await api.delete<UserProfile>("/users/me/avatar");
+      setUser(updated);
+      setAvatarMessage("Avatar removed");
+    } catch (err) {
+      setAvatarMessage(
+        err instanceof Error ? err.message : "Failed to remove avatar",
+      );
+    } finally {
+      setIsUploadingAvatar(false);
     }
   }
 
@@ -175,37 +245,98 @@ export default function ProfilePage() {
             className="flex items-center gap-4"
             style={{ display: "flex", alignItems: "center", gap: "16px" }}
           >
-            {user.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt="Avatar"
-                className="h-16 w-16 rounded-full object-cover"
-                style={{
-                  width: "64px",
-                  height: "64px",
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                }}
+            <div style={{ position: "relative", display: "inline-block" }}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/gif"
+                onChange={handleAvatarChange}
+                style={{ display: "none" }}
+                data-testid="avatar-file-input"
               />
-            ) : (
-              <div
-                className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1a73e8] text-xl font-bold text-white"
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+                data-testid="avatar-upload-button"
                 style={{
+                  position: "relative",
                   width: "64px",
                   height: "64px",
                   borderRadius: "50%",
-                  backgroundColor: "#1a73e8",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "20px",
-                  fontWeight: 700,
-                  color: "#fff",
+                  border: "none",
+                  padding: 0,
+                  cursor: isUploadingAvatar ? "not-allowed" : "pointer",
+                  overflow: "hidden",
+                  background: "none",
                 }}
+                title="Click to change avatar"
               >
-                {initials}
-              </div>
-            )}
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt="Avatar"
+                    style={{
+                      width: "64px",
+                      height: "64px",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: "64px",
+                      height: "64px",
+                      borderRadius: "50%",
+                      backgroundColor: "#1a73e8",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "20px",
+                      fontWeight: 700,
+                      color: "#fff",
+                    }}
+                  >
+                    {initials}
+                  </div>
+                )}
+                {/* Hover overlay with camera icon */}
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: "0",
+                    borderRadius: "50%",
+                    backgroundColor: "rgba(0,0,0,0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: 0,
+                    transition: "opacity 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.opacity = "1";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.opacity = "0";
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                </div>
+              </button>
+            </div>
             <div>
               <p
                 className="text-lg font-semibold text-gray-900"
@@ -219,6 +350,51 @@ export default function ProfilePage() {
               >
                 {user.email}
               </p>
+              <div
+                style={{
+                  marginTop: "6px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                  data-testid="avatar-change-link"
+                  style={{
+                    fontSize: "12px",
+                    color: "#1a73e8",
+                    background: "none",
+                    border: "none",
+                    cursor: isUploadingAvatar ? "not-allowed" : "pointer",
+                    padding: 0,
+                    textDecoration: "underline",
+                  }}
+                >
+                  {isUploadingAvatar ? "Uploading..." : "Change photo"}
+                </button>
+                {user.avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    disabled={isUploadingAvatar}
+                    data-testid="avatar-remove-button"
+                    style={{
+                      fontSize: "12px",
+                      color: "#dc2626",
+                      background: "none",
+                      border: "none",
+                      cursor: isUploadingAvatar ? "not-allowed" : "pointer",
+                      padding: 0,
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
               <p
                 className="mt-1 text-xs text-gray-400"
                 style={{
@@ -235,6 +411,35 @@ export default function ProfilePage() {
               </p>
             </div>
           </div>
+          {avatarMessage && (
+            <div
+              className={`mt-3 rounded-lg p-3 text-sm ${
+                avatarMessage === "Avatar updated" ||
+                avatarMessage === "Avatar removed"
+                  ? "bg-green-50 text-green-700"
+                  : "bg-red-50 text-red-700"
+              }`}
+              style={{
+                marginTop: "12px",
+                borderRadius: "8px",
+                padding: "12px",
+                fontSize: "14px",
+                backgroundColor:
+                  avatarMessage === "Avatar updated" ||
+                  avatarMessage === "Avatar removed"
+                    ? "#f0fdf4"
+                    : "#fef2f2",
+                color:
+                  avatarMessage === "Avatar updated" ||
+                  avatarMessage === "Avatar removed"
+                    ? "#15803d"
+                    : "#b91c1c",
+              }}
+              data-testid="avatar-message"
+            >
+              {avatarMessage}
+            </div>
+          )}
         </div>
 
         {/* Profile Info Card */}

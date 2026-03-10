@@ -290,6 +290,68 @@ export async function updateProfile(
   return sanitizeUser(user);
 }
 
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2MB
+const AVATAR_ALLOWED_TYPES = ["image/png", "image/jpeg", "image/gif"];
+
+export async function uploadAvatar(
+  userId: string,
+  dataUri: string,
+): Promise<UserProfile> {
+  // Validate data URI format: data:<mime>;base64,<data>
+  const match = dataUri.match(/^data:(image\/\w+);base64,(.+)$/);
+  if (!match) {
+    throw new AppError(400, "Invalid image data URI format");
+  }
+
+  const mimeType = match[1];
+  const base64Data = match[2];
+
+  if (!AVATAR_ALLOWED_TYPES.includes(mimeType)) {
+    throw new AppError(400, "Unsupported image type. Allowed: PNG, JPG, GIF");
+  }
+
+  // Check decoded size
+  const sizeInBytes = Math.ceil((base64Data.length * 3) / 4);
+  if (sizeInBytes > AVATAR_MAX_BYTES) {
+    throw new AppError(400, "Image exceeds 2MB limit");
+  }
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { avatarUrl: dataUri },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      avatarUrl: true,
+      emailVerified: true,
+      createdAt: true,
+    },
+  });
+
+  logger.info({ userId }, "Avatar uploaded");
+
+  return sanitizeUser(user);
+}
+
+export async function removeAvatar(userId: string): Promise<UserProfile> {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { avatarUrl: null },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      avatarUrl: true,
+      emailVerified: true,
+      createdAt: true,
+    },
+  });
+
+  logger.info({ userId }, "Avatar removed");
+
+  return sanitizeUser(user);
+}
 export async function changePassword(
   userId: string,
   currentPassword: string,
