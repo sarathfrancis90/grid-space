@@ -14,6 +14,7 @@ import { useChartStore } from "../../stores/chartStore";
 import { useMacroStore } from "../../stores/macroStore";
 import { exportXLSX, downloadFile } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
+import { performPasteSpecial } from "../../hooks/useKeyboardShortcuts";
 
 interface MenuItemDef {
   label: string;
@@ -252,9 +253,112 @@ export function MenuBar() {
           },
         },
         {
+          label: "Paste values only",
+          testId: "menu-edit-paste-values",
+          shortcut: "Ctrl+Shift+V",
+          action: () => {
+            performPasteSpecial("values");
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Paste format only",
+          testId: "menu-edit-paste-format",
+          action: () => {
+            performPasteSpecial("format");
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Paste transposed",
+          testId: "menu-edit-paste-transpose",
+          action: () => {
+            performPasteSpecial({ mode: "values", transpose: true });
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Select all",
+          testId: "menu-edit-select-all",
+          shortcut: "Ctrl+A",
+          separator: true,
+          action: () => {
+            const gs = useGridStore.getState();
+            useUIStore.getState().setSelectedCell({ row: 0, col: 0 });
+            useUIStore.getState().setSelections([
+              {
+                start: { row: 0, col: 0 },
+                end: { row: gs.totalRows - 1, col: gs.totalCols - 1 },
+              },
+            ]);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Delete values",
+          testId: "menu-edit-delete-values",
+          shortcut: "Delete",
+          separator: true,
+          action: () => {
+            const ui = useUIStore.getState();
+            const sid = useSpreadsheetStore.getState().activeSheetId;
+            if (ui.selections.length > 0) {
+              const sel = ui.selections[ui.selections.length - 1];
+              useHistoryStore.getState().pushUndo();
+              useCellStore
+                .getState()
+                .clearRange(
+                  sid,
+                  Math.min(sel.start.row, sel.end.row),
+                  Math.min(sel.start.col, sel.end.col),
+                  Math.max(sel.start.row, sel.end.row),
+                  Math.max(sel.start.col, sel.end.col),
+                );
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Delete row",
+          testId: "menu-edit-delete-row",
+          action: () => {
+            const sel = useUIStore.getState().selectedCell;
+            if (sel) {
+              const gs = useGridStore.getState();
+              const sid = useSpreadsheetStore.getState().activeSheetId;
+              useHistoryStore.getState().pushUndo();
+              useCellStore.getState().deleteRows(sid, [sel.row], gs.totalRows);
+              gs.deleteRowHeights([sel.row]);
+              useGridStore
+                .getState()
+                .setTotalRows(Math.max(1, gs.totalRows - 1));
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Delete column",
+          testId: "menu-edit-delete-col",
+          action: () => {
+            const sel = useUIStore.getState().selectedCell;
+            if (sel) {
+              const gs = useGridStore.getState();
+              const sid = useSpreadsheetStore.getState().activeSheetId;
+              useHistoryStore.getState().pushUndo();
+              useCellStore.getState().deleteCols(sid, [sel.col], gs.totalCols);
+              gs.deleteColWidths([sel.col]);
+              useGridStore
+                .getState()
+                .setTotalCols(Math.max(1, gs.totalCols - 1));
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Find and Replace",
           testId: "menu-edit-find",
           shortcut: "Ctrl+H",
+          separator: true,
           action: () => setOpenMenu(null),
         },
       ],
