@@ -9,6 +9,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import DashboardPage from "./components/dashboard/DashboardPage";
 import SpreadsheetEditorPage from "./components/dashboard/SpreadsheetEditorPage";
 import NotFoundPage from "./components/dashboard/NotFoundPage";
+import PublishedSpreadsheetPage from "./components/sharing/PublishedSpreadsheetPage";
 
 export function App() {
   return (
@@ -20,6 +21,12 @@ export function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
+
+          {/* Published spreadsheet (public, no auth) */}
+          <Route
+            path="/published/:token"
+            element={<PublishedSpreadsheetPage />}
+          />
 
           {/* Protected routes */}
           <Route

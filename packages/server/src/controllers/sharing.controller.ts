@@ -212,6 +212,25 @@ export async function transferOwnership(
   }
 }
 
+/** GET /api/spreadsheets/:id/publish */
+export async function getPublishInfo(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) throw new AppError(401, "Authentication required");
+    const id = paramStr(req.params.id);
+    if (!id) throw new AppError(400, "Spreadsheet ID is required");
+
+    const result = await sharingService.getPublishInfo(id, req.user.id);
+
+    res.json(apiSuccess(result));
+  } catch (err) {
+    next(err);
+  }
+}
+
 /** POST /api/spreadsheets/:id/publish */
 export async function publishToWeb(
   req: AuthRequest,

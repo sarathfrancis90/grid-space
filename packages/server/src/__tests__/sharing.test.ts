@@ -380,6 +380,25 @@ describe("Sharing Routes", () => {
     });
   });
 
+  describe("GET /api/spreadsheets/:id/publish", () => {
+    it("returns publish info for owner", async () => {
+      mockPrisma.spreadsheet.findUnique
+        .mockResolvedValueOnce({ ownerId: "user-1" })
+        .mockResolvedValueOnce({
+          isPublished: true,
+          publishedUrl: "pub-token-abc",
+        });
+
+      const res = await request(app)
+        .get("/api/spreadsheets/ss-1/publish")
+        .set(authHeader);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.isPublished).toBe(true);
+      expect(res.body.data.publishedUrl).toBe("pub-token-abc");
+    });
+  });
+
   describe("POST /api/spreadsheets/:id/publish", () => {
     it("publishes to web", async () => {
       mockPrisma.spreadsheet.findUnique.mockResolvedValue({
@@ -396,6 +415,58 @@ describe("Sharing Routes", () => {
 
       expect(res.status).toBe(200);
       expect(res.body.data.publishedUrl).toBeDefined();
+    });
+  });
+
+  describe("DELETE /api/spreadsheets/:id/publish", () => {
+    it("unpublishes from web", async () => {
+      mockPrisma.spreadsheet.findUnique.mockResolvedValue({
+        ownerId: "user-1",
+      });
+
+      mockPrisma.spreadsheet.update.mockResolvedValue({
+        isPublished: false,
+        publishedUrl: null,
+      });
+
+      const res = await request(app)
+        .delete("/api/spreadsheets/ss-1/publish")
+        .set(authHeader);
+
+      expect(res.status).toBe(204);
+    });
+  });
+
+  describe("GET /api/published/:token", () => {
+    it("returns published spreadsheet data", async () => {
+      mockPrisma.spreadsheet.findFirst.mockResolvedValue({
+        id: "ss-1",
+        title: "Test Spreadsheet",
+        sheets: [
+          {
+            id: "sheet-1",
+            name: "Sheet1",
+            index: 0,
+            cellData: { "0": { "0": { value: "Hello" } } },
+            columnMeta: {},
+            rowMeta: {},
+          },
+        ],
+      });
+
+      const res = await request(app).get("/api/published/pub-token-123");
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.title).toBe("Test Spreadsheet");
+      expect(res.body.data.sheets).toHaveLength(1);
+    });
+
+    it("returns 404 for invalid token", async () => {
+      mockPrisma.spreadsheet.findFirst.mockResolvedValue(null);
+
+      const res = await request(app).get("/api/published/invalid-token");
+
+      expect(res.status).toBe(404);
     });
   });
 });

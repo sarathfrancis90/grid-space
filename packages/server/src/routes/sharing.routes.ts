@@ -10,6 +10,7 @@ import {
   disableShareLink,
   accessViaShareLink,
   transferOwnership,
+  getPublishInfo,
   publishToWeb,
   unpublishFromWeb,
   accessPublished,
@@ -103,6 +104,7 @@ transferRouter.post(
 export const publishRouter = Router({ mergeParams: true });
 publishRouter.use(authenticate);
 
+publishRouter.get("/", getPublishInfo);
 publishRouter.post("/", writeLimiter, publishToWeb);
 publishRouter.delete("/", writeLimiter, unpublishFromWeb);
 

@@ -11,6 +11,7 @@ describe("sharingStore", () => {
     useSharingStore.setState({
       collaborators: [],
       shareLink: { shareLink: null, shareLinkRole: null },
+      publishInfo: { isPublished: false, publishedUrl: null },
       isLoading: false,
       isDialogOpen: false,
       error: null,
@@ -169,5 +170,60 @@ describe("sharingStore", () => {
 
     await useSharingStore.getState().fetchCollaborators("ss-1");
     expect(useSharingStore.getState().error).toBe("Server error");
+  });
+
+  it("has correct initial publish state", () => {
+    const state = useSharingStore.getState();
+    expect(state.publishInfo.isPublished).toBe(false);
+    expect(state.publishInfo.publishedUrl).toBeNull();
+  });
+
+  it("fetchPublishInfo loads publish info", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: { isPublished: true, publishedUrl: "abc123" },
+      }),
+    });
+
+    await useSharingStore.getState().fetchPublishInfo("ss-1");
+    const state = useSharingStore.getState();
+    expect(state.publishInfo.isPublished).toBe(true);
+    expect(state.publishInfo.publishedUrl).toBe("abc123");
+  });
+
+  it("publishToWeb sets published state", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: { publishedUrl: "pub-token-xyz" },
+      }),
+    });
+
+    const url = await useSharingStore.getState().publishToWeb("ss-1");
+    expect(url).toBe("pub-token-xyz");
+    const state = useSharingStore.getState();
+    expect(state.publishInfo.isPublished).toBe(true);
+    expect(state.publishInfo.publishedUrl).toBe("pub-token-xyz");
+  });
+
+  it("unpublishFromWeb clears published state", async () => {
+    useSharingStore.setState({
+      publishInfo: { isPublished: true, publishedUrl: "some-token" },
+    });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 204,
+    });
+
+    await useSharingStore.getState().unpublishFromWeb("ss-1");
+    const state = useSharingStore.getState();
+    expect(state.publishInfo.isPublished).toBe(false);
+    expect(state.publishInfo.publishedUrl).toBeNull();
   });
 });
