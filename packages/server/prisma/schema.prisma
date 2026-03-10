@@ -55,6 +55,7 @@ model Spreadsheet {
   isStarred      Boolean   @default(false) @map("is_starred")
   isTemplate     Boolean   @default(false) @map("is_template")
   templateName   String?   @map("template_name")
+  deletedAt      DateTime? @map("deleted_at")
 
   sheets         Sheet[]
   access         SpreadsheetAccess[]
@@ -69,6 +70,7 @@ model Spreadsheet {
 
   @@index([ownerId])
   @@index([updatedAt])
+  @@index([deletedAt])
   @@map("spreadsheets")
 }
 

@@ -43,8 +43,27 @@ interface SpreadsheetDetail {
   sheets: SheetData[];
 }
 
+interface TrashItem {
+  id: string;
+  title: string;
+  deletedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  owner: { id: string; name: string | null; avatarUrl: string | null };
+}
+
 interface PaginatedResponse {
   data: SpreadsheetSummary[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+interface TrashPaginatedResponse {
+  data: TrashItem[];
   pagination: {
     page: number;
     limit: number;
@@ -73,6 +92,11 @@ interface CloudState {
   page: number;
   totalPages: number;
   total: number;
+  trashItems: TrashItem[];
+  isTrashLoading: boolean;
+  trashPage: number;
+  trashTotalPages: number;
+  trashTotal: number;
 }
 
 interface CloudActions {
@@ -99,6 +123,11 @@ interface CloudActions {
   toggleSortDir: () => void;
   setViewMode: (mode: ViewMode) => void;
   setPage: (page: number) => void;
+  fetchTrash: () => Promise<void>;
+  restoreSpreadsheet: (id: string) => Promise<void>;
+  permanentDeleteSpreadsheet: (id: string) => Promise<void>;
+  emptyTrash: () => Promise<void>;
+  setTrashPage: (page: number) => void;
   clearError: () => void;
   clearCurrent: () => void;
 }
@@ -122,6 +151,11 @@ export const useCloudStore = create<CloudStore>()(
     page: 1,
     totalPages: 1,
     total: 0,
+    trashItems: [],
+    isTrashLoading: false,
+    trashPage: 1,
+    trashTotalPages: 1,
+    trashTotal: 0,
 
     fetchSpreadsheets: async () => {
       set((state) => {
@@ -356,6 +390,73 @@ export const useCloudStore = create<CloudStore>()(
     setPage: (page: number) => {
       set((state) => {
         state.page = page;
+      });
+    },
+
+    fetchTrash: async () => {
+      set((state) => {
+        state.isTrashLoading = true;
+        state.error = null;
+      });
+
+      try {
+        const { trashPage } = get();
+        const params = new URLSearchParams();
+        params.set("page", String(trashPage));
+        params.set("limit", "20");
+
+        const result = await api.getAll<TrashPaginatedResponse>(
+          `/spreadsheets/trash?${params.toString()}`,
+        );
+
+        set((state) => {
+          state.trashItems = result.data;
+          state.trashTotalPages = result.pagination.totalPages;
+          state.trashTotal = result.pagination.total;
+          state.isTrashLoading = false;
+        });
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to load trash";
+        set((state) => {
+          state.isTrashLoading = false;
+          state.error = message;
+        });
+      }
+    },
+
+    restoreSpreadsheet: async (id: string) => {
+      await api.post(`/spreadsheets/${id}/restore`);
+
+      set((state) => {
+        state.trashItems = state.trashItems.filter((s) => s.id !== id);
+        state.trashTotal = Math.max(0, state.trashTotal - 1);
+      });
+    },
+
+    permanentDeleteSpreadsheet: async (id: string) => {
+      await api.delete(`/spreadsheets/${id}/permanent`);
+
+      set((state) => {
+        state.trashItems = state.trashItems.filter((s) => s.id !== id);
+        state.trashTotal = Math.max(0, state.trashTotal - 1);
+      });
+    },
+
+    emptyTrash: async () => {
+      await api.delete(`/spreadsheets/trash`);
+
+      set((state) => {
+        state.trashItems = [];
+        state.trashTotal = 0;
+        state.trashTotalPages = 1;
+        state.trashPage = 1;
+      });
+    },
+
+    setTrashPage: (page: number) => {
+      set((state) => {
+        state.trashPage = page;
       });
     },
 

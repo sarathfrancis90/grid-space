@@ -8,6 +8,10 @@ import {
   deleteSpreadsheet,
   duplicateSpreadsheet,
   toggleStar,
+  listTrash,
+  restoreSpreadsheet,
+  permanentDeleteSpreadsheet,
+  emptyTrash,
 } from "../controllers/spreadsheet.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
@@ -33,6 +37,18 @@ const updateSchema = {
 
 // GET /api/spreadsheets — list user's spreadsheets
 router.get("/", listSpreadsheets);
+
+// GET /api/spreadsheets/trash — list trashed spreadsheets
+router.get("/trash", listTrash);
+
+// DELETE /api/spreadsheets/trash — empty trash
+router.delete("/trash", writeLimiter, emptyTrash);
+
+// POST /api/spreadsheets/:id/restore — restore from trash
+router.post("/:id/restore", writeLimiter, restoreSpreadsheet);
+
+// DELETE /api/spreadsheets/:id/permanent — permanently delete
+router.delete("/:id/permanent", writeLimiter, permanentDeleteSpreadsheet);
 
 // GET /api/spreadsheets/:id — get single spreadsheet with sheets
 router.get("/:id", getSpreadsheet);

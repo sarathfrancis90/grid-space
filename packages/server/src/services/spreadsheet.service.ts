@@ -135,7 +135,7 @@ export async function listSpreadsheets(
     limit,
   } = options;
 
-  const where: Prisma.SpreadsheetWhereInput = {};
+  const where: Prisma.SpreadsheetWhereInput = { deletedAt: null };
 
   switch (filter) {
     case "owned":
@@ -264,16 +264,19 @@ export async function updateSpreadsheet(
   return spreadsheet;
 }
 
-/** Delete a spreadsheet (owner only) */
+/** Soft-delete a spreadsheet (owner only) — moves to trash */
 export async function deleteSpreadsheet(
   spreadsheetId: string,
   userId: string,
 ): Promise<void> {
   await checkAccess(spreadsheetId, userId, "owner");
 
-  await prisma.spreadsheet.delete({ where: { id: spreadsheetId } });
+  await prisma.spreadsheet.update({
+    where: { id: spreadsheetId },
+    data: { deletedAt: new Date() },
+  });
 
-  logger.info({ userId, spreadsheetId }, "Spreadsheet deleted");
+  logger.info({ userId, spreadsheetId }, "Spreadsheet moved to trash");
 }
 
 /** Duplicate a spreadsheet */
@@ -363,4 +366,128 @@ export async function toggleStar(
   });
 
   return { isStarred: updated.isStarred };
+}
+
+interface TrashItem {
+  id: string;
+  title: string;
+  deletedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  owner: { id: string; name: string | null; avatarUrl: string | null };
+}
+
+/** List spreadsheets in trash for a user */
+export async function listTrash(
+  userId: string,
+  options: { page: number; limit: number; skip: number },
+): Promise<{ spreadsheets: TrashItem[]; total: number }> {
+  const where: Prisma.SpreadsheetWhereInput = {
+    ownerId: userId,
+    deletedAt: { not: null },
+  };
+
+  const [spreadsheets, total] = await Promise.all([
+    prisma.spreadsheet.findMany({
+      where,
+      select: {
+        id: true,
+        title: true,
+        deletedAt: true,
+        createdAt: true,
+        updatedAt: true,
+        owner: { select: { id: true, name: true, avatarUrl: true } },
+      },
+      orderBy: { deletedAt: "desc" },
+      skip: options.skip,
+      take: options.limit,
+    }),
+    prisma.spreadsheet.count({ where }),
+  ]);
+
+  const mapped: TrashItem[] = spreadsheets.map((s) => ({
+    id: s.id,
+    title: s.title,
+    deletedAt: s.deletedAt!,
+    createdAt: s.createdAt,
+    updatedAt: s.updatedAt,
+    owner: s.owner,
+  }));
+
+  return { spreadsheets: mapped, total };
+}
+
+/** Restore a spreadsheet from trash (owner only) */
+export async function restoreSpreadsheet(
+  spreadsheetId: string,
+  userId: string,
+): Promise<void> {
+  const spreadsheet = await prisma.spreadsheet.findUnique({
+    where: { id: spreadsheetId },
+    select: { ownerId: true, deletedAt: true },
+  });
+
+  if (!spreadsheet) {
+    throw new NotFoundError("Spreadsheet not found");
+  }
+
+  if (spreadsheet.ownerId !== userId) {
+    throw new ForbiddenError("Only the owner can restore this spreadsheet");
+  }
+
+  if (!spreadsheet.deletedAt) {
+    throw new NotFoundError("Spreadsheet is not in trash");
+  }
+
+  await prisma.spreadsheet.update({
+    where: { id: spreadsheetId },
+    data: { deletedAt: null },
+  });
+
+  logger.info({ userId, spreadsheetId }, "Spreadsheet restored from trash");
+}
+
+/** Permanently delete a spreadsheet from trash (owner only) */
+export async function permanentDeleteSpreadsheet(
+  spreadsheetId: string,
+  userId: string,
+): Promise<void> {
+  const spreadsheet = await prisma.spreadsheet.findUnique({
+    where: { id: spreadsheetId },
+    select: { ownerId: true, deletedAt: true },
+  });
+
+  if (!spreadsheet) {
+    throw new NotFoundError("Spreadsheet not found");
+  }
+
+  if (spreadsheet.ownerId !== userId) {
+    throw new ForbiddenError(
+      "Only the owner can permanently delete this spreadsheet",
+    );
+  }
+
+  if (!spreadsheet.deletedAt) {
+    throw new ForbiddenError(
+      "Spreadsheet must be in trash before permanent deletion",
+    );
+  }
+
+  await prisma.spreadsheet.delete({ where: { id: spreadsheetId } });
+
+  logger.info({ userId, spreadsheetId }, "Spreadsheet permanently deleted");
+}
+
+/** Empty all items from user's trash */
+export async function emptyTrash(userId: string): Promise<{ count: number }> {
+  const result = await prisma.spreadsheet.deleteMany({
+    where: {
+      ownerId: userId,
+      deletedAt: { not: null },
+    },
+  });
+
+  logger.info({ userId, count: result.count }, "Trash emptied");
+
+  return { count: result.count };
 }

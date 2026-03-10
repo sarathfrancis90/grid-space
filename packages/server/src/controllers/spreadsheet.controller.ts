@@ -194,3 +194,92 @@ export async function toggleStar(
     next(err);
   }
 }
+
+export async function listTrash(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw new AppError(401, "Authentication required");
+    }
+
+    const { page, limit, skip } = getPaginationParams(
+      req.query as { page?: string; limit?: string },
+    );
+
+    const { spreadsheets, total } = await spreadsheetService.listTrash(
+      req.user.id,
+      { page, limit, skip },
+    );
+
+    res.json(apiPaginated(spreadsheets, page, limit, total));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function restoreSpreadsheet(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw new AppError(401, "Authentication required");
+    }
+
+    const id = paramStr(req.params.id);
+    if (!id) {
+      throw new AppError(400, "Spreadsheet ID is required");
+    }
+
+    await spreadsheetService.restoreSpreadsheet(id, req.user.id);
+
+    res.json(apiSuccess({ restored: true }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function permanentDeleteSpreadsheet(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw new AppError(401, "Authentication required");
+    }
+
+    const id = paramStr(req.params.id);
+    if (!id) {
+      throw new AppError(400, "Spreadsheet ID is required");
+    }
+
+    await spreadsheetService.permanentDeleteSpreadsheet(id, req.user.id);
+
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function emptyTrash(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw new AppError(401, "Authentication required");
+    }
+
+    const result = await spreadsheetService.emptyTrash(req.user.id);
+
+    res.json(apiSuccess(result));
+  } catch (err) {
+    next(err);
+  }
+}
