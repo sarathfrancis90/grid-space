@@ -225,6 +225,15 @@ export function MenuBar() {
           },
         },
         {
+          label: "Email this file",
+          testId: "menu-file-email",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setEmailDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Print",
           testId: "menu-file-print",
           shortcut: "Ctrl+P",

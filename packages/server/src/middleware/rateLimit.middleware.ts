@@ -47,6 +47,21 @@ export const authSessionLimiter = rateLimit({
   },
 });
 
+/** Email endpoints: 5 requests per minute (disabled in test) */
+export const emailLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: isTest ? 10000 : 5,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: {
+      code: 429,
+      message: "Too many email requests, please try again later",
+    },
+  },
+});
+
 /** Write endpoints: 30 requests per minute (disabled in test) */
 export const writeLimiter = rateLimit({
   windowMs: 60 * 1000,

@@ -20,10 +20,26 @@ interface SendResult {
   messageId?: string;
 }
 
+interface EmailAttachment {
+  filename: string;
+  content: Buffer;
+  contentType: string;
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 async function send(
   to: string,
   subject: string,
   html: string,
+  attachments?: EmailAttachment[],
 ): Promise<SendResult> {
   if (!transporter || !FROM) {
     logger.warn({ to, subject }, "Email skipped — SMTP not configured");
@@ -36,6 +52,11 @@ async function send(
       to,
       subject,
       html,
+      attachments: attachments?.map((a) => ({
+        filename: a.filename,
+        content: a.content,
+        contentType: a.contentType,
+      })),
     });
 
     logger.info({ to, subject, messageId: info.messageId }, "Email sent");
@@ -85,4 +106,39 @@ export async function sendShareInvite(
   `;
 
   return send(to, subject, html);
+}
+
+export async function sendSpreadsheetAttachment(
+  to: string,
+  senderName: string,
+  spreadsheetTitle: string,
+  message: string,
+  attachment: EmailAttachment,
+): Promise<SendResult> {
+  const safeSender = escapeHtml(senderName);
+  const safeTitle = escapeHtml(spreadsheetTitle);
+  const safeMessage = escapeHtml(message);
+
+  const subject = `${senderName} sent you "${spreadsheetTitle}"`;
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 0;">
+      <div style="background: #f8fafc; border-radius: 12px; padding: 32px; border: 1px solid #e2e8f0;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <div style="display: inline-block; background: #2563eb; color: white; width: 48px; height: 48px; border-radius: 8px; line-height: 48px; font-size: 24px; font-weight: bold;">G</div>
+        </div>
+        <h2 style="margin: 0 0 8px; color: #1e293b; font-size: 20px; text-align: center;">
+          ${safeSender} sent you a spreadsheet
+        </h2>
+        <p style="color: #64748b; text-align: center; margin: 0 0 16px; font-size: 15px;">
+          <strong>&ldquo;${safeTitle}&rdquo;</strong> is attached as ${escapeHtml(attachment.filename)}
+        </p>
+        ${safeMessage ? `<p style="color: #475569; margin: 0 0 24px; font-size: 14px; background: #f1f5f9; padding: 12px 16px; border-radius: 8px;">${safeMessage}</p>` : ""}
+      </div>
+      <p style="color: #cbd5e1; font-size: 12px; text-align: center; margin-top: 16px;">
+        GridSpace — Collaborative Spreadsheets
+      </p>
+    </div>
+  `;
+
+  return send(to, subject, html, [attachment]);
 }
