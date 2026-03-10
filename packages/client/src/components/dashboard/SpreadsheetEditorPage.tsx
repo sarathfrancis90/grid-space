@@ -28,6 +28,7 @@ import { HyperlinkDialog } from "../ui/HyperlinkDialog";
 import { ImageDialog } from "../ui/ImageDialog";
 import { CommentsSidebar } from "../ui/CommentsSidebar";
 import { OfflineIndicator } from "../ui/OfflineIndicator";
+import { EmailDialog } from "../ui/EmailDialog";
 import { ConnectionStatus } from "../realtime/ConnectionStatus";
 import { CollaboratorAvatars } from "../realtime/CollaboratorAvatars";
 import { NotificationCenter } from "../notifications/NotificationCenter";
@@ -345,6 +346,7 @@ export default function SpreadsheetEditorPage() {
       <KeyboardShortcutsWrapper />
       <ThemeDialogWrapper />
       <NotificationRulesDialog />
+      <EmailDialog />
       <OfflineIndicator />
       <Suspense fallback={null}>
         <ChartOverlay />
