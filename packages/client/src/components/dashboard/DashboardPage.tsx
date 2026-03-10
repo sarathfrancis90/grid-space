@@ -6,9 +6,11 @@ import { SpreadsheetCard } from "./SpreadsheetCard";
 import { SpreadsheetListItem } from "./SpreadsheetListItem";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { TemplateGallery } from "./TemplateGallery";
+import { TrashView } from "./TrashView";
 import { GridSpaceLogo } from "../ui/GridSpaceLogo";
 
 type FilterType = "all" | "owned" | "shared" | "starred";
+type DashboardTab = "spreadsheets" | "trash";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -39,6 +41,7 @@ export default function DashboardPage() {
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [searchInput, setSearchInput] = useState(search);
+  const [activeTab, setActiveTab] = useState<DashboardTab>("spreadsheets");
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -284,7 +287,7 @@ export default function DashboardPage() {
 
         {/* Section heading */}
         <h2 className="mb-3 text-base font-medium text-gray-700">
-          Recent spreadsheets
+          {activeTab === "trash" ? "Trash" : "Recent spreadsheets"}
         </h2>
 
         {/* Filter Tabs */}
@@ -293,9 +296,12 @@ export default function DashboardPage() {
             {filters.map((f) => (
               <button
                 key={f.value}
-                onClick={() => setFilter(f.value)}
+                onClick={() => {
+                  setActiveTab("spreadsheets");
+                  setFilter(f.value);
+                }}
                 className={`relative px-4 pb-3 pt-1 text-sm font-medium transition-colors ${
-                  filter === f.value
+                  activeTab === "spreadsheets" && filter === f.value
                     ? "text-[#1a73e8]"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
@@ -303,243 +309,268 @@ export default function DashboardPage() {
                 data-testid={`filter-${f.value}`}
               >
                 {f.label}
-                {filter === f.value && (
+                {activeTab === "spreadsheets" && filter === f.value && (
                   <span className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-[#1a73e8]" />
                 )}
               </button>
             ))}
-          </div>
-        </div>
-
-        {/* Sort Controls */}
-        <div className="mb-5 flex items-center gap-2">
-          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-            Sort by:
-          </span>
-          <select
-            value={sortBy}
-            onChange={(e) =>
-              setSortBy(e.target.value as "title" | "updatedAt" | "createdAt")
-            }
-            className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-600 transition-colors hover:border-gray-300 focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]/30"
-            style={{ padding: "4px 10px" }}
-            data-testid="sort-select"
-          >
-            {sortOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={toggleSortDir}
-            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-            style={{ padding: "4px 8px" }}
-            data-testid="sort-dir-btn"
-          >
-            {sortDir === "desc" ? "Newest first" : "Oldest first"}
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {sortDir === "desc" ? (
-                <path d="M6 2v8M3 7l3 3 3-3" />
-              ) : (
-                <path d="M6 10V2M3 5l3-3 3 3" />
-              )}
-            </svg>
-          </button>
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div
-            className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600"
-            data-testid="dashboard-error"
-          >
-            {error}
-          </div>
-        )}
-
-        {/* Loading Skeleton */}
-        {isListLoading && <DashboardSkeleton viewMode={viewMode} />}
-
-        {/* Empty State */}
-        {!isListLoading && spreadsheets.length === 0 && (
-          <div
-            className="flex flex-col items-center py-24"
-            data-testid="empty-state"
-          >
-            <svg
-              width="96"
-              height="96"
-              viewBox="0 0 96 96"
-              fill="none"
-              className="mb-8"
-            >
-              <rect
-                x="12"
-                y="12"
-                width="72"
-                height="72"
-                rx="10"
-                fill="#eff6ff"
-                stroke="#1a73e8"
-                strokeWidth="2"
-              />
-              <line
-                x1="12"
-                y1="36"
-                x2="84"
-                y2="36"
-                stroke="#93c5fd"
-                strokeWidth="1.5"
-              />
-              <line
-                x1="12"
-                y1="60"
-                x2="84"
-                y2="60"
-                stroke="#93c5fd"
-                strokeWidth="1.5"
-              />
-              <line
-                x1="36"
-                y1="12"
-                x2="36"
-                y2="84"
-                stroke="#93c5fd"
-                strokeWidth="1.5"
-              />
-              <line
-                x1="60"
-                y1="12"
-                x2="60"
-                y2="84"
-                stroke="#93c5fd"
-                strokeWidth="1.5"
-              />
-            </svg>
-            <p className="mb-2 text-xl font-semibold text-gray-800">
-              No spreadsheets yet
-            </p>
-            <p className="mb-8 text-sm text-gray-500">
-              Create your first spreadsheet to get started
-            </p>
             <button
-              onClick={handleCreate}
-              className="inline-flex items-center gap-2 rounded-full bg-[#1a73e8] px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#1765cc] hover:shadow-lg active:scale-[0.98]"
-              style={{ padding: "10px 24px" }}
+              onClick={() => setActiveTab("trash")}
+              className={`relative px-4 pb-3 pt-1 text-sm font-medium transition-colors ${
+                activeTab === "trash"
+                  ? "text-[#1a73e8]"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              style={{ padding: "4px 16px 12px 16px" }}
+              data-testid="filter-trash"
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <line x1="9" y1="3" x2="9" y2="15" />
-                <line x1="3" y1="9" x2="15" y2="9" />
-              </svg>
-              Create your first spreadsheet
+              Trash
+              {activeTab === "trash" && (
+                <span className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-[#1a73e8]" />
+              )}
             </button>
           </div>
-        )}
+        </div>
 
-        {/* Spreadsheet Grid/List */}
-        {!isListLoading && spreadsheets.length > 0 && (
+        {/* Trash View */}
+        {activeTab === "trash" && <TrashView />}
+
+        {/* Spreadsheets Content */}
+        {activeTab === "spreadsheets" && (
           <>
-            {viewMode === "grid" ? (
-              <div
-                className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-                data-testid="spreadsheet-grid"
+            {/* Sort Controls */}
+            <div className="mb-5 flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+                Sort by:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) =>
+                  setSortBy(
+                    e.target.value as "title" | "updatedAt" | "createdAt",
+                  )
+                }
+                className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-600 transition-colors hover:border-gray-300 focus:border-[#1a73e8] focus:outline-none focus:ring-1 focus:ring-[#1a73e8]/30"
+                style={{ padding: "4px 10px" }}
+                data-testid="sort-select"
               >
-                {spreadsheets.map((s) => (
-                  <SpreadsheetCard
-                    key={s.id}
-                    spreadsheet={s}
-                    onOpen={handleOpen}
-                    onDelete={handleDelete}
-                    onDuplicate={handleDuplicate}
-                    onToggleStar={handleToggleStar}
-                    onRename={handleRename}
-                  />
+                {sortOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
                 ))}
-              </div>
-            ) : (
-              <div
-                className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
-                data-testid="spreadsheet-list"
+              </select>
+              <button
+                onClick={toggleSortDir}
+                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                style={{ padding: "4px 8px" }}
+                data-testid="sort-dir-btn"
               >
-                {/* Column header */}
-                <div
-                  className="flex items-center gap-4 border-b border-gray-100 bg-gray-50/80 px-5 py-2"
-                  style={{ padding: "8px 20px" }}
+                {sortDir === "desc" ? "Newest first" : "Oldest first"}
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  <span className="w-4 flex-shrink-0" />
-                  <span className="w-4 flex-shrink-0" />
-                  <span className="min-w-0 flex-1 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Name
-                  </span>
-                  <span className="flex-shrink-0 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Owner
-                  </span>
-                  <span className="flex-shrink-0 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Modified
-                  </span>
-                </div>
-                <div className="divide-y divide-gray-100">
-                  {spreadsheets.map((s) => (
-                    <SpreadsheetListItem
-                      key={s.id}
-                      spreadsheet={s}
-                      onOpen={handleOpen}
-                      onDelete={handleDelete}
-                      onDuplicate={handleDuplicate}
-                      onToggleStar={handleToggleStar}
-                      onRename={handleRename}
-                    />
-                  ))}
-                </div>
+                  {sortDir === "desc" ? (
+                    <path d="M6 2v8M3 7l3 3 3-3" />
+                  ) : (
+                    <path d="M6 10V2M3 5l3-3 3 3" />
+                  )}
+                </svg>
+              </button>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div
+                className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600"
+                data-testid="dashboard-error"
+              >
+                {error}
               </div>
             )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-8 flex items-center justify-center gap-2">
+            {/* Loading Skeleton */}
+            {isListLoading && <DashboardSkeleton viewMode={viewMode} />}
+
+            {/* Empty State */}
+            {!isListLoading && spreadsheets.length === 0 && (
+              <div
+                className="flex flex-col items-center py-24"
+                data-testid="empty-state"
+              >
+                <svg
+                  width="96"
+                  height="96"
+                  viewBox="0 0 96 96"
+                  fill="none"
+                  className="mb-8"
+                >
+                  <rect
+                    x="12"
+                    y="12"
+                    width="72"
+                    height="72"
+                    rx="10"
+                    fill="#eff6ff"
+                    stroke="#1a73e8"
+                    strokeWidth="2"
+                  />
+                  <line
+                    x1="12"
+                    y1="36"
+                    x2="84"
+                    y2="36"
+                    stroke="#93c5fd"
+                    strokeWidth="1.5"
+                  />
+                  <line
+                    x1="12"
+                    y1="60"
+                    x2="84"
+                    y2="60"
+                    stroke="#93c5fd"
+                    strokeWidth="1.5"
+                  />
+                  <line
+                    x1="36"
+                    y1="12"
+                    x2="36"
+                    y2="84"
+                    stroke="#93c5fd"
+                    strokeWidth="1.5"
+                  />
+                  <line
+                    x1="60"
+                    y1="12"
+                    x2="60"
+                    y2="84"
+                    stroke="#93c5fd"
+                    strokeWidth="1.5"
+                  />
+                </svg>
+                <p className="mb-2 text-xl font-semibold text-gray-800">
+                  No spreadsheets yet
+                </p>
+                <p className="mb-8 text-sm text-gray-500">
+                  Create your first spreadsheet to get started
+                </p>
                 <button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page <= 1}
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent"
-                  style={{ padding: "8px 16px" }}
-                  data-testid="prev-page-btn"
+                  onClick={handleCreate}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#1a73e8] px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#1765cc] hover:shadow-lg active:scale-[0.98]"
+                  style={{ padding: "10px 24px" }}
                 >
-                  Previous
-                </button>
-                <span
-                  className="px-3 text-sm text-gray-500"
-                  data-testid="page-info"
-                >
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page >= totalPages}
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent"
-                  style={{ padding: "8px 16px" }}
-                  data-testid="next-page-btn"
-                >
-                  Next
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
+                    <line x1="9" y1="3" x2="9" y2="15" />
+                    <line x1="3" y1="9" x2="15" y2="9" />
+                  </svg>
+                  Create your first spreadsheet
                 </button>
               </div>
+            )}
+
+            {/* Spreadsheet Grid/List */}
+            {!isListLoading && spreadsheets.length > 0 && (
+              <>
+                {viewMode === "grid" ? (
+                  <div
+                    className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+                    data-testid="spreadsheet-grid"
+                  >
+                    {spreadsheets.map((s) => (
+                      <SpreadsheetCard
+                        key={s.id}
+                        spreadsheet={s}
+                        onOpen={handleOpen}
+                        onDelete={handleDelete}
+                        onDuplicate={handleDuplicate}
+                        onToggleStar={handleToggleStar}
+                        onRename={handleRename}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div
+                    className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+                    data-testid="spreadsheet-list"
+                  >
+                    {/* Column header */}
+                    <div
+                      className="flex items-center gap-4 border-b border-gray-100 bg-gray-50/80 px-5 py-2"
+                      style={{ padding: "8px 20px" }}
+                    >
+                      <span className="w-4 flex-shrink-0" />
+                      <span className="w-4 flex-shrink-0" />
+                      <span className="min-w-0 flex-1 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                        Name
+                      </span>
+                      <span className="flex-shrink-0 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                        Owner
+                      </span>
+                      <span className="flex-shrink-0 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                        Modified
+                      </span>
+                    </div>
+                    <div className="divide-y divide-gray-100">
+                      {spreadsheets.map((s) => (
+                        <SpreadsheetListItem
+                          key={s.id}
+                          spreadsheet={s}
+                          onOpen={handleOpen}
+                          onDelete={handleDelete}
+                          onDuplicate={handleDuplicate}
+                          onToggleStar={handleToggleStar}
+                          onRename={handleRename}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-8 flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setPage(Math.max(1, page - 1))}
+                      disabled={page <= 1}
+                      className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent"
+                      style={{ padding: "8px 16px" }}
+                      data-testid="prev-page-btn"
+                    >
+                      Previous
+                    </button>
+                    <span
+                      className="px-3 text-sm text-gray-500"
+                      data-testid="page-info"
+                    >
+                      Page {page} of {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setPage(Math.min(totalPages, page + 1))}
+                      disabled={page >= totalPages}
+                      className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent"
+                      style={{ padding: "8px 16px" }}
+                      data-testid="next-page-btn"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
