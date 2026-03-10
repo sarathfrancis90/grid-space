@@ -21,6 +21,7 @@ import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
 import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
 import filterViewRoutes from "./filterView.routes";
+import folderRoutes from "./folder.routes";
 import extensionRoutes from "./extension.routes";
 import statsRoutes from "./stats.routes";
 import emailRoutes from "./email.routes";
@@ -95,6 +96,9 @@ router.use("/templates", templateRoutes);
 
 // API Key management
 router.use("/users/me/api-keys", apiKeyRoutes);
+
+// Folders
+router.use("/folders", folderRoutes);
 
 // Extensions
 router.use("/extensions", extensionRoutes);
