@@ -16,6 +16,7 @@ import { useCloudStore } from "../../stores/cloudStore";
 import { useVersionStore } from "../../stores/versionStore";
 import { useCommentStore } from "../../stores/commentStore";
 import { useValidationStore } from "../../stores/validationStore";
+import { useFilterStore } from "../../stores/filterStore";
 import { exportXLSX, downloadFile, toCSV } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
 import { performPasteSpecial } from "../../hooks/useKeyboardShortcuts";
@@ -27,6 +28,7 @@ interface MenuItemDef {
   separator?: boolean;
   testId: string;
   checked?: boolean;
+  submenu?: MenuItemDef[];
 }
 
 interface MenuDef {
@@ -696,6 +698,38 @@ export function MenuBar() {
           action: () => setOpenMenu(null),
         },
         {
+          label: "Filter views",
+          testId: "menu-data-filter-views",
+          submenu: [
+            {
+              label: "Create new filter view",
+              testId: "menu-data-filter-views-create",
+              action: () => {
+                const sid = useSpreadsheetStore.getState().activeSheetId;
+                const name = prompt("Filter view name:", "Filter View");
+                if (name?.trim()) {
+                  useFilterStore.getState().createFilterView(sid, name.trim());
+                }
+                setOpenMenu(null);
+              },
+            },
+            ...(() => {
+              const sid = useSpreadsheetStore.getState().activeSheetId;
+              const views =
+                useFilterStore.getState().filterViews.get(sid) ?? [];
+              return views.map((view) => ({
+                label: view.name,
+                testId: `menu-data-filter-view-${view.id}`,
+                separator: view === views[0] && views.length > 0,
+                action: () => {
+                  useFilterStore.getState().activateFilterView(sid, view.id);
+                  setOpenMenu(null);
+                },
+              }));
+            })(),
+          ],
+        },
+        {
           label: "Data validation",
           testId: "menu-data-validation",
           action: () => setOpenMenu(null),
@@ -877,7 +911,7 @@ export function MenuBar() {
               className="absolute left-0 top-full z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-56"
             >
               {menu.items.map((item, idx) => (
-                <div key={idx}>
+                <div key={idx} className="relative group/submenu">
                   {item.separator && idx > 0 && (
                     <div className="h-px bg-gray-100 my-1 mx-3" />
                   )}
@@ -885,7 +919,7 @@ export function MenuBar() {
                     data-testid={item.testId}
                     className="w-full flex items-center justify-between px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
                     style={{ padding: "6px 16px" }}
-                    onClick={item.action}
+                    onClick={item.submenu ? undefined : item.action}
                     type="button"
                   >
                     <span>{item.label}</span>
@@ -894,7 +928,35 @@ export function MenuBar() {
                         {item.shortcut}
                       </span>
                     )}
+                    {item.submenu && (
+                      <span className="text-gray-400 text-[11px] ml-4">
+                        &#9656;
+                      </span>
+                    )}
                   </button>
+                  {item.submenu && (
+                    <div
+                      data-testid={`${item.testId}-submenu`}
+                      className="hidden group-hover/submenu:block absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-56"
+                    >
+                      {item.submenu.map((sub, subIdx) => (
+                        <div key={subIdx}>
+                          {sub.separator && subIdx > 0 && (
+                            <div className="h-px bg-gray-100 my-1 mx-3" />
+                          )}
+                          <button
+                            data-testid={sub.testId}
+                            className="w-full flex items-center justify-between px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                            style={{ padding: "6px 16px" }}
+                            onClick={sub.action}
+                            type="button"
+                          >
+                            <span>{sub.label}</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

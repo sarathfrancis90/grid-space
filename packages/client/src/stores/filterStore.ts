@@ -5,14 +5,38 @@ import type {
   ColumnFilter,
   FilterCondition,
   CellData,
+  FilterView,
+  SerializedColumnFilter,
 } from "../types/grid";
 import { getCellKey } from "../utils/coordinates";
+
+function serializeFilters(filters: ColumnFilter[]): SerializedColumnFilter[] {
+  return filters.map((f) => ({
+    col: f.col,
+    allowedValues: f.allowedValues ? [...f.allowedValues] : undefined,
+    condition: f.condition,
+    filterByColor: f.filterByColor,
+  }));
+}
+
+function deserializeFilters(filters: SerializedColumnFilter[]): ColumnFilter[] {
+  return filters.map((f) => ({
+    col: f.col,
+    allowedValues: f.allowedValues ? new Set(f.allowedValues) : undefined,
+    condition: f.condition,
+    filterByColor: f.filterByColor,
+  }));
+}
 
 interface FilterState {
   filtersEnabled: Map<string, boolean>;
   columnFilters: Map<string, ColumnFilter[]>;
   sortCriteria: Map<string, SortCriterion[]>;
   filteredRows: Map<string, Set<number>>;
+
+  // Filter Views
+  filterViews: Map<string, FilterView[]>;
+  activeFilterViewId: Map<string, string | null>;
 
   toggleFilters: (sheetId: string) => void;
   isFilterEnabled: (sheetId: string) => boolean;
@@ -37,6 +61,16 @@ interface FilterState {
     totalRows: number,
     totalCols: number,
   ) => Map<string, CellData>;
+
+  // Filter View actions
+  setFilterViews: (sheetId: string, views: FilterView[]) => void;
+  createFilterView: (sheetId: string, name: string) => FilterView;
+  updateFilterView: (sheetId: string, viewId: string, name: string) => void;
+  deleteFilterView: (sheetId: string, viewId: string) => void;
+  activateFilterView: (sheetId: string, viewId: string) => void;
+  deactivateFilterView: (sheetId: string) => void;
+  saveActiveFilterView: (sheetId: string) => void;
+  getActiveFilterView: (sheetId: string) => FilterView | null;
 }
 
 function matchesCondition(
@@ -83,6 +117,8 @@ export const useFilterStore = create<FilterState>()(
     columnFilters: new Map<string, ColumnFilter[]>(),
     sortCriteria: new Map<string, SortCriterion[]>(),
     filteredRows: new Map<string, Set<number>>(),
+    filterViews: new Map<string, FilterView[]>(),
+    activeFilterViewId: new Map<string, string | null>(),
 
     toggleFilters: (sheetId: string) => {
       set((state) => {
@@ -257,6 +293,105 @@ export const useFilterStore = create<FilterState>()(
         }
       }
       return newCells;
+    },
+
+    // Filter View actions
+    setFilterViews: (sheetId: string, views: FilterView[]) => {
+      set((state) => {
+        state.filterViews.set(sheetId, views);
+      });
+    },
+
+    createFilterView: (sheetId: string, name: string) => {
+      const currentFilters = get().columnFilters.get(sheetId) ?? [];
+      const newView: FilterView = {
+        id: `fv_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        name,
+        sheetId,
+        filters: serializeFilters(currentFilters),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      set((state) => {
+        const views = state.filterViews.get(sheetId) ?? [];
+        views.push(newView);
+        state.filterViews.set(sheetId, views);
+        state.activeFilterViewId.set(sheetId, newView.id);
+        // Enable filters when creating a view
+        state.filtersEnabled.set(sheetId, true);
+      });
+      return newView;
+    },
+
+    updateFilterView: (sheetId: string, viewId: string, name: string) => {
+      set((state) => {
+        const views = state.filterViews.get(sheetId);
+        if (!views) return;
+        const view = views.find((v) => v.id === viewId);
+        if (view) {
+          view.name = name;
+          view.updatedAt = new Date().toISOString();
+        }
+      });
+    },
+
+    deleteFilterView: (sheetId: string, viewId: string) => {
+      set((state) => {
+        const views = state.filterViews.get(sheetId);
+        if (!views) return;
+        const idx = views.findIndex((v) => v.id === viewId);
+        if (idx >= 0) {
+          views.splice(idx, 1);
+        }
+        if (state.activeFilterViewId.get(sheetId) === viewId) {
+          state.activeFilterViewId.set(sheetId, null);
+          state.columnFilters.delete(sheetId);
+          state.filteredRows.delete(sheetId);
+        }
+      });
+    },
+
+    activateFilterView: (sheetId: string, viewId: string) => {
+      const views = get().filterViews.get(sheetId);
+      const view = views?.find((v) => v.id === viewId);
+      if (!view) return;
+
+      set((state) => {
+        state.activeFilterViewId.set(sheetId, viewId);
+        state.filtersEnabled.set(sheetId, true);
+        state.columnFilters.set(sheetId, deserializeFilters(view.filters));
+      });
+    },
+
+    deactivateFilterView: (sheetId: string) => {
+      set((state) => {
+        state.activeFilterViewId.set(sheetId, null);
+        state.columnFilters.delete(sheetId);
+        state.filteredRows.delete(sheetId);
+      });
+    },
+
+    saveActiveFilterView: (sheetId: string) => {
+      const activeId = get().activeFilterViewId.get(sheetId);
+      if (!activeId) return;
+      const currentFilters = get().columnFilters.get(sheetId) ?? [];
+
+      set((state) => {
+        const views = state.filterViews.get(sheetId);
+        if (!views) return;
+        const view = views.find((v) => v.id === activeId);
+        if (view) {
+          view.filters = serializeFilters(currentFilters);
+          view.updatedAt = new Date().toISOString();
+        }
+      });
+    },
+
+    getActiveFilterView: (sheetId: string) => {
+      const activeId = get().activeFilterViewId.get(sheetId);
+      if (!activeId) return null;
+      const views = get().filterViews.get(sheetId);
+      return views?.find((v) => v.id === activeId) ?? null;
     },
   })),
 );

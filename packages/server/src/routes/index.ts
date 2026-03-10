@@ -21,6 +21,7 @@ import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
 import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
 import extensionRoutes from "./extension.routes";
+import filterViewRoutes from "./filterView.routes";
 import statsRoutes from "./stats.routes";
 
 const router = Router();
@@ -69,6 +70,9 @@ router.use("/published", publicPublishedRouter);
 
 // Version history
 router.use("/spreadsheets/:id/versions", versionRoutes);
+
+// Filter views (nested under spreadsheets)
+router.use("/spreadsheets/:id/filter-views", filterViewRoutes);
 
 // Comments (nested under spreadsheets)
 router.use("/spreadsheets/:id/comments", commentRoutes);
