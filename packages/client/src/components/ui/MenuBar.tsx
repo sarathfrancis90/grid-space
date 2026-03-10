@@ -548,9 +548,12 @@ export function MenuBar() {
           action: () => setOpenMenu(null),
         },
         {
-          label: "Notifications",
+          label: "Notification rules",
           testId: "menu-tools-notifications",
-          action: () => setOpenMenu(null),
+          action: () => {
+            useUIStore.getState().setNotificationRulesDialogOpen(true);
+            setOpenMenu(null);
+          },
         },
         ...(macroIsRecording
           ? [
