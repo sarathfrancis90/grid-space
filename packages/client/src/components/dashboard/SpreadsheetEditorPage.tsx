@@ -20,6 +20,7 @@ import { SheetTabs } from "../sheets/SheetTabs";
 import { StatusBar } from "../ui/StatusBar";
 import { ZoomControls } from "../ui/ZoomControls";
 import { FindReplace } from "../data/FindReplace";
+import { FilterViewBar } from "../data/FilterViewBar";
 import { CommandPalette } from "../ui/CommandPalette";
 import { PasteSpecialDialog } from "../ui/PasteSpecialDialog";
 import { PrintDialog } from "../ui/PrintDialog";
@@ -298,6 +299,9 @@ export default function SpreadsheetEditorPage() {
 
       {/* Formula bar */}
       {showFormulaBar && <FormulaBar />}
+
+      {/* Filter view bar — dark header when a filter view is active */}
+      <FilterViewBar />
 
       {/* View switcher */}
       <ViewSwitcher />

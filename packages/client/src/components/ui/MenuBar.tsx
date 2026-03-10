@@ -17,6 +17,8 @@ import { useVersionStore } from "../../stores/versionStore";
 import { useCommentStore } from "../../stores/commentStore";
 import { useValidationStore } from "../../stores/validationStore";
 import { useSuggestionsStore } from "../../stores/suggestionsStore";
+import { useFilterViewStore } from "../../stores/filterViewStore";
+import { useFilterStore } from "../../stores/filterStore";
 import { exportXLSX, downloadFile, toCSV } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
 import { performPasteSpecial } from "../../hooks/useKeyboardShortcuts";
@@ -704,6 +706,21 @@ export function MenuBar() {
           label: "Create filter",
           testId: "menu-data-filter",
           action: () => setOpenMenu(null),
+        },
+        {
+          label: "Filter views ▸",
+          testId: "menu-data-filter-views",
+          action: () => {
+            const sid = useSpreadsheetStore.getState().activeSheetId;
+            const currentFilters =
+              useFilterStore.getState().columnFilters.get(sid) ?? [];
+            const name = `Filter View ${useFilterViewStore.getState().getFilterViews(sid).length + 1}`;
+            const viewId = useFilterViewStore
+              .getState()
+              .createFilterView(sid, name, [...currentFilters]);
+            useFilterViewStore.getState().activateFilterView(sid, viewId);
+            setOpenMenu(null);
+          },
         },
         {
           label: "Data validation",

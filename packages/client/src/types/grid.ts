@@ -147,6 +147,16 @@ export interface ColumnFilter {
   filterByColor?: string;
 }
 
+// Filter Views (per-user saved filter configurations)
+export interface FilterViewConfig {
+  id: string;
+  name: string;
+  sheetId: string;
+  columnFilters: ColumnFilter[];
+  createdAt: number;
+  updatedAt: number;
+}
+
 // Data Validation
 export type ValidationRuleType =
   | "number-range"
