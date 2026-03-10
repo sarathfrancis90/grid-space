@@ -11,6 +11,7 @@ import { useClipboardStore } from "../stores/clipboardStore";
 import { useCellStore } from "../stores/cellStore";
 import { useSpreadsheetStore } from "../stores/spreadsheetStore";
 import { useFindReplaceStore } from "../stores/findReplaceStore";
+import { useGridStore } from "../stores/gridStore";
 import { useVersionStore } from "../stores/versionStore";
 import { useMacroStore } from "../stores/macroStore";
 import { runFlashFill } from "../utils/flashFill";
@@ -109,6 +110,14 @@ export function useKeyboardShortcuts(handlers?: ShortcutHandlers): void {
         ks.setKeyboardShortcutsOpen(!ks.isKeyboardShortcutsOpen);
         return;
       }
+
+      // Ctrl+` — toggle show formulas
+      if (ctrl && key === "`") {
+        e.preventDefault();
+        useGridStore.getState().toggleShowFormulas();
+        return;
+      }
+
       if (!ctrl && !alt) return;
 
       // --- Ctrl+<key> shortcuts ---

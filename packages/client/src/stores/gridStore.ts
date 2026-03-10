@@ -39,6 +39,8 @@ interface GridState {
   unhideRows: (rows: number[]) => void;
   hideCols: (cols: number[]) => void;
   unhideCols: (cols: number[]) => void;
+  showFormulas: boolean;
+  toggleShowFormulas: () => void;
   setTotalRows: (count: number) => void;
   setTotalCols: (count: number) => void;
   insertRowHeights: (atRow: number, count: number) => void;
@@ -65,6 +67,13 @@ export const useGridStore = create<GridState>()(
     colHeaderHeight: COL_HEADER_HEIGHT,
     defaultColWidth: DEFAULT_COL_WIDTH,
     defaultRowHeight: DEFAULT_ROW_HEIGHT,
+    showFormulas: false,
+
+    toggleShowFormulas: () => {
+      set((state) => {
+        state.showFormulas = !state.showFormulas;
+      });
+    },
 
     getColumnWidth: (col: number) => {
       return get().columnWidths.get(col) ?? DEFAULT_COL_WIDTH;
