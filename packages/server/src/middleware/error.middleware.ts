@@ -19,13 +19,11 @@ export function errorHandler(
   if (
     prismaCode === "P2021" ||
     prismaCode === "P2010" ||
-    prismaCode === "P2022" ||
-    prismaCode === "P2025"
+    prismaCode === "P2022"
   ) {
     // P2021: table does not exist
     // P2022: column does not exist
     // P2010: raw query failed
-    // P2025: record not found (required relation)
     logger.error(
       { err, prismaCode },
       "Database schema error — run: npx prisma migrate deploy",
@@ -35,6 +33,12 @@ export function errorHandler(
       .json(
         apiError(503, "Database is not ready. Please try again in a moment."),
       );
+    return;
+  }
+
+  if (prismaCode === "P2025") {
+    // P2025: record not found (required relation or missing record)
+    res.status(404).json(apiError(404, "The requested record was not found"));
     return;
   }
 

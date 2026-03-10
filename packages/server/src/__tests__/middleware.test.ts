@@ -91,6 +91,25 @@ describe("errorHandler", () => {
     });
   });
 
+  it("returns 404 for Prisma P2025 (record not found)", () => {
+    const res = mockResponse();
+    const next = vi.fn();
+    const err = Object.assign(new Error("Record not found"), {
+      code: "P2025",
+    });
+
+    errorHandler(err, mockRequest(), res, next);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      error: {
+        code: 404,
+        message: "The requested record was not found",
+      },
+    });
+  });
+
   it("returns 409 for Prisma P2002 (unique constraint)", () => {
     const res = mockResponse();
     const next = vi.fn();
