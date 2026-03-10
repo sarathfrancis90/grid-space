@@ -16,6 +16,7 @@ import sharingRoutes, {
 import versionRoutes from "./version.routes";
 import commentRoutes from "./comment.routes";
 import notificationRoutes from "./notification.routes";
+import notificationRuleRoutes from "./notificationRule.routes";
 import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
 import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
@@ -77,6 +78,12 @@ router.use("/spreadsheets/:id/save-as-template", saveAsTemplateRouter);
 
 // Notifications
 router.use("/notifications", notificationRoutes);
+
+// Notification rules (per-spreadsheet)
+router.use(
+  "/spreadsheets/:spreadsheetId/notification-rules",
+  notificationRuleRoutes,
+);
 
 // Templates
 router.use("/templates", templateRoutes);
