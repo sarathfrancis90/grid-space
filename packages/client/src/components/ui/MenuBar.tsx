@@ -16,6 +16,7 @@ import { useCloudStore } from "../../stores/cloudStore";
 import { useVersionStore } from "../../stores/versionStore";
 import { useCommentStore } from "../../stores/commentStore";
 import { useValidationStore } from "../../stores/validationStore";
+import { useSuggestionsStore } from "../../stores/suggestionsStore";
 import { exportXLSX, downloadFile, toCSV } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
 import { performPasteSpecial } from "../../hooks/useKeyboardShortcuts";
@@ -819,6 +820,27 @@ export function MenuBar() {
           separator: true,
           action: () => {
             useUIStore.getState().setAIAnalysisOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Suggestions",
+          testId: "menu-tools-suggestions",
+          separator: true,
+          action: () => {
+            useSuggestionsStore.getState().toggleSidebar();
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Suggesting mode",
+          testId: "menu-tools-suggesting-mode",
+          checked: useSuggestionsStore.getState().editingMode === "suggesting",
+          action: () => {
+            const store = useSuggestionsStore.getState();
+            store.setEditingMode(
+              store.editingMode === "suggesting" ? "editing" : "suggesting",
+            );
             setOpenMenu(null);
           },
         },

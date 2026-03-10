@@ -13,6 +13,7 @@ import { ColorPicker } from "./ColorPicker";
 import { NUMBER_FORMATS } from "../../utils/numberFormat";
 import type { NumberFormatKey } from "../../utils/numberFormat";
 import type { CellFormat, BorderSide } from "../../types/grid";
+import { EditingModeSelector } from "./EditingModeSelector";
 
 const FONT_FAMILIES = [
   "Arial",
@@ -803,6 +804,11 @@ export function Toolbar() {
           <line x1="4" y1="20" x2="20" y2="4" stroke="red" strokeWidth="2" />
         </svg>
       </button>
+
+      <div className="flex-1" />
+
+      {/* Editing mode selector (right-aligned) */}
+      <EditingModeSelector />
     </div>
   );
 }

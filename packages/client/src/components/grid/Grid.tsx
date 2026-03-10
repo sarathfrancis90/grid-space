@@ -28,6 +28,7 @@ import { positionToCellRef, cellRefToPosition } from "../../utils/coordinates";
 import type { CellData, CellPosition } from "../../types/grid";
 import { formatCellValue } from "../../utils/numberFormat";
 import { useTouchGrid } from "../../hooks/useTouchGrid";
+import { useSuggestionsStore } from "../../stores/suggestionsStore";
 
 const GRID_LINE_COLOR = "#e2e2e2";
 const HEADER_BG = "#f8f9fa";
@@ -45,6 +46,8 @@ const RESIZE_HANDLE_WIDTH = 5;
 const CHECKBOX_SIZE = 14;
 const HYPERLINK_COLOR = "#1a73e8";
 const GROUP_BTN_SIZE = 12;
+const SUGGESTION_BG = "rgba(255, 200, 50, 0.15)";
+const SUGGESTION_BORDER_COLOR = "#f59e0b";
 
 type DragMode = "none" | "select" | "resize-col" | "resize-row" | "fill-handle";
 
@@ -345,6 +348,15 @@ export function Grid() {
       }
     }
 
+    // Build a map of cells with pending suggestions for fast lookup
+    const suggestionsMap = new Map<string, number>();
+    const allSuggestions = useSuggestionsStore.getState().suggestions;
+    for (const s of allSuggestions) {
+      if (s.status !== "pending") continue;
+      const mapKey = `${s.sheetId}:${s.cellRef}`;
+      suggestionsMap.set(mapKey, (suggestionsMap.get(mapKey) ?? 0) + 1);
+    }
+
     // Draw cell backgrounds and content
     ctx.save();
     ctx.beginPath();
@@ -372,6 +384,28 @@ export function Grid() {
             Math.round(cellY),
             Math.round(cellW),
             Math.round(cellH),
+          );
+        }
+
+        // Suggestion highlight: show pending suggestions with colored background + border
+        const cellSuggestions = suggestionsMap.get(
+          `${activeSheetId}:${cellKey}`,
+        );
+        if (cellSuggestions && cellSuggestions > 0) {
+          ctx.fillStyle = SUGGESTION_BG;
+          ctx.fillRect(
+            Math.round(cellX),
+            Math.round(cellY),
+            Math.round(cellW),
+            Math.round(cellH),
+          );
+          ctx.strokeStyle = SUGGESTION_BORDER_COLOR;
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(
+            Math.round(cellX) + 0.5,
+            Math.round(cellY) + 0.5,
+            Math.round(cellW) - 1,
+            Math.round(cellH) - 1,
           );
         }
 
@@ -1038,6 +1072,7 @@ export function Grid() {
       useValidationStore.subscribe(scheduleRedraw),
       useDataStore.subscribe(scheduleRedraw),
       useFormatStore.subscribe(scheduleRedraw),
+      useSuggestionsStore.subscribe(scheduleRedraw),
     ];
     scheduleRedraw();
     return () => {
@@ -1076,6 +1111,38 @@ export function Grid() {
       if (!ui.editingCell) return;
       const activeSheetId = getActiveSheetId();
       const { row, col } = ui.editingCell;
+
+      // In suggesting mode, create a suggestion instead of editing directly
+      const suggestionsState = useSuggestionsStore.getState();
+      if (suggestionsState.editingMode === "suggesting") {
+        const cellStore = useCellStore.getState();
+        const existing = cellStore.getCell(activeSheetId, row, col);
+        const oldValue = existing?.value ?? null;
+        if (value !== String(oldValue ?? "")) {
+          suggestionsState.proposeSuggestion({
+            sheetId: activeSheetId,
+            cellRef: getCellKey(row, col),
+            oldValue,
+            newValue: value === "" ? null : value,
+            proposedBy: "You",
+            proposedById: "local-user",
+          });
+          if (!suggestionsState.isSidebarOpen) {
+            suggestionsState.openSidebar();
+          }
+        }
+        const gs = useGridStore.getState();
+        const nextPos = { ...ui.editingCell };
+        if (direction === "down") {
+          nextPos.row = Math.min(ui.editingCell.row + 1, gs.totalRows - 1);
+        } else if (direction === "right") {
+          nextPos.col = Math.min(ui.editingCell.col + 1, gs.totalCols - 1);
+        }
+        commitEdit();
+        setSelectedCell(nextPos);
+        return;
+      }
+
       const cellStore = useCellStore.getState();
       const existing = cellStore.getCell(activeSheetId, row, col);
 
@@ -1707,6 +1774,9 @@ export function Grid() {
 
       const pos = screenToGrid(x, y);
       if (!pos) return;
+
+      // Block editing in viewing mode
+      if (useSuggestionsStore.getState().editingMode === "viewing") return;
 
       const activeSheetId = getActiveSheetId();
       const cellData = useCellStore
