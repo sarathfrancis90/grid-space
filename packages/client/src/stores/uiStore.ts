@@ -69,6 +69,7 @@ interface UIState {
   isKeyboardShortcutsOpen: boolean;
   isThemeDialogOpen: boolean;
   isNotificationRulesDialogOpen: boolean;
+  isImportDialogOpen: boolean;
   isFullscreen: boolean;
   /** S2-001: whether user is in formula editing mode (started typing "=") */
   isFormulaMode: boolean;
@@ -104,6 +105,7 @@ interface UIState {
   setKeyboardShortcutsOpen: (open: boolean) => void;
   setThemeDialogOpen: (open: boolean) => void;
   setNotificationRulesDialogOpen: (open: boolean) => void;
+  setImportDialogOpen: (open: boolean) => void;
   setFullscreen: (fullscreen: boolean) => void;
   /** S2-001: enter/exit formula mode */
   setFormulaMode: (active: boolean) => void;
@@ -142,6 +144,7 @@ export const useUIStore = create<UIState>()(
     isKeyboardShortcutsOpen: false,
     isThemeDialogOpen: false,
     isNotificationRulesDialogOpen: false,
+    isImportDialogOpen: false,
     isFullscreen: false,
     isFormulaMode: false,
     formulaReferences: [],
@@ -351,6 +354,12 @@ export const useUIStore = create<UIState>()(
     setNotificationRulesDialogOpen: (open: boolean) => {
       set((state) => {
         state.isNotificationRulesDialogOpen = open;
+      });
+    },
+
+    setImportDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isImportDialogOpen = open;
       });
     },
 
