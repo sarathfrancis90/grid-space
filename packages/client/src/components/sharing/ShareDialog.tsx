@@ -22,6 +22,10 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
   const fetchShareLink = useSharingStore((s) => s.fetchShareLink);
   const createShareLink = useSharingStore((s) => s.createShareLink);
   const disableShareLink = useSharingStore((s) => s.disableShareLink);
+  const publishInfo = useSharingStore((s) => s.publishInfo);
+  const fetchPublishInfo = useSharingStore((s) => s.fetchPublishInfo);
+  const publishToWeb = useSharingStore((s) => s.publishToWeb);
+  const unpublishFromWeb = useSharingStore((s) => s.unpublishFromWeb);
   const closeDialog = useSharingStore((s) => s.closeDialog);
   const clearError = useSharingStore((s) => s.clearError);
 
@@ -29,13 +33,22 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
   const [role, setRole] = useState<RoleOption>("viewer");
   const [copied, setCopied] = useState(false);
   const [linkRole, setLinkRole] = useState<RoleOption>("viewer");
+  const [publishCopied, setPublishCopied] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
 
   useEffect(() => {
     if (isDialogOpen && spreadsheetId) {
       fetchCollaborators(spreadsheetId);
       fetchShareLink(spreadsheetId);
+      fetchPublishInfo(spreadsheetId);
     }
-  }, [isDialogOpen, spreadsheetId, fetchCollaborators, fetchShareLink]);
+  }, [
+    isDialogOpen,
+    spreadsheetId,
+    fetchCollaborators,
+    fetchShareLink,
+    fetchPublishInfo,
+  ]);
 
   useEffect(() => {
     if (!isDialogOpen) return;
@@ -71,6 +84,44 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
   const handleDisableLink = useCallback(async () => {
     await disableShareLink(spreadsheetId);
   }, [spreadsheetId, disableShareLink]);
+
+  const publishedUrl = publishInfo.publishedUrl
+    ? `${window.location.origin}/published/${publishInfo.publishedUrl}`
+    : null;
+
+  const embedCode = publishedUrl
+    ? `<iframe src="${publishedUrl}" width="800" height="600" frameborder="0"></iframe>`
+    : null;
+
+  const handlePublish = useCallback(async () => {
+    try {
+      await publishToWeb(spreadsheetId);
+    } catch {
+      // Error shown in store
+    }
+  }, [spreadsheetId, publishToWeb]);
+
+  const handleUnpublish = useCallback(async () => {
+    try {
+      await unpublishFromWeb(spreadsheetId);
+    } catch {
+      // Error shown in store
+    }
+  }, [spreadsheetId, unpublishFromWeb]);
+
+  const handleCopyPublishUrl = useCallback(async () => {
+    if (!publishedUrl) return;
+    await navigator.clipboard.writeText(publishedUrl);
+    setPublishCopied(true);
+    setTimeout(() => setPublishCopied(false), 2000);
+  }, [publishedUrl]);
+
+  const handleCopyEmbed = useCallback(async () => {
+    if (!embedCode) return;
+    await navigator.clipboard.writeText(embedCode);
+    setEmbedCopied(true);
+    setTimeout(() => setEmbedCopied(false), 2000);
+  }, [embedCode]);
 
   if (!isDialogOpen) return null;
 
@@ -493,6 +544,143 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
                 data-testid="create-link-btn"
               >
                 Create link
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Publish to web section */}
+        <div
+          className="border-t border-gray-200 pt-4 mt-4"
+          style={{
+            borderTop: "1px solid #e5e7eb",
+            paddingTop: "16px",
+            marginTop: "16px",
+          }}
+          data-testid="publish-section"
+        >
+          <h3
+            className="mb-2 text-sm font-medium text-gray-700"
+            style={{ marginBottom: "8px" }}
+          >
+            Publish to web
+          </h3>
+
+          {publishInfo.isPublished && publishedUrl ? (
+            <div className="space-y-3">
+              <p className="text-xs text-gray-500">
+                This spreadsheet is published. Anyone with the link can view it
+                without signing in.
+              </p>
+
+              {/* Published URL */}
+              <div>
+                <label
+                  className="mb-1 block text-xs font-medium text-gray-600"
+                  style={{ marginBottom: "4px" }}
+                >
+                  Link
+                </label>
+                <div
+                  className="flex items-center gap-2"
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <input
+                    type="text"
+                    readOnly
+                    value={publishedUrl}
+                    className="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs"
+                    style={{
+                      padding: "8px 12px",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "8px",
+                      flex: 1,
+                    }}
+                    data-testid="publish-url"
+                  />
+                  <button
+                    onClick={handleCopyPublishUrl}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-xs hover:bg-gray-100"
+                    style={{
+                      padding: "8px 12px",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "8px",
+                    }}
+                    data-testid="copy-publish-url-btn"
+                  >
+                    {publishCopied ? "Copied!" : "Copy"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Embed code */}
+              <div>
+                <label
+                  className="mb-1 block text-xs font-medium text-gray-600"
+                  style={{ marginBottom: "4px" }}
+                >
+                  Embed
+                </label>
+                <div
+                  className="flex items-center gap-2"
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <input
+                    type="text"
+                    readOnly
+                    value={embedCode || ""}
+                    className="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs"
+                    style={{
+                      padding: "8px 12px",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "8px",
+                      flex: 1,
+                    }}
+                    data-testid="publish-embed-code"
+                  />
+                  <button
+                    onClick={handleCopyEmbed}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-xs hover:bg-gray-100"
+                    style={{
+                      padding: "8px 12px",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "8px",
+                    }}
+                    data-testid="copy-embed-btn"
+                  >
+                    {embedCopied ? "Copied!" : "Copy"}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={handleUnpublish}
+                className="text-xs text-red-500 hover:text-red-700"
+                data-testid="unpublish-btn"
+              >
+                Stop publishing
+              </button>
+            </div>
+          ) : (
+            <div>
+              <p
+                className="mb-2 text-xs text-gray-500"
+                style={{ marginBottom: "8px" }}
+              >
+                Make this spreadsheet visible to anyone on the web as a
+                read-only page.
+              </p>
+              <button
+                onClick={handlePublish}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100"
+                style={{
+                  padding: "6px 12px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                }}
+                data-testid="publish-btn"
+              >
+                Publish
               </button>
             </div>
           )}

@@ -506,6 +506,23 @@ export async function claimPendingInvites(
   );
 }
 
+/** Get publish info for a spreadsheet */
+export async function getPublishInfo(
+  spreadsheetId: string,
+  actorId: string,
+): Promise<{ isPublished: boolean; publishedUrl: string | null }> {
+  await requireOwner(spreadsheetId, actorId);
+
+  const ss = await prisma.spreadsheet.findUnique({
+    where: { id: spreadsheetId },
+    select: { isPublished: true, publishedUrl: true },
+  });
+
+  if (!ss) throw new NotFoundError("Spreadsheet not found");
+
+  return { isPublished: ss.isPublished, publishedUrl: ss.publishedUrl };
+}
+
 /** Publish to web — set public URL */
 export async function publishToWeb(
   spreadsheetId: string,

@@ -21,9 +21,15 @@ interface ShareLinkInfo {
   shareLinkRole: string | null;
 }
 
+interface PublishInfo {
+  isPublished: boolean;
+  publishedUrl: string | null;
+}
+
 interface SharingState {
   collaborators: Collaborator[];
   shareLink: ShareLinkInfo;
+  publishInfo: PublishInfo;
   isLoading: boolean;
   isDialogOpen: boolean;
   error: string | null;
@@ -51,6 +57,7 @@ interface SharingActions {
   ) => Promise<void>;
   disableShareLink: (spreadsheetId: string) => Promise<void>;
   transferOwnership: (spreadsheetId: string, email: string) => Promise<void>;
+  fetchPublishInfo: (spreadsheetId: string) => Promise<void>;
   publishToWeb: (spreadsheetId: string) => Promise<string>;
   unpublishFromWeb: (spreadsheetId: string) => Promise<void>;
   clearError: () => void;
@@ -65,6 +72,7 @@ export const useSharingStore = create<SharingStore>()(
   immer((set) => ({
     collaborators: [],
     shareLink: { shareLink: null, shareLinkRole: null },
+    publishInfo: { isPublished: false, publishedUrl: null },
     isLoading: false,
     isDialogOpen: false,
     error: null,
@@ -221,15 +229,37 @@ export const useSharingStore = create<SharingStore>()(
       });
     },
 
+    fetchPublishInfo: async (spreadsheetId: string) => {
+      try {
+        const data = await api.get<PublishInfo>(
+          `/spreadsheets/${spreadsheetId}/publish`,
+        );
+        set((state) => {
+          state.publishInfo = data;
+        });
+      } catch {
+        // Ignore errors for publish info fetch
+      }
+    },
+
     publishToWeb: async (spreadsheetId: string) => {
       const data = await api.post<{ publishedUrl: string }>(
         `/spreadsheets/${spreadsheetId}/publish`,
       );
+      set((state) => {
+        state.publishInfo = {
+          isPublished: true,
+          publishedUrl: data.publishedUrl,
+        };
+      });
       return data.publishedUrl;
     },
 
     unpublishFromWeb: async (spreadsheetId: string) => {
       await api.delete(`/spreadsheets/${spreadsheetId}/publish`);
+      set((state) => {
+        state.publishInfo = { isPublished: false, publishedUrl: null };
+      });
     },
 
     clearError: () => {
