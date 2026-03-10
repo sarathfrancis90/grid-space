@@ -20,6 +20,9 @@ import type { CellValueGetter } from "../../types/formula";
 import { generateFillValues } from "../../utils/fillHandle";
 import { CellEditor } from "./CellEditor";
 import { ContextMenu } from "./ContextMenu";
+import { CursorOverlay } from "../realtime/CursorOverlay";
+import { emitCellUpdate } from "../../services/realtimeService";
+import { positionToCellRef, cellRefToPosition } from "../../utils/coordinates";
 import type { CellData, CellPosition } from "../../types/grid";
 import { formatCellValue } from "../../utils/numberFormat";
 import { useTouchGrid } from "../../hooks/useTouchGrid";
@@ -118,6 +121,36 @@ export function Grid() {
     },
     [],
   );
+
+  // Map cell ref (e.g. "A1") → screen pixel rect for CursorOverlay
+  const getCellRect = useCallback(
+    (
+      cellRef: string,
+    ): { x: number; y: number; width: number; height: number } | null => {
+      try {
+        const pos = cellRefToPosition(cellRef);
+        const gs = useGridStore.getState();
+        const x = gs.getColumnX(pos.col) - gs.scrollLeft + gs.rowHeaderWidth;
+        const y = gs.getRowY(pos.row) - gs.scrollTop + gs.colHeaderHeight;
+        const width = gs.columnWidths.get(pos.col) ?? gs.defaultColWidth;
+        const height = gs.rowHeights.get(pos.row) ?? gs.defaultRowHeight;
+        // Skip if off-screen
+        if (
+          x + width < gs.rowHeaderWidth ||
+          y + height < gs.colHeaderHeight ||
+          x > containerWidth ||
+          y > containerHeight
+        )
+          return null;
+        return { x, y, width, height };
+      } catch {
+        return null;
+      }
+    },
+    [containerWidth, containerHeight],
+  );
+
+  const activeSheetId = useSpreadsheetStore((s) => s.activeSheetId);
 
   // Check if mouse is near a column resize border
   const getResizeCol = useCallback(
@@ -1118,6 +1151,20 @@ export function Grid() {
       } else {
         cellStore.deleteCell(activeSheetId, row, col);
       }
+
+      // Emit cell update to remote collaborators
+      const cellRef = positionToCellRef({ row, col });
+      const updatedCell = useCellStore
+        .getState()
+        .getCell(activeSheetId, row, col);
+      const spreadsheetId = useSpreadsheetStore.getState().id;
+      emitCellUpdate(
+        spreadsheetId,
+        activeSheetId,
+        cellRef,
+        updatedCell?.value ?? null,
+        updatedCell?.formula,
+      );
 
       const gs = useGridStore.getState();
       const nextPos = { ...ui.editingCell };
@@ -2198,6 +2245,12 @@ export function Grid() {
           left: 0,
           pointerEvents: "none",
         }}
+      />
+      <CursorOverlay
+        sheetId={activeSheetId}
+        getCellRect={getCellRect}
+        width={containerWidth}
+        height={containerHeight}
       />
       <CellEditor onCommit={handleCommitEdit} onCancel={handleCancelEdit} />
       <div

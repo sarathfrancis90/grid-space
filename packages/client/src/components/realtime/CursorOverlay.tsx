@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useCallback } from "react";
 import { useRealtimeStore } from "../../stores/realtimeStore";
+import { useGridStore } from "../../stores/gridStore";
 import type { CursorPosition } from "../../stores/realtimeStore";
 
 interface CursorOverlayProps {
@@ -28,6 +29,9 @@ export const CursorOverlay = React.memo(function CursorOverlay({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cursors = useRealtimeStore((state) => state.activeCursors);
   const typingCells = useRealtimeStore((state) => state.typingCells);
+  // Subscribe to scroll position so cursors redraw when the grid scrolls
+  const scrollLeft = useGridStore((state) => state.scrollLeft);
+  const scrollTop = useGridStore((state) => state.scrollTop);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -54,7 +58,16 @@ export const CursorOverlay = React.memo(function CursorOverlay({
     for (const typing of sheetTyping) {
       drawTypingIndicator(ctx, typing.cell, getCellRect);
     }
-  }, [cursors, typingCells, sheetId, getCellRect, width, height]);
+  }, [
+    cursors,
+    typingCells,
+    sheetId,
+    getCellRect,
+    width,
+    height,
+    scrollLeft,
+    scrollTop,
+  ]);
 
   useEffect(() => {
     draw();
@@ -65,7 +78,7 @@ export const CursorOverlay = React.memo(function CursorOverlay({
       ref={canvasRef}
       data-testid="cursor-overlay"
       className="absolute top-0 left-0 pointer-events-none"
-      style={{ width, height }}
+      style={{ width, height, zIndex: 5 }}
     />
   );
 });

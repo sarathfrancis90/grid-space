@@ -51,6 +51,7 @@ import { useMacroRecorder } from "../../hooks/useMacroRecorder";
 import { useAutoSave } from "../../hooks/useAutoSave";
 import { useHydrateFromServer } from "../../hooks/useHydrateFromServer";
 import { useRealtimeConnection } from "../../hooks/useRealtimeConnection";
+import { useRealtimeSync } from "../../hooks/useRealtimeSync";
 import { SaveIndicator } from "./SaveIndicator";
 import { SpreadsheetLoader } from "./SpreadsheetLoader";
 
@@ -104,6 +105,7 @@ export default function SpreadsheetEditorPage() {
   useHydrateFromServer();
   useAutoSave(id);
   useRealtimeConnection(id);
+  useRealtimeSync(id);
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [titleInput, setTitleInput] = useState("");
