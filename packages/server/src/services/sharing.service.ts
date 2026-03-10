@@ -2,6 +2,8 @@ import crypto from "crypto";
 import prisma from "../models/prisma";
 import { NotFoundError, ForbiddenError, AppError } from "../utils/AppError";
 import logger from "../utils/logger";
+import { sendShareInvite } from "./email.service";
+import { env } from "../config/env";
 
 type Role = "viewer" | "commenter" | "editor" | "owner";
 
@@ -152,6 +154,24 @@ export async function addCollaborator(
     logger.info(
       { actorId, spreadsheetId, email, role },
       "Pending invite created for unregistered user",
+    );
+
+    // Send invitation email (fire-and-forget, don't block the response)
+    const [inviter, spreadsheet] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: actorId },
+        select: { name: true, email: true },
+      }),
+      prisma.spreadsheet.findUnique({
+        where: { id: spreadsheetId },
+        select: { title: true },
+      }),
+    ]);
+    const inviterName = inviter?.name || inviter?.email || "Someone";
+    const title = spreadsheet?.title || "Untitled Spreadsheet";
+    const spreadsheetUrl = `${env.CLIENT_URL}/spreadsheet/${spreadsheetId}`;
+    sendShareInvite(email, inviterName, title, role, spreadsheetUrl).catch(
+      (err) => logger.error({ err, email }, "Failed to send invite email"),
     );
 
     return {

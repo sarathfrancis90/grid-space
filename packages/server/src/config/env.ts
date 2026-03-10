@@ -19,6 +19,8 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().default(""),
   GITHUB_CLIENT_ID: z.string().default(""),
   GITHUB_CLIENT_SECRET: z.string().default(""),
+  RESEND_API_KEY: z.string().default(""),
+  EMAIL_FROM: z.string().default("GridSpace <noreply@gridspace.app>"),
 });
 
 type Env = z.infer<typeof envSchema>;
