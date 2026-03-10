@@ -10,7 +10,8 @@ import { useGridStore } from "../../stores/gridStore";
 import { useClipboardStore } from "../../stores/clipboardStore";
 import { useHistoryStore } from "../../stores/historyStore";
 import { useCommentStore } from "../../stores/commentStore";
-import { getCellKey } from "../../utils/coordinates";
+import { useNamedRangeStore } from "../../stores/namedRangeStore";
+import { getCellKey, colToLetter } from "../../utils/coordinates";
 
 interface ContextMenuUIProps {
   x: number;
@@ -140,6 +141,66 @@ export function ContextMenuUI({
     onClose();
   }, [sheetId, selectedCell, onClose]);
 
+  const handleInsertRowBelow = useCallback(() => {
+    const gs = useGridStore.getState();
+    useHistoryStore.getState().pushUndo();
+    useCellStore
+      .getState()
+      .insertRows(sheetId, targetIndex + 1, 1, gs.totalRows);
+    gs.setTotalRows(gs.totalRows + 1);
+    onClose();
+  }, [sheetId, targetIndex, onClose]);
+
+  const handleInsertColRight = useCallback(() => {
+    const gs = useGridStore.getState();
+    useHistoryStore.getState().pushUndo();
+    useCellStore
+      .getState()
+      .insertCols(sheetId, targetIndex + 1, 1, gs.totalCols);
+    gs.setTotalCols(gs.totalCols + 1);
+    onClose();
+  }, [sheetId, targetIndex, onClose]);
+
+  const handleInsertLink = useCallback(() => {
+    useUIStore.getState().setHyperlinkDialogOpen(true);
+    onClose();
+  }, [onClose]);
+
+  const handleDefineNamedRange = useCallback(() => {
+    if (!selectedCell) return;
+    const ui = useUIStore.getState();
+    const selections = ui.selections;
+    const lastSel =
+      selections.length > 0 ? selections[selections.length - 1] : null;
+    const startRow = lastSel
+      ? Math.min(lastSel.start.row, lastSel.end.row)
+      : selectedCell.row;
+    const startCol = lastSel
+      ? Math.min(lastSel.start.col, lastSel.end.col)
+      : selectedCell.col;
+    const endRow = lastSel
+      ? Math.max(lastSel.start.row, lastSel.end.row)
+      : selectedCell.row;
+    const endCol = lastSel
+      ? Math.max(lastSel.start.col, lastSel.end.col)
+      : selectedCell.col;
+    const rangeName = `Range_${colToLetter(startCol)}${startRow + 1}_${colToLetter(endCol)}${endRow + 1}`;
+    useNamedRangeStore.getState().addRange({
+      name: rangeName,
+      sheetId,
+      startRow,
+      startCol,
+      endRow,
+      endCol,
+    });
+    onClose();
+  }, [sheetId, selectedCell, onClose]);
+
+  const handleProtectRange = useCallback(() => {
+    useUIStore.getState().setProtectionDialogOpen(true);
+    onClose();
+  }, [onClose]);
+
   const cellMenuItems: MenuItem[] = [
     { label: "Cut", action: handleCut, shortcut: "Ctrl+X", testId: "ctx-cut" },
     {
@@ -167,15 +228,51 @@ export function ContextMenuUI({
       testId: "ctx-insert-row",
     },
     {
+      label: "Insert row below",
+      action: handleInsertRowBelow,
+      testId: "ctx-insert-row-below",
+    },
+    {
       label: "Insert column left",
       action: handleInsertCol,
       testId: "ctx-insert-col",
     },
     {
-      label: "Add comment",
-      action: handleAddComment,
+      label: "Insert column right",
+      action: handleInsertColRight,
+      testId: "ctx-insert-col-right",
+    },
+    {
+      label: "Delete row",
+      action: handleDeleteRow,
+      testId: "ctx-delete-row",
+    },
+    {
+      label: "Delete column",
+      action: handleDeleteCol,
       separator: true,
+      testId: "ctx-delete-col",
+    },
+    {
+      label: "Insert comment",
+      action: handleAddComment,
       testId: "ctx-add-comment",
+    },
+    {
+      label: "Insert link",
+      action: handleInsertLink,
+      testId: "ctx-insert-link",
+    },
+    {
+      label: "Define named range",
+      action: handleDefineNamedRange,
+      separator: true,
+      testId: "ctx-define-named-range",
+    },
+    {
+      label: "Protect range",
+      action: handleProtectRange,
+      testId: "ctx-protect-range",
     },
   ];
 
@@ -191,18 +288,37 @@ export function ContextMenuUI({
     },
     {
       label: "Insert row below",
-      action: () => {
-        const gs = useGridStore.getState();
-        useHistoryStore.getState().pushUndo();
-        useCellStore
-          .getState()
-          .insertRows(sheetId, targetIndex + 1, 1, gs.totalRows);
-        gs.setTotalRows(gs.totalRows + 1);
-        onClose();
-      },
+      action: handleInsertRowBelow,
       testId: "ctx-insert-row-below",
     },
     { label: "Delete row", action: handleDeleteRow, testId: "ctx-delete-row" },
+    {
+      label: "Hide row",
+      action: () => {
+        useGridStore.getState().hideRows([targetIndex]);
+        onClose();
+      },
+      separator: true,
+      testId: "ctx-hide-row",
+    },
+    {
+      label: "Resize row",
+      action: () => {
+        const gs = useGridStore.getState();
+        const input = window.prompt(
+          "Enter row height (pixels):",
+          String(gs.getRowHeight(targetIndex)),
+        );
+        if (input !== null) {
+          const height = parseInt(input, 10);
+          if (!isNaN(height) && height > 0) {
+            gs.setRowHeight(targetIndex, height);
+          }
+        }
+        onClose();
+      },
+      testId: "ctx-resize-row",
+    },
   ];
 
   const colMenuItems: MenuItem[] = [
@@ -217,21 +333,40 @@ export function ContextMenuUI({
     },
     {
       label: "Insert column right",
-      action: () => {
-        const gs = useGridStore.getState();
-        useHistoryStore.getState().pushUndo();
-        useCellStore
-          .getState()
-          .insertCols(sheetId, targetIndex + 1, 1, gs.totalCols);
-        gs.setTotalCols(gs.totalCols + 1);
-        onClose();
-      },
+      action: handleInsertColRight,
       testId: "ctx-insert-col-right",
     },
     {
       label: "Delete column",
       action: handleDeleteCol,
       testId: "ctx-delete-col",
+    },
+    {
+      label: "Hide column",
+      action: () => {
+        useGridStore.getState().hideCols([targetIndex]);
+        onClose();
+      },
+      separator: true,
+      testId: "ctx-hide-col",
+    },
+    {
+      label: "Resize column",
+      action: () => {
+        const gs = useGridStore.getState();
+        const input = window.prompt(
+          "Enter column width (pixels):",
+          String(gs.getColumnWidth(targetIndex)),
+        );
+        if (input !== null) {
+          const width = parseInt(input, 10);
+          if (!isNaN(width) && width > 0) {
+            gs.setColumnWidth(targetIndex, width);
+          }
+        }
+        onClose();
+      },
+      testId: "ctx-resize-col",
     },
   ];
 
