@@ -86,3 +86,67 @@ export async function sendShareInvite(
 
   return send(to, subject, html);
 }
+
+interface Attachment {
+  filename: string;
+  content: Buffer;
+  contentType: string;
+}
+
+export async function sendWithAttachment(
+  to: string,
+  subject: string,
+  message: string,
+  senderName: string,
+  attachment: Attachment,
+): Promise<SendResult> {
+  if (!transporter || !FROM) {
+    logger.warn({ to, subject }, "Email skipped — SMTP not configured");
+    return { success: false };
+  }
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 0;">
+      <div style="background: #f8fafc; border-radius: 12px; padding: 32px; border: 1px solid #e2e8f0;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <div style="display: inline-block; background: #2563eb; color: white; width: 48px; height: 48px; border-radius: 8px; line-height: 48px; font-size: 24px; font-weight: bold;">G</div>
+        </div>
+        <h2 style="margin: 0 0 8px; color: #1e293b; font-size: 20px; text-align: center;">
+          ${senderName} sent you a spreadsheet
+        </h2>
+        <p style="color: #334155; font-size: 15px; white-space: pre-wrap; margin: 0 0 16px;">${message}</p>
+        <p style="color: #94a3b8; font-size: 13px; margin: 0;">
+          The spreadsheet is attached as <strong>${attachment.filename}</strong>.
+        </p>
+      </div>
+      <p style="color: #cbd5e1; font-size: 12px; text-align: center; margin-top: 16px;">
+        GridSpace — Collaborative Spreadsheets
+      </p>
+    </div>
+  `;
+
+  try {
+    const info = await transporter.sendMail({
+      from: `GridSpace <${FROM}>`,
+      to,
+      subject,
+      html,
+      attachments: [
+        {
+          filename: attachment.filename,
+          content: attachment.content,
+          contentType: attachment.contentType,
+        },
+      ],
+    });
+
+    logger.info(
+      { to, subject, messageId: info.messageId },
+      "Email with attachment sent",
+    );
+    return { success: true, messageId: info.messageId };
+  } catch (err) {
+    logger.error({ to, subject, err }, "Failed to send email with attachment");
+    return { success: false };
+  }
+}

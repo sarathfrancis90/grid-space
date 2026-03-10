@@ -70,6 +70,7 @@ interface UIState {
   isThemeDialogOpen: boolean;
   isNotificationRulesDialogOpen: boolean;
   isImportDialogOpen: boolean;
+  isEmailDialogOpen: boolean;
   isFullscreen: boolean;
   /** S2-001: whether user is in formula editing mode (started typing "=") */
   isFormulaMode: boolean;
@@ -106,6 +107,7 @@ interface UIState {
   setThemeDialogOpen: (open: boolean) => void;
   setNotificationRulesDialogOpen: (open: boolean) => void;
   setImportDialogOpen: (open: boolean) => void;
+  setEmailDialogOpen: (open: boolean) => void;
   setFullscreen: (fullscreen: boolean) => void;
   /** S2-001: enter/exit formula mode */
   setFormulaMode: (active: boolean) => void;
@@ -145,6 +147,7 @@ export const useUIStore = create<UIState>()(
     isThemeDialogOpen: false,
     isNotificationRulesDialogOpen: false,
     isImportDialogOpen: false,
+    isEmailDialogOpen: false,
     isFullscreen: false,
     isFormulaMode: false,
     formulaReferences: [],
@@ -360,6 +363,12 @@ export const useUIStore = create<UIState>()(
     setImportDialogOpen: (open: boolean) => {
       set((state) => {
         state.isImportDialogOpen = open;
+      });
+    },
+
+    setEmailDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isEmailDialogOpen = open;
       });
     },
 

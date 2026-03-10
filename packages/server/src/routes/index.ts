@@ -22,6 +22,7 @@ import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
 import extensionRoutes from "./extension.routes";
 import statsRoutes from "./stats.routes";
+import emailRoutes from "./email.routes";
 
 const router = Router();
 
@@ -93,5 +94,8 @@ router.use("/extensions", extensionRoutes);
 
 // Webhook management
 router.use("/webhooks", webhookRoutes);
+
+// Email (send spreadsheet as attachment)
+router.use("/email", emailRoutes);
 
 export default router;

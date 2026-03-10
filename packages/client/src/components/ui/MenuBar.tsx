@@ -211,6 +211,14 @@ export function MenuBar() {
           },
         },
         {
+          label: "Email this file",
+          testId: "menu-file-email",
+          action: () => {
+            useUIStore.getState().setEmailDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Version history",
           testId: "menu-file-version-history",
           shortcut: "Ctrl+Alt+Shift+H",
