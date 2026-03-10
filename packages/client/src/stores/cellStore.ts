@@ -47,6 +47,7 @@ interface CellState {
     totalCols: number,
   ) => void;
   deleteCols: (sheetId: string, cols: number[], totalCols: number) => void;
+  clearSheet: (sheetId: string) => void;
   ensureSheet: (sheetId: string) => void;
   getLastDataPosition: (sheetId: string) => { row: number; col: number };
 }
@@ -255,6 +256,12 @@ export const useCellStore = create<CellState>()(
           );
         }
         state.cells.set(sheetId, newMap);
+      });
+    },
+
+    clearSheet: (sheetId: string) => {
+      set((state) => {
+        state.cells.set(sheetId, new Map<string, CellData>());
       });
     },
 
