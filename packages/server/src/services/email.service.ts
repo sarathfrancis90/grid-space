@@ -1,14 +1,23 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { env } from "../config/env";
 import logger from "../utils/logger";
 
-const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
+const transporter =
+  env.SMTP_USER && env.SMTP_PASS
+    ? nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: env.SMTP_USER,
+          pass: env.SMTP_PASS,
+        },
+      })
+    : null;
 
-const FROM = env.EMAIL_FROM;
+const FROM = env.EMAIL_FROM || env.SMTP_USER;
 
 interface SendResult {
   success: boolean;
-  id?: string;
+  messageId?: string;
 }
 
 async function send(
@@ -16,31 +25,23 @@ async function send(
   subject: string,
   html: string,
 ): Promise<SendResult> {
-  if (!resend) {
-    logger.warn(
-      { to, subject },
-      "Email skipped — RESEND_API_KEY not configured",
-    );
+  if (!transporter || !FROM) {
+    logger.warn({ to, subject }, "Email skipped — SMTP not configured");
     return { success: false };
   }
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: FROM,
+    const info = await transporter.sendMail({
+      from: `GridSpace <${FROM}>`,
       to,
       subject,
       html,
     });
 
-    if (error) {
-      logger.error({ to, subject, error }, "Failed to send email");
-      return { success: false };
-    }
-
-    logger.info({ to, subject, id: data?.id }, "Email sent");
-    return { success: true, id: data?.id };
+    logger.info({ to, subject, messageId: info.messageId }, "Email sent");
+    return { success: true, messageId: info.messageId };
   } catch (err) {
-    logger.error({ to, subject, err }, "Email send threw");
+    logger.error({ to, subject, err }, "Failed to send email");
     return { success: false };
   }
 }
