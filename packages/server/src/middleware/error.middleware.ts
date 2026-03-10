@@ -15,12 +15,20 @@ export function errorHandler(
   }
 
   // Detect Prisma errors for better diagnostics
-  const errName = (err as { code?: string }).code;
-  if (errName === "P2021" || errName === "P2010") {
-    // P2021: table does not exist, P2010: raw query failed
+  const prismaCode = (err as { code?: string }).code;
+  if (
+    prismaCode === "P2021" ||
+    prismaCode === "P2010" ||
+    prismaCode === "P2022" ||
+    prismaCode === "P2025"
+  ) {
+    // P2021: table does not exist
+    // P2022: column does not exist
+    // P2010: raw query failed
+    // P2025: record not found (required relation)
     logger.error(
-      { err, prismaCode: errName },
-      "Database schema error — tables may not exist. Run: npx prisma migrate deploy",
+      { err, prismaCode },
+      "Database schema error — run: npx prisma migrate deploy",
     );
     res
       .status(503)
@@ -30,7 +38,7 @@ export function errorHandler(
     return;
   }
 
-  if (errName === "P2002") {
+  if (prismaCode === "P2002") {
     // Unique constraint violation
     res
       .status(409)
