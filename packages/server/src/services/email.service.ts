@@ -105,11 +105,20 @@ export async function sendWithAttachment(
     return { success: false };
   }
 
+  const escapeHtml = (str: string): string =>
+    str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
   const escapedMessage = message
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/\n/g, "<br>");
+
+  const escapedSenderName = escapeHtml(senderName);
 
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 0;">
@@ -118,7 +127,7 @@ export async function sendWithAttachment(
           <div style="display: inline-block; background: #2563eb; color: white; width: 48px; height: 48px; border-radius: 8px; line-height: 48px; font-size: 24px; font-weight: bold;">G</div>
         </div>
         <h2 style="margin: 0 0 8px; color: #1e293b; font-size: 20px; text-align: center;">
-          ${senderName} sent you a spreadsheet
+          ${escapedSenderName} sent you a spreadsheet
         </h2>
         <div style="color: #475569; font-size: 15px; line-height: 1.6; margin: 16px 0;">
           ${escapedMessage}

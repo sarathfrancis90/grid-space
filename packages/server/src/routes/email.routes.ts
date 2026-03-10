@@ -16,7 +16,10 @@ const sendEmailSchema = {
     subject: z.string().min(1, "Subject is required").max(200),
     message: z.string().max(5000).default(""),
     format: z.enum(["csv", "xlsx", "pdf"]),
-    spreadsheetData: z.string().min(1, "Spreadsheet data is required"),
+    spreadsheetData: z
+      .string()
+      .min(1, "Spreadsheet data is required")
+      .max(25 * 1024 * 1024, "Attachment data exceeds 25 MB limit"),
   }),
 };
 

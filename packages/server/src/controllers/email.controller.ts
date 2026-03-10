@@ -96,7 +96,7 @@ export async function sendEmailAttachment(
 }
 
 function generateAttachment(
-  csvData: string,
+  rawData: string,
   title: string,
   format: "csv" | "xlsx" | "pdf",
 ): emailService.EmailAttachment {
@@ -105,7 +105,7 @@ function generateAttachment(
   if (format === "csv") {
     return {
       filename: `${sanitizedTitle}.csv`,
-      content: Buffer.from(csvData, "utf-8"),
+      content: Buffer.from(rawData, "utf-8"),
       contentType: "text/csv",
     };
   }
@@ -114,7 +114,7 @@ function generateAttachment(
     // Client sends base64-encoded XLSX data
     return {
       filename: `${sanitizedTitle}.xlsx`,
-      content: Buffer.from(csvData, "base64"),
+      content: Buffer.from(rawData, "base64"),
       contentType:
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     };
@@ -123,7 +123,7 @@ function generateAttachment(
   // PDF — client sends base64-encoded PDF data
   return {
     filename: `${sanitizedTitle}.pdf`,
-    content: Buffer.from(csvData, "base64"),
+    content: Buffer.from(rawData, "base64"),
     contentType: "application/pdf",
   };
 }
