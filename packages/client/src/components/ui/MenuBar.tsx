@@ -12,6 +12,8 @@ import { useFormatStore } from "../../stores/formatStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useChartStore } from "../../stores/chartStore";
 import { useMacroStore } from "../../stores/macroStore";
+import { useCloudStore } from "../../stores/cloudStore";
+import { useVersionStore } from "../../stores/versionStore";
 import { exportXLSX, downloadFile } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
 
@@ -194,6 +196,20 @@ export function MenuBar() {
           separator: true,
           action: () => {
             useUIStore.getState().setPrintDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Version history",
+          testId: "menu-file-version-history",
+          shortcut: "Ctrl+Alt+Shift+H",
+          separator: true,
+          action: () => {
+            const spreadsheetId =
+              useCloudStore.getState().currentSpreadsheet?.id;
+            if (spreadsheetId) {
+              useVersionStore.getState().open(spreadsheetId);
+            }
             setOpenMenu(null);
           },
         },
