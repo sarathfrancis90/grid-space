@@ -244,9 +244,16 @@ jobs:
           STATUS="${{ steps.claude.outcome }}"
 
           if [ "$STATUS" = "success" ]; then
+            PR_NUM=$(gh pr list --head "claude/issue-${ISSUE_NUM}" --json number --jq '.[0].number' 2>/dev/null || echo "")
             PR_URL=$(gh pr list --head "claude/issue-${ISSUE_NUM}" --json url --jq '.[0].url' 2>/dev/null || echo "")
             if [ -n "$PR_URL" ]; then
               gh issue comment "$ISSUE_NUM" --body "Implementation complete. PR: $PR_URL"
+            fi
+            # Auto-merge the PR once CI passes
+            if [ -n "$PR_NUM" ]; then
+              gh pr merge "$PR_NUM" --squash --auto 2>/dev/null || \
+                gh pr merge "$PR_NUM" --squash 2>/dev/null || \
+                echo "Auto-merge not available — PR may need manual merge"
             fi
           elif [ "$STATUS" = "failure" ]; then
             gh issue comment "$ISSUE_NUM" --body "Claude encountered an error. See [workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
