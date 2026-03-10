@@ -14,6 +14,8 @@ import { useFormulaStore } from "../../stores/formulaStore";
 import { useFindReplaceStore } from "../../stores/findReplaceStore";
 import { useValidationStore } from "../../stores/validationStore";
 import { useDataStore } from "../../stores/dataStore";
+import { useCommentStore } from "../../stores/commentStore";
+import { useNamedRangeStore } from "../../stores/namedRangeStore";
 import { colToLetter, getCellKey } from "../../utils/coordinates";
 import { cellId, parseCellId } from "../formula/cellUtils";
 import type { CellValueGetter } from "../../types/formula";
@@ -1805,6 +1807,21 @@ export function Grid() {
             }
           },
         },
+        {
+          label: "Resize row",
+          action: () => {
+            const input = window.prompt(
+              "Enter row height (pixels):",
+              String(gs.getRowHeight(row)),
+            );
+            if (input !== null) {
+              const height = parseInt(input, 10);
+              if (!isNaN(height) && height > 0) {
+                useGridStore.getState().setRowHeight(row, height);
+              }
+            }
+          },
+        },
       ];
     }
 
@@ -1832,10 +1849,30 @@ export function Grid() {
             }
           },
         },
+        {
+          label: "Resize column",
+          action: () => {
+            const input = window.prompt(
+              "Enter column width (pixels):",
+              String(gs.getColumnWidth(col)),
+            );
+            if (input !== null) {
+              const width = parseInt(input, 10);
+              if (!isNaN(width) && width > 0) {
+                useGridStore.getState().setColumnWidth(col, width);
+              }
+            }
+          },
+        },
       ];
     }
 
     // Cell context menu
+    const ui = useUIStore.getState();
+    const sel = ui.selectedCell;
+    const activeSheetId = getActiveSheetId();
+    const cellRow = sel?.row ?? 0;
+    const cellCol = sel?.col ?? 0;
     return [
       { label: "Copy", shortcut: "Ctrl+C", action: () => performCopy("copy") },
       { label: "Cut", shortcut: "Ctrl+X", action: () => performCopy("cut") },
@@ -1853,6 +1890,88 @@ export function Grid() {
         label: "Paste special: Transpose",
         action: () => performPaste("transpose"),
       },
+      { label: "", action: () => {}, separator: true },
+      {
+        label: "Insert row above",
+        action: () => insertRowAt(cellRow, "above"),
+      },
+      {
+        label: "Insert row below",
+        action: () => insertRowAt(cellRow, "below"),
+      },
+      {
+        label: "Insert column left",
+        action: () => insertColAt(cellCol, "left"),
+      },
+      {
+        label: "Insert column right",
+        action: () => insertColAt(cellCol, "right"),
+      },
+      { label: "", action: () => {}, separator: true },
+      {
+        label: "Delete row",
+        action: () => deleteRowsAt([cellRow]),
+      },
+      {
+        label: "Delete column",
+        action: () => deleteColsAt([cellCol]),
+      },
+      { label: "", action: () => {}, separator: true },
+      {
+        label: "Insert comment",
+        action: () => {
+          if (sel) {
+            const cellKey = getCellKey(sel.row, sel.col);
+            useCommentStore
+              .getState()
+              .setActiveCommentCell(activeSheetId, cellKey);
+          }
+        },
+      },
+      {
+        label: "Insert link",
+        action: () => {
+          useUIStore.getState().setHyperlinkDialogOpen(true);
+        },
+      },
+      { label: "", action: () => {}, separator: true },
+      {
+        label: "Define named range",
+        action: () => {
+          if (sel) {
+            const selections = ui.selections;
+            const lastSel =
+              selections.length > 0 ? selections[selections.length - 1] : null;
+            const startRow = lastSel
+              ? Math.min(lastSel.start.row, lastSel.end.row)
+              : sel.row;
+            const startCol = lastSel
+              ? Math.min(lastSel.start.col, lastSel.end.col)
+              : sel.col;
+            const endRow = lastSel
+              ? Math.max(lastSel.start.row, lastSel.end.row)
+              : sel.row;
+            const endCol = lastSel
+              ? Math.max(lastSel.start.col, lastSel.end.col)
+              : sel.col;
+            const rangeName = `Range_${colToLetter(startCol)}${startRow + 1}_${colToLetter(endCol)}${endRow + 1}`;
+            useNamedRangeStore.getState().addRange({
+              name: rangeName,
+              sheetId: activeSheetId,
+              startRow,
+              startCol,
+              endRow,
+              endCol,
+            });
+          }
+        },
+      },
+      {
+        label: "Protect range",
+        action: () => {
+          useUIStore.getState().setProtectionDialogOpen(true);
+        },
+      },
     ];
   }, [
     contextMenu,
@@ -1862,6 +1981,7 @@ export function Grid() {
     deleteColsAt,
     performCopy,
     performPaste,
+    getActiveSheetId,
   ]);
 
   // Keyboard handler
