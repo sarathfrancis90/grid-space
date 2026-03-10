@@ -2,11 +2,14 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCloudStore } from "../../stores/cloudStore";
 import { useAuthStore } from "../../stores/authStore";
+import { useFolderStore } from "../../stores/folderStore";
 import { SpreadsheetCard } from "./SpreadsheetCard";
 import { SpreadsheetListItem } from "./SpreadsheetListItem";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { TemplateGallery } from "./TemplateGallery";
 import { TrashView } from "./TrashView";
+import { FolderSection } from "./FolderSection";
+import { MoveToFolderDialog } from "./MoveToFolderDialog";
 import { GridSpaceLogo } from "../ui/GridSpaceLogo";
 
 type FilterType = "all" | "owned" | "shared" | "starred";
@@ -40,8 +43,13 @@ export default function DashboardPage() {
   const setPage = useCloudStore((s) => s.setPage);
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const currentFolderId = useFolderStore((s) => s.currentFolderId);
   const [searchInput, setSearchInput] = useState(search);
   const [activeTab, setActiveTab] = useState<DashboardTab>("spreadsheets");
+  const [movingSpreadsheet, setMovingSpreadsheet] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -113,6 +121,18 @@ export default function DashboardPage() {
     await logout();
     navigate("/login");
   }, [logout, navigate]);
+
+  const handleFolderNavigate = useCallback((folderId: string | null) => {
+    useFolderStore.getState().navigateToFolder(folderId);
+  }, []);
+
+  const handleMoveToFolder = useCallback((id: string, title: string) => {
+    setMovingSpreadsheet({ id, title });
+  }, []);
+
+  const handleMoveDone = useCallback(() => {
+    fetchSpreadsheets();
+  }, [fetchSpreadsheets]);
 
   const filters: { label: string; value: FilterType }[] = [
     { label: "All", value: "all" },
@@ -300,9 +320,21 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Folder Section — only shown in spreadsheets tab */}
+        {activeTab === "spreadsheets" && (
+          <FolderSection
+            onFolderNavigate={handleFolderNavigate}
+            currentFolderId={currentFolderId}
+          />
+        )}
+
         {/* Section heading */}
         <h2 className="mb-3 text-base font-medium text-gray-700">
-          {activeTab === "trash" ? "Trash" : "Recent spreadsheets"}
+          {activeTab === "trash"
+            ? "Trash"
+            : currentFolderId
+              ? "Spreadsheets in this folder"
+              : "Recent spreadsheets"}
         </h2>
 
         {/* Filter Tabs */}
@@ -515,6 +547,7 @@ export default function DashboardPage() {
                         onDuplicate={handleDuplicate}
                         onToggleStar={handleToggleStar}
                         onRename={handleRename}
+                        onMoveToFolder={handleMoveToFolder}
                       />
                     ))}
                   </div>
@@ -550,6 +583,7 @@ export default function DashboardPage() {
                           onDuplicate={handleDuplicate}
                           onToggleStar={handleToggleStar}
                           onRename={handleRename}
+                          onMoveToFolder={handleMoveToFolder}
                         />
                       ))}
                     </div>
@@ -590,6 +624,16 @@ export default function DashboardPage() {
           </>
         )}
       </main>
+
+      {/* Move to folder dialog */}
+      {movingSpreadsheet && (
+        <MoveToFolderDialog
+          spreadsheetId={movingSpreadsheet.id}
+          spreadsheetTitle={movingSpreadsheet.title}
+          onClose={() => setMovingSpreadsheet(null)}
+          onMoved={handleMoveDone}
+        />
+      )}
     </div>
   );
 }

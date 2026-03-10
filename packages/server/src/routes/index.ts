@@ -21,6 +21,7 @@ import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
 import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
 import extensionRoutes from "./extension.routes";
+import folderRoutes from "./folder.routes";
 import statsRoutes from "./stats.routes";
 
 const router = Router();
@@ -90,6 +91,9 @@ router.use("/users/me/api-keys", apiKeyRoutes);
 
 // Extensions
 router.use("/extensions", extensionRoutes);
+
+// Folders
+router.use("/folders", folderRoutes);
 
 // Webhook management
 router.use("/webhooks", webhookRoutes);

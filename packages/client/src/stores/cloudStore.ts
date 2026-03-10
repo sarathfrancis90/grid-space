@@ -7,6 +7,7 @@ interface SpreadsheetSummary {
   title: string;
   isStarred: boolean;
   isTemplate: boolean;
+  folderId: string | null;
   createdAt: string;
   updatedAt: string;
   owner: { id: string; name: string | null; avatarUrl: string | null };
@@ -229,6 +230,7 @@ export const useCloudStore = create<CloudStore>()(
           title: spreadsheet.title,
           isStarred: spreadsheet.isStarred,
           isTemplate: false,
+          folderId: null,
           createdAt: spreadsheet.createdAt,
           updatedAt: spreadsheet.updatedAt,
           owner: spreadsheet.owner,
@@ -286,6 +288,7 @@ export const useCloudStore = create<CloudStore>()(
           title: copy.title,
           isStarred: copy.isStarred,
           isTemplate: false,
+          folderId: null,
           createdAt: copy.createdAt,
           updatedAt: copy.updatedAt,
           owner: copy.owner,

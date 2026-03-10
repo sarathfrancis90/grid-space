@@ -16,6 +16,7 @@ interface SpreadsheetCardProps {
   onDuplicate: (id: string) => Promise<void>;
   onToggleStar: (id: string) => Promise<void>;
   onRename: (id: string, title: string) => Promise<void>;
+  onMoveToFolder?: (id: string, title: string) => void;
 }
 
 const PREVIEW_PALETTES = [
@@ -42,6 +43,7 @@ export function SpreadsheetCard({
   onDuplicate,
   onToggleStar,
   onRename,
+  onMoveToFolder,
 }: SpreadsheetCardProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -466,6 +468,18 @@ export function SpreadsheetCard({
             >
               Make a copy
             </button>
+            {onMoveToFolder && spreadsheet.role === "owner" && (
+              <button
+                onClick={() => {
+                  setShowMenu(false);
+                  onMoveToFolder(spreadsheet.id, spreadsheet.title);
+                }}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                data-testid={`move-btn-${spreadsheet.id}`}
+              >
+                Move to folder
+              </button>
+            )}
             {spreadsheet.role === "owner" && (
               <>
                 <div className="my-1 border-t border-gray-100" />

@@ -20,6 +20,7 @@ model User {
   tokenVersion   Int       @default(0) @map("token_version")
 
   ownedSpreadsheets  Spreadsheet[]       @relation("OwnedSpreadsheets")
+  folders            Folder[]
   access             SpreadsheetAccess[]
   versions           Version[]
   apiKeys            ApiKey[]
@@ -40,6 +41,29 @@ model User {
   @@map("users")
 }
 
+// ─── FOLDER ───────────────────────────────────────────────
+model Folder {
+  id             String    @id @default(cuid())
+  name           String
+  color          String?
+
+  userId         String    @map("user_id")
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  parentId       String?   @map("parent_id")
+  parent         Folder?   @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children       Folder[]  @relation("FolderTree")
+
+  spreadsheets   Spreadsheet[]
+
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([parentId])
+  @@map("folders")
+}
+
 // ─── SPREADSHEET ───────────────────────────────────────────
 model Spreadsheet {
   id             String    @id @default(cuid())
@@ -47,6 +71,9 @@ model Spreadsheet {
 
   ownerId        String    @map("owner_id")
   owner          User      @relation("OwnedSpreadsheets", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  folderId       String?   @map("folder_id")
+  folder         Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   shareLink      String?   @unique @map("share_link")
   shareLinkRole  String?   @map("share_link_role")
@@ -71,6 +98,7 @@ model Spreadsheet {
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   @@index([ownerId])
+  @@index([folderId])
   @@index([updatedAt])
   @@index([deletedAt])
   @@map("spreadsheets")
