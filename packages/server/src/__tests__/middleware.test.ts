@@ -53,6 +53,63 @@ describe("errorHandler", () => {
     });
   });
 
+  it("returns 503 for Prisma P2021 (table does not exist)", () => {
+    const res = mockResponse();
+    const next = vi.fn();
+    const err = Object.assign(new Error("Table does not exist"), {
+      code: "P2021",
+    });
+
+    errorHandler(err, mockRequest(), res, next);
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      error: {
+        code: 503,
+        message: "Database is not ready. Please try again in a moment.",
+      },
+    });
+  });
+
+  it("returns 503 for Prisma P2022 (column does not exist)", () => {
+    const res = mockResponse();
+    const next = vi.fn();
+    const err = Object.assign(new Error("Column does not exist"), {
+      code: "P2022",
+    });
+
+    errorHandler(err, mockRequest(), res, next);
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      error: {
+        code: 503,
+        message: "Database is not ready. Please try again in a moment.",
+      },
+    });
+  });
+
+  it("returns 409 for Prisma P2002 (unique constraint)", () => {
+    const res = mockResponse();
+    const next = vi.fn();
+    const err = Object.assign(new Error("Unique constraint failed"), {
+      code: "P2002",
+    });
+
+    errorHandler(err, mockRequest(), res, next);
+
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      error: {
+        code: 409,
+        message: "A record with that value already exists",
+      },
+    });
+  });
+
   it("returns 500 for unknown errors", () => {
     const res = mockResponse();
     const next = vi.fn();
