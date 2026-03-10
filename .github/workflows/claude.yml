@@ -255,7 +255,14 @@ jobs:
                 gh pr merge "$PR_NUM" --squash 2>/dev/null || \
                 echo "Auto-merge not available — PR may need manual merge"
             fi
+
+            # Re-trigger orchestrator for next batch
+            # (GITHUB_TOKEN merges don't trigger push events, so we dispatch explicitly)
+            gh workflow run "Orchestrate Issues" 2>/dev/null || true
           elif [ "$STATUS" = "failure" ]; then
             gh issue comment "$ISSUE_NUM" --body "Claude encountered an error. See [workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
             gh issue edit "$ISSUE_NUM" --remove-label "claude-code" 2>/dev/null || true
+
+            # Re-trigger orchestrator to dispatch a replacement
+            gh workflow run "Orchestrate Issues" 2>/dev/null || true
           fi
