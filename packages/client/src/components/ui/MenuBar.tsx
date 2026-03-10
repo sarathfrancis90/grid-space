@@ -664,6 +664,14 @@ export function MenuBar() {
           },
         },
         {
+          label: "Conditional formatting",
+          testId: "menu-format-conditional",
+          action: () => {
+            useUIStore.getState().setConditionalFormatOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Theme",
           testId: "menu-format-theme",
           action: () => {
