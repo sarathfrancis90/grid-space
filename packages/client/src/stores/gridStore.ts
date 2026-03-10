@@ -45,6 +45,8 @@ interface GridState {
   deleteRowHeights: (rows: number[]) => void;
   insertColWidths: (atCol: number, count: number) => void;
   deleteColWidths: (cols: number[]) => void;
+  showFormulas: boolean;
+  toggleShowFormulas: () => void;
 }
 
 export const useGridStore = create<GridState>()(
@@ -240,6 +242,14 @@ export const useGridStore = create<GridState>()(
           }
         }
         state.columnWidths = newMap;
+      });
+    },
+
+    showFormulas: false,
+
+    toggleShowFormulas: () => {
+      set((state) => {
+        state.showFormulas = !state.showFormulas;
       });
     },
 

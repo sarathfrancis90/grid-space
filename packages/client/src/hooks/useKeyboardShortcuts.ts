@@ -13,6 +13,7 @@ import { useSpreadsheetStore } from "../stores/spreadsheetStore";
 import { useFindReplaceStore } from "../stores/findReplaceStore";
 import { useVersionStore } from "../stores/versionStore";
 import { useMacroStore } from "../stores/macroStore";
+import { useGridStore } from "../stores/gridStore";
 import { runFlashFill } from "../utils/flashFill";
 
 export interface ShortcutHandlers {
@@ -109,6 +110,13 @@ export function useKeyboardShortcuts(handlers?: ShortcutHandlers): void {
         ks.setKeyboardShortcutsOpen(!ks.isKeyboardShortcutsOpen);
         return;
       }
+      // Ctrl+` — toggle show formulas
+      if (ctrl && key === "`") {
+        e.preventDefault();
+        useGridStore.getState().toggleShowFormulas();
+        return;
+      }
+
       if (!ctrl && !alt) return;
 
       // --- Ctrl+<key> shortcuts ---
