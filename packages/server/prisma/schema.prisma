@@ -30,6 +30,7 @@ model User {
   notifications      Notification[]
   notificationPrefs  NotificationPreference[]
   extensions         Extension[]
+  notificationRules  NotificationRule[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -61,8 +62,9 @@ model Spreadsheet {
   pendingInvites PendingInvite[]
   versions       Version[]
   webhooks       Webhook[]
-  comments       Comment[]
-  notifications  Notification[]
+  comments           Comment[]
+  notifications      Notification[]
+  notificationRules  NotificationRule[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -319,6 +321,30 @@ model NotificationPreference {
   @@unique([userId, spreadsheetId])
   @@index([userId])
   @@map("notification_preferences")
+}
+
+// ─── NOTIFICATION RULE ──────────────────────────────────
+model NotificationRule {
+  id             String      @id @default(cuid())
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  spreadsheetId  String      @map("spreadsheet_id")
+  spreadsheet    Spreadsheet @relation(fields: [spreadsheetId], references: [id], onDelete: Cascade)
+
+  triggerType    String      @map("trigger_type") // "any_changes", "form_submit", "specific_user"
+  specificEmail  String?     @map("specific_email") // email when triggerType = "specific_user"
+  frequency      String      @default("immediately") // "immediately" | "daily_digest"
+  isActive       Boolean     @default(true) @map("is_active")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([spreadsheetId])
+  @@index([userId, spreadsheetId])
+  @@map("notification_rules")
 }
 
 // ─── EXTENSION ──────────────────────────────────────────
