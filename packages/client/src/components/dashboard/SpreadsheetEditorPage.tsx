@@ -33,6 +33,7 @@ import { CollaboratorAvatars } from "../realtime/CollaboratorAvatars";
 import { NotificationCenter } from "../notifications/NotificationCenter";
 import { ShareDialog } from "../sharing/ShareDialog";
 import { BandedRowsDialog } from "../data/BandedRowsDialog";
+import { ConditionalFormatManager } from "../data/ConditionalFormatManager";
 import { ProtectionDialog } from "../data/ProtectionDialog";
 import { RemoveDuplicatesDialog } from "../data/RemoveDuplicatesDialog";
 import { TextToColumnsDialog } from "../data/TextToColumnsDialog";
@@ -84,6 +85,14 @@ function BandedRowsDialogWrapper() {
   const isOpen = useUIStore((s) => s.isBandedRowsDialogOpen);
   const close = useUIStore((s) => s.setBandedRowsDialogOpen);
   return <BandedRowsDialog isOpen={isOpen} onClose={() => close(false)} />;
+}
+
+function ConditionalFormatWrapper() {
+  const isOpen = useUIStore((s) => s.isConditionalFormatOpen);
+  const close = useUIStore((s) => s.setConditionalFormatOpen);
+  return (
+    <ConditionalFormatManager open={isOpen} onClose={() => close(false)} />
+  );
 }
 
 export default function SpreadsheetEditorPage() {
@@ -335,6 +344,7 @@ export default function SpreadsheetEditorPage() {
       <ImageDialog />
       <ShareDialog spreadsheetId={id ?? ""} />
       <BandedRowsDialogWrapper />
+      <ConditionalFormatWrapper />
       <ProtectionDialog />
       <RemoveDuplicatesDialog />
       <TextToColumnsDialog />
