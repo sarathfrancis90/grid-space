@@ -22,6 +22,7 @@ import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
 import extensionRoutes from "./extension.routes";
 import statsRoutes from "./stats.routes";
+import emailRoutes from "./email.routes";
 
 const router = Router();
 
@@ -75,6 +76,9 @@ router.use("/spreadsheets/:id/comments", commentRoutes);
 
 // Save as template (nested under spreadsheets)
 router.use("/spreadsheets/:id/save-as-template", saveAsTemplateRouter);
+
+// Email spreadsheet as attachment
+router.use("/spreadsheets/:id/email", emailRoutes);
 
 // Notifications
 router.use("/notifications", notificationRoutes);

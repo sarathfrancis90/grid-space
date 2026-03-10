@@ -26,6 +26,7 @@ import { PrintDialog } from "../ui/PrintDialog";
 import { FormatCellsDialog } from "../ui/FormatCellsDialog";
 import { HyperlinkDialog } from "../ui/HyperlinkDialog";
 import { ImageDialog } from "../ui/ImageDialog";
+import { EmailDialog } from "../ui/EmailDialog";
 import { CommentsSidebar } from "../ui/CommentsSidebar";
 import { OfflineIndicator } from "../ui/OfflineIndicator";
 import { ConnectionStatus } from "../realtime/ConnectionStatus";
@@ -344,6 +345,7 @@ export default function SpreadsheetEditorPage() {
       <FormatCellsDialog />
       <HyperlinkDialog />
       <ImageDialog />
+      <EmailDialog />
       <ShareDialog spreadsheetId={id ?? ""} />
       <BandedRowsDialogWrapper />
       <ConditionalFormatWrapper />
