@@ -16,7 +16,7 @@ import { useCloudStore } from "../../stores/cloudStore";
 import { useVersionStore } from "../../stores/versionStore";
 import { useCommentStore } from "../../stores/commentStore";
 import { useValidationStore } from "../../stores/validationStore";
-import { exportXLSX, downloadFile } from "../../utils/fileOps";
+import { exportXLSX, downloadFile, toCSV } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
 import { performPasteSpecial } from "../../hooks/useKeyboardShortcuts";
 
@@ -198,6 +198,17 @@ export function MenuBar() {
             const sid = useSpreadsheetStore.getState().activeSheetId;
             const cells = useCellStore.getState().cells.get(sid) ?? new Map();
             exportToPDF(cells, { title: "Spreadsheet" });
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Download as CSV",
+          testId: "menu-file-download-csv",
+          action: () => {
+            const sid = useSpreadsheetStore.getState().activeSheetId;
+            const cells = useCellStore.getState().cells.get(sid) ?? new Map();
+            const csvString = toCSV(cells);
+            downloadFile(csvString, "spreadsheet.csv", "text/csv");
             setOpenMenu(null);
           },
         },
