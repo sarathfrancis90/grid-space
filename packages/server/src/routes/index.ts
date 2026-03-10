@@ -20,6 +20,7 @@ import notificationRuleRoutes from "./notificationRule.routes";
 import templateRoutes, { saveAsTemplateRouter } from "./template.routes";
 import apiKeyRoutes from "./apiKey.routes";
 import webhookRoutes from "./webhook.routes";
+import filterViewRoutes from "./filterView.routes";
 import extensionRoutes from "./extension.routes";
 import statsRoutes from "./stats.routes";
 
@@ -48,6 +49,9 @@ router.use("/spreadsheets/:id/sheets", sheetRoutes);
 
 // Cells (nested under sheets)
 router.use("/spreadsheets/:id/sheets/:sheetId/cells", cellRoutes);
+
+// Filter views (nested under sheets)
+router.use("/spreadsheets/:id/sheets/:sheetId/filter-views", filterViewRoutes);
 
 // Sharing — collaborator access management
 router.use("/spreadsheets/:id/access", sharingRoutes);

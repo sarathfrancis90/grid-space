@@ -7,12 +7,37 @@ import type {
   CellData,
 } from "../types/grid";
 import { getCellKey } from "../utils/coordinates";
+import { api } from "../services/api";
+
+/** Serializable filter criterion for saved filter views */
+export interface FilterViewCriterion {
+  col: number;
+  allowedValues?: string[];
+  condition?: { op: string; value: string };
+}
+
+/** A saved filter view (per-user, per-sheet) */
+export interface FilterView {
+  id: string;
+  spreadsheetId: string;
+  sheetId: string;
+  userId: string;
+  name: string;
+  criteria: FilterViewCriterion[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface FilterState {
   filtersEnabled: Map<string, boolean>;
   columnFilters: Map<string, ColumnFilter[]>;
   sortCriteria: Map<string, SortCriterion[]>;
   filteredRows: Map<string, Set<number>>;
+
+  // Filter views
+  filterViews: FilterView[];
+  activeFilterViewId: string | null;
+  filterViewsLoading: boolean;
 
   toggleFilters: (sheetId: string) => void;
   isFilterEnabled: (sheetId: string) => boolean;
@@ -37,6 +62,32 @@ interface FilterState {
     totalRows: number,
     totalCols: number,
   ) => Map<string, CellData>;
+
+  // Filter view actions
+  loadFilterViews: (spreadsheetId: string, sheetId: string) => Promise<void>;
+  createFilterView: (
+    spreadsheetId: string,
+    sheetId: string,
+    name: string,
+  ) => Promise<void>;
+  applyFilterView: (filterView: FilterView, sheetId: string) => void;
+  deactivateFilterView: (sheetId: string) => void;
+  updateFilterView: (
+    spreadsheetId: string,
+    sheetId: string,
+    filterViewId: string,
+    data: { name?: string; criteria?: FilterViewCriterion[] },
+  ) => Promise<void>;
+  deleteFilterView: (
+    spreadsheetId: string,
+    sheetId: string,
+    filterViewId: string,
+  ) => Promise<void>;
+  saveCurrentAsFilterView: (
+    spreadsheetId: string,
+    sheetId: string,
+    name: string,
+  ) => Promise<void>;
 }
 
 function matchesCondition(
@@ -77,12 +128,46 @@ function matchesCondition(
   }
 }
 
+/** Convert current column filters to serializable criteria */
+function columnFiltersToViewCriteria(
+  filters: ColumnFilter[],
+): FilterViewCriterion[] {
+  return filters.map((f) => ({
+    col: f.col,
+    allowedValues: f.allowedValues ? Array.from(f.allowedValues) : undefined,
+    condition: f.condition
+      ? { op: f.condition.op, value: f.condition.value }
+      : undefined,
+  }));
+}
+
+/** Convert saved criteria back to ColumnFilter objects */
+function viewCriteriaToColumnFilters(
+  criteria: FilterViewCriterion[],
+): ColumnFilter[] {
+  return criteria.map((c) => ({
+    col: c.col,
+    allowedValues: c.allowedValues ? new Set(c.allowedValues) : undefined,
+    condition: c.condition
+      ? {
+          op: c.condition.op as FilterCondition["op"],
+          value: c.condition.value,
+        }
+      : undefined,
+  }));
+}
+
 export const useFilterStore = create<FilterState>()(
   immer((set, get) => ({
     filtersEnabled: new Map<string, boolean>(),
     columnFilters: new Map<string, ColumnFilter[]>(),
     sortCriteria: new Map<string, SortCriterion[]>(),
     filteredRows: new Map<string, Set<number>>(),
+
+    // Filter views
+    filterViews: [],
+    activeFilterViewId: null,
+    filterViewsLoading: false,
 
     toggleFilters: (sheetId: string) => {
       set((state) => {
@@ -257,6 +342,117 @@ export const useFilterStore = create<FilterState>()(
         }
       }
       return newCells;
+    },
+
+    // ─── FILTER VIEW ACTIONS ──────────────────────────────
+
+    loadFilterViews: async (spreadsheetId: string, sheetId: string) => {
+      set((state) => {
+        state.filterViewsLoading = true;
+      });
+      try {
+        const views = await api.get<FilterView[]>(
+          `/spreadsheets/${spreadsheetId}/sheets/${sheetId}/filter-views`,
+        );
+        set((state) => {
+          state.filterViews = views;
+          state.filterViewsLoading = false;
+        });
+      } catch {
+        set((state) => {
+          state.filterViewsLoading = false;
+        });
+      }
+    },
+
+    createFilterView: async (
+      spreadsheetId: string,
+      sheetId: string,
+      name: string,
+    ) => {
+      const currentFilters = get().columnFilters.get(sheetId) ?? [];
+      const criteria = columnFiltersToViewCriteria(currentFilters);
+
+      const view = await api.post<FilterView>(
+        `/spreadsheets/${spreadsheetId}/sheets/${sheetId}/filter-views`,
+        { name, criteria },
+      );
+      set((state) => {
+        state.filterViews.push(view);
+        state.activeFilterViewId = view.id;
+      });
+    },
+
+    applyFilterView: (filterView: FilterView, sheetId: string) => {
+      const columnFilters = viewCriteriaToColumnFilters(filterView.criteria);
+      set((state) => {
+        state.activeFilterViewId = filterView.id;
+        state.filtersEnabled.set(sheetId, true);
+        state.columnFilters.set(sheetId, columnFilters);
+      });
+    },
+
+    deactivateFilterView: (sheetId: string) => {
+      set((state) => {
+        state.activeFilterViewId = null;
+        state.columnFilters.delete(sheetId);
+        state.filteredRows.delete(sheetId);
+        state.filtersEnabled.set(sheetId, false);
+      });
+    },
+
+    updateFilterView: async (
+      spreadsheetId: string,
+      sheetId: string,
+      filterViewId: string,
+      data: { name?: string; criteria?: FilterViewCriterion[] },
+    ) => {
+      const updated = await api.put<FilterView>(
+        `/spreadsheets/${spreadsheetId}/sheets/${sheetId}/filter-views/${filterViewId}`,
+        data,
+      );
+      set((state) => {
+        const idx = state.filterViews.findIndex((v) => v.id === filterViewId);
+        if (idx >= 0) {
+          state.filterViews[idx] = updated;
+        }
+      });
+    },
+
+    deleteFilterView: async (
+      spreadsheetId: string,
+      sheetId: string,
+      filterViewId: string,
+    ) => {
+      await api.delete(
+        `/spreadsheets/${spreadsheetId}/sheets/${sheetId}/filter-views/${filterViewId}`,
+      );
+      set((state) => {
+        state.filterViews = state.filterViews.filter(
+          (v) => v.id !== filterViewId,
+        );
+        if (state.activeFilterViewId === filterViewId) {
+          state.activeFilterViewId = null;
+        }
+      });
+    },
+
+    saveCurrentAsFilterView: async (
+      spreadsheetId: string,
+      sheetId: string,
+      name: string,
+    ) => {
+      const currentFilters = get().columnFilters.get(sheetId) ?? [];
+      const criteria = columnFiltersToViewCriteria(currentFilters);
+
+      const view = await api.post<FilterView>(
+        `/spreadsheets/${spreadsheetId}/sheets/${sheetId}/filter-views`,
+        { name, criteria },
+      );
+      set((state) => {
+        state.filterViews.push(view);
+        state.activeFilterViewId = view.id;
+      });
     },
   })),
 );
