@@ -4,6 +4,7 @@ import type {
   SortCriterion,
   ColumnFilter,
   FilterCondition,
+  FilterView,
   CellData,
 } from "../types/grid";
 import { getCellKey } from "../utils/coordinates";
@@ -13,6 +14,9 @@ interface FilterState {
   columnFilters: Map<string, ColumnFilter[]>;
   sortCriteria: Map<string, SortCriterion[]>;
   filteredRows: Map<string, Set<number>>;
+
+  filterViews: Map<string, FilterView[]>;
+  activeFilterViewId: string | null;
 
   toggleFilters: (sheetId: string) => void;
   isFilterEnabled: (sheetId: string) => boolean;
@@ -37,6 +41,14 @@ interface FilterState {
     totalRows: number,
     totalCols: number,
   ) => Map<string, CellData>;
+
+  createFilterView: (sheetId: string, name: string) => string;
+  saveFilterView: (sheetId: string, viewId: string) => void;
+  deleteFilterView: (sheetId: string, viewId: string) => void;
+  renameFilterView: (sheetId: string, viewId: string, name: string) => void;
+  activateFilterView: (sheetId: string, viewId: string) => void;
+  deactivateFilterView: () => void;
+  getFilterViews: (sheetId: string) => FilterView[];
 }
 
 function matchesCondition(
@@ -83,6 +95,8 @@ export const useFilterStore = create<FilterState>()(
     columnFilters: new Map<string, ColumnFilter[]>(),
     sortCriteria: new Map<string, SortCriterion[]>(),
     filteredRows: new Map<string, Set<number>>(),
+    filterViews: new Map<string, FilterView[]>(),
+    activeFilterViewId: null,
 
     toggleFilters: (sheetId: string) => {
       set((state) => {
@@ -257,6 +271,102 @@ export const useFilterStore = create<FilterState>()(
         }
       }
       return newCells;
+    },
+
+    createFilterView: (sheetId: string, name: string) => {
+      const id = `fv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const currentFilters = get().columnFilters.get(sheetId) ?? [];
+      const filterView: FilterView = {
+        id,
+        name,
+        sheetId,
+        columnFilters: currentFilters.map((f) => ({
+          ...f,
+          allowedValues: f.allowedValues ? new Set(f.allowedValues) : undefined,
+        })),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      set((state) => {
+        if (!state.filterViews.has(sheetId)) {
+          state.filterViews.set(sheetId, []);
+        }
+        state.filterViews.get(sheetId)!.push(filterView);
+        state.activeFilterViewId = id;
+      });
+      return id;
+    },
+
+    saveFilterView: (sheetId: string, viewId: string) => {
+      const currentFilters = get().columnFilters.get(sheetId) ?? [];
+      set((state) => {
+        const views = state.filterViews.get(sheetId);
+        if (!views) return;
+        const view = views.find((v) => v.id === viewId);
+        if (!view) return;
+        view.columnFilters = currentFilters.map((f) => ({
+          ...f,
+          allowedValues: f.allowedValues ? new Set(f.allowedValues) : undefined,
+        }));
+        view.updatedAt = Date.now();
+      });
+    },
+
+    deleteFilterView: (sheetId: string, viewId: string) => {
+      set((state) => {
+        const views = state.filterViews.get(sheetId);
+        if (!views) return;
+        const idx = views.findIndex((v) => v.id === viewId);
+        if (idx >= 0) {
+          views.splice(idx, 1);
+        }
+        if (state.activeFilterViewId === viewId) {
+          state.activeFilterViewId = null;
+        }
+      });
+    },
+
+    renameFilterView: (sheetId: string, viewId: string, name: string) => {
+      set((state) => {
+        const views = state.filterViews.get(sheetId);
+        if (!views) return;
+        const view = views.find((v) => v.id === viewId);
+        if (view) {
+          view.name = name;
+          view.updatedAt = Date.now();
+        }
+      });
+    },
+
+    activateFilterView: (sheetId: string, viewId: string) => {
+      const views = get().filterViews.get(sheetId);
+      if (!views) return;
+      const view = views.find((v) => v.id === viewId);
+      if (!view) return;
+
+      set((state) => {
+        state.activeFilterViewId = viewId;
+        state.filtersEnabled.set(sheetId, true);
+        state.columnFilters.set(
+          sheetId,
+          view.columnFilters.map((f) => ({
+            ...f,
+            allowedValues: f.allowedValues
+              ? new Set(f.allowedValues)
+              : undefined,
+          })),
+        );
+      });
+    },
+
+    deactivateFilterView: () => {
+      set((state) => {
+        state.activeFilterViewId = null;
+      });
+    },
+
+    getFilterViews: (sheetId: string) => {
+      return get().filterViews.get(sheetId) ?? [];
     },
   })),
 );
