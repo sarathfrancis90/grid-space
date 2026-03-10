@@ -338,13 +338,19 @@ jobs:
             DISPATCHED=$((DISPATCHED + 1))
           done
 
-          # MenuBar group — only first one
+          # MenuBar group — dispatch up to MAX_PARALLEL (each gets its own branch)
           MG_COUNT=$(jq length /tmp/menubar_group.json)
           if [ "$MG_COUNT" -gt 0 ] && [ "$DISPATCHED" -lt "$MAX_PARALLEL" ]; then
+            REMAINING=$((MAX_PARALLEL - DISPATCHED))
+            TO_DISPATCH=$((MG_COUNT < REMAINING ? MG_COUNT : REMAINING))
             echo ""
-            echo "MenuBar group: dispatching 1 of $MG_COUNT (sequential)"
-            dispatch_issue "0" /tmp/menubar_group.json
-            DISPATCHED=$((DISPATCHED + 1))
+            echo "MenuBar group: dispatching $TO_DISPATCH of $MG_COUNT"
+            J=0
+            while [ "$J" -lt "$TO_DISPATCH" ]; do
+              dispatch_issue "$J" /tmp/menubar_group.json
+              J=$((J + 1))
+              DISPATCHED=$((DISPATCHED + 1))
+            done
           fi
 
           echo ""
