@@ -29,6 +29,9 @@ test-results/
 playwright-report/
 coverage/
 
+# Orchestrator generated context
+.codex-output/
+
 # Deployment
 .vercel
 .ralph_*

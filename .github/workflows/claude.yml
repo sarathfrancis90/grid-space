@@ -10,16 +10,33 @@ on:
   pull_request_review:
     types: [submitted]
 
+  # Called by orchestrate.yml to dispatch specific issues
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number to implement"
+        required: true
+        type: string
+
 jobs:
   claude:
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && github.event.action == 'assigned' && github.event.assignee.login == 'claude[bot]') ||
-      (github.event_name == 'issues' && github.event.action == 'opened' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude'))) ||
-      (github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'claude-code')
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.actor != 'github-actions[bot]' &&
+        (
+          (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+          (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+          (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+          (github.event_name == 'issues' && github.event.action == 'assigned' && github.event.assignee.login == 'claude[bot]') ||
+          (github.event_name == 'issues' && github.event.action == 'opened' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude'))) ||
+          (github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'claude-code')
+        )
+      )
     runs-on: ubuntu-latest
+    concurrency:
+      group: claude-issue-${{ inputs.issue_number || github.event.issue.number || github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: false
     permissions:
       contents: write
       pull-requests: write
@@ -33,19 +50,31 @@ jobs:
         with:
           fetch-depth: 1
 
-      # Determine issue number from any event type
-      - name: Get issue number
+      - name: Resolve issue context
         id: issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ github.event_name }}" = "issues" ]; then
-            echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+          # Determine issue number from any trigger type
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            NUM="${{ inputs.issue_number }}"
+          elif [ "${{ github.event_name }}" = "issues" ]; then
+            NUM="${{ github.event.issue.number }}"
           elif [ "${{ github.event_name }}" = "issue_comment" ]; then
-            echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+            NUM="${{ github.event.issue.number }}"
           else
-            echo "number=" >> "$GITHUB_OUTPUT"
+            NUM=""
+          fi
+          echo "number=$NUM" >> "$GITHUB_OUTPUT"
+
+          # Determine trigger type
+          if [ "${{ github.event_name }}" = "pull_request_review" ] || \
+             [ "${{ github.event_name }}" = "pull_request_review_comment" ]; then
+            echo "trigger=pr_review" >> "$GITHUB_OUTPUT"
+          else
+            echo "trigger=issue" >> "$GITHUB_OUTPUT"
           fi
 
-      # Add 'claude-code' label to the issue (only metadata — fine from github-actions)
       - name: Add claude-code label
         if: steps.issue.outputs.number != ''
         continue-on-error: true
@@ -57,7 +86,136 @@ jobs:
             --color "7C3AED" 2>/dev/null || true
           gh issue edit "${{ steps.issue.outputs.number }}" --add-label "claude-code"
 
-      # Claude does EVERYTHING: acknowledge, kanban update, implement, PR
+      # Build architecture-aware prompt by reading issue + orchestrator comments
+      - name: Build runtime prompt
+        id: prompt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUM="${{ steps.issue.outputs.number }}"
+          PROMPT_FILE="/tmp/claude-prompt.md"
+
+          cat > "$PROMPT_FILE" << 'HEADER'
+          You are an autonomous developer working on the GridSpace project.
+          Follow every step below precisely.
+          HEADER
+
+          # ── Inject architecture context ──
+          if [ -n "$ISSUE_NUM" ]; then
+            # Read full issue including comments to find orchestrator context
+            ISSUE_JSON=$(gh issue view "$ISSUE_NUM" --json title,body,labels,comments 2>/dev/null || echo '{}')
+            TITLE=$(echo "$ISSUE_JSON" | jq -r '.title // ""')
+            BODY=$(echo "$ISSUE_JSON" | jq -r '.body // ""')
+            COMBINED="$TITLE $BODY"
+
+            # Check if any comment has orchestrator architecture context
+            ORCH_CONTEXT=$(echo "$ISSUE_JSON" | jq -r '[.comments[]? | select(.body | contains("Architecture Context"))] | last | .body // ""')
+
+            if [ -n "$ORCH_CONTEXT" ] && [ "$ORCH_CONTEXT" != "" ]; then
+              echo "" >> "$PROMPT_FILE"
+              echo "## ORCHESTRATOR CONTEXT" >> "$PROMPT_FILE"
+              echo "" >> "$PROMPT_FILE"
+              echo "The orchestrator analyzed this issue. Here is the architecture context:" >> "$PROMPT_FILE"
+              echo "" >> "$PROMPT_FILE"
+              echo "$ORCH_CONTEXT" | sed 's/^@claude //' >> "$PROMPT_FILE"
+            else
+              # Auto-classify from title/body keywords
+              echo "" >> "$PROMPT_FILE"
+              echo "## ARCHITECTURE CONTEXT (auto-detected)" >> "$PROMPT_FILE"
+
+              if echo "$COMBINED" | grep -qiE "menu|menubar|insert menu|edit menu|file menu|format menu|context.menu"; then
+                echo "**Domain:** frontend-menu" >> "$PROMPT_FILE"
+                echo "**Read first:** \`agent_docs/state-management.md\`" >> "$PROMPT_FILE"
+                echo "**Key file:** \`packages/client/src/components/ui/MenuBar.tsx\`" >> "$PROMPT_FILE"
+                echo "**Store:** \`packages/client/src/stores/uiStore.ts\`" >> "$PROMPT_FILE"
+              elif echo "$COMBINED" | grep -qiE "grid|canvas|cell|scroll|overlay|freeze|formula.toggle|show.formula"; then
+                echo "**Domain:** frontend-grid" >> "$PROMPT_FILE"
+                echo "**Read first:** \`agent_docs/grid-rendering.md\`, \`agent_docs/state-management.md\`" >> "$PROMPT_FILE"
+                echo "**Key file:** \`packages/client/src/components/grid/Grid.tsx\`" >> "$PROMPT_FILE"
+                echo "**Stores:** \`gridStore.ts\`, \`cellStore.ts\`, \`uiStore.ts\`" >> "$PROMPT_FILE"
+              elif echo "$COMBINED" | grep -qiE "dashboard|trash|folder|template"; then
+                echo "**Domain:** frontend-dashboard + backend" >> "$PROMPT_FILE"
+                echo "**Read first:** \`agent_docs/state-management.md\`, \`agent_docs/backend-architecture.md\`" >> "$PROMPT_FILE"
+                echo "**Key files:** \`DashboardPage.tsx\`, \`cloudStore.ts\`, \`schema.prisma\`" >> "$PROMPT_FILE"
+              elif echo "$COMBINED" | grep -qiE "auth|profile|avatar|oauth|login|password"; then
+                echo "**Domain:** auth + profile" >> "$PROMPT_FILE"
+                echo "**Read first:** \`agent_docs/auth-system.md\`" >> "$PROMPT_FILE"
+                echo "**Key files:** \`ProfilePage.tsx\`, \`auth.routes.ts\`" >> "$PROMPT_FILE"
+              elif echo "$COMBINED" | grep -qiE "import|export|download|csv|xlsx|pdf"; then
+                echo "**Domain:** file-ops" >> "$PROMPT_FILE"
+                echo "**Read first:** \`agent_docs/state-management.md\`" >> "$PROMPT_FILE"
+                echo "**Key files:** \`file-ops/\`, \`MenuBar.tsx\`" >> "$PROMPT_FILE"
+              elif echo "$COMBINED" | grep -qiE "collab|realtime|websocket|suggestion|track.change"; then
+                echo "**Domain:** collaboration" >> "$PROMPT_FILE"
+                echo "**Read first:** \`agent_docs/collaboration-system.md\`" >> "$PROMPT_FILE"
+                echo "**Key files:** \`realtimeService.ts\`, \`websocket/\`" >> "$PROMPT_FILE"
+              elif echo "$COMBINED" | grep -qiE "share|publish|permission|role"; then
+                echo "**Domain:** sharing" >> "$PROMPT_FILE"
+                echo "**Read first:** \`agent_docs/api-design.md\`, \`agent_docs/backend-architecture.md\`" >> "$PROMPT_FILE"
+                echo "**Key files:** \`ShareDialog.tsx\`, \`spreadsheet.routes.ts\`" >> "$PROMPT_FILE"
+              else
+                echo "**Domain:** fullstack" >> "$PROMPT_FILE"
+                echo "**Read first:** \`CLAUDE.md\`, then relevant \`agent_docs/\`" >> "$PROMPT_FILE"
+              fi
+            fi
+          fi
+
+          # ── Standard implementation steps ──
+          cat >> "$PROMPT_FILE" << 'STEPS'
+
+          ## STEP 0: Acknowledge
+          Post a short acknowledgment comment on the issue:
+          ```
+          gh issue comment <ISSUE_NUMBER> --body "Picking up this issue. Creating feature branch now."
+          ```
+
+          ## STEP 1: Create a Feature Branch
+          - Create branch from main: `claude/issue-<ISSUE_NUMBER>-<short-slug>`
+          - Slug = 2-4 words from issue title, lowercase, hyphenated
+
+          ## STEP 2: Read Context
+          - `gh issue view <ISSUE_NUMBER>` — read issue description
+          - `gh issue view <ISSUE_NUMBER> --comments` — read any orchestrator context
+          - Read `CLAUDE.md` for project conventions
+          - Read the `agent_docs/` files referenced in the architecture context above
+          - Read key files — understand existing code before modifying
+          - Read the nearest directory `CLAUDE.md` (e.g. `src/components/grid/CLAUDE.md`)
+
+          ## STEP 3: Implement
+          - Follow the Implementation Guidance from architecture context
+          - Keep changes minimal and focused
+          - Business logic in stores/services, NOT in React components
+          - Use Zustand + Immer for state mutations
+          - Never use `any` in TypeScript
+          - Add `data-testid` on new interactive elements
+
+          ## STEP 4: Write Tests
+          - At least one Vitest unit test for new functionality
+          - Test file next to source or in `__tests__/`
+
+          ## STEP 5: Validate
+          - `npx tsc --noEmit` — fix all type errors
+          - `npx vitest run` — fix all test failures
+          - `npm run build` — verify production build
+          - Commit: `feat(scope): description` or `fix(scope): description`
+
+          ## STEP 6: Create a Pull Request
+          - `gh pr create` with:
+            - `Closes #<issue-number>` in body
+            - Summary of changes
+            - Validation evidence
+
+          ## IF TRIGGERED FROM A PR REVIEW
+          - Read review comments
+          - Checkout PR branch (not main)
+          - Fix issues raised
+          - Run typecheck + tests
+          - Commit + push to same branch
+          - Comment: "Fixed review feedback. Ready for re-review."
+          STEPS
+
+          echo "prompt_file=$PROMPT_FILE" >> "$GITHUB_OUTPUT"
+
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -69,70 +227,23 @@ jobs:
           additional_permissions: |
             actions: read
           claude_args: "--allowedTools Bash Edit Read Write Glob Grep"
-          prompt: |
-            You are an autonomous developer working on the GridSpace project.
-            Follow every step below precisely.
+          prompt_file: ${{ steps.prompt.outputs.prompt_file }}
 
-            ## STEP 0: Acknowledge & Update Kanban
-            If this is triggered from an issue (not a PR review):
-            1. Post an acknowledgment comment on the issue:
-               ```
-               gh issue comment <issue-number> --body "👋 I'm picking up this issue now. I'll create a feature branch, implement the fix, run tests, and open a PR when ready.
+      - name: Post completion summary
+        if: always() && steps.issue.outputs.number != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUM="${{ steps.issue.outputs.number }}"
+          STATUS="${{ steps.claude.outcome }}"
 
-               **Status:** 🔄 In Progress
-               **Branch:** \`claude/issue-<issue-number>-*\`"
-               ```
-            2. Move the issue to "In progress" on the Kanban board:
-               ```
-               chmod +x .github/scripts/update-kanban.sh
-               GH_TOKEN="$PROJECT_TOKEN" .github/scripts/update-kanban.sh --issue <issue-number> --status "In progress"
-               ```
-               If this fails, continue — it's non-blocking.
-
-            ## STEP 1: Create a Feature Branch
-            - Create a new branch from main: `claude/issue-<ISSUE_NUMBER>-<short-slug>`
-            - The slug should be 2-4 words derived from the issue title (lowercase, hyphenated)
-            - Example: `claude/issue-42-add-dark-mode`
-
-            ## STEP 2: Implement the Change
-            - Read the issue description carefully
-            - Read CLAUDE.md and relevant agent_docs/ for coding standards
-            - Implement the requested feature or fix
-            - Write tests (Vitest unit tests at minimum)
-
-            ## STEP 3: Validate
-            - Run: `npx tsc --noEmit` — fix all type errors
-            - Run: `npx vitest run` — fix all test failures
-            - Commit your changes with a descriptive message following the convention:
-              `feat(scope): description` or `fix(scope): description`
-
-            ## STEP 4: Create a Pull Request
-            - Push your branch and create a PR using `gh pr create`
-            - PR title: clear, concise description of the change
-            - PR body MUST include:
-              - `Closes #<issue-number>` to auto-link and auto-close the issue
-              - A summary of what was implemented
-              - Any notable design decisions
-
-            ## STEP 5: Update Kanban to In Review
-            - After creating the PR, run:
-              ```
-              chmod +x .github/scripts/update-kanban.sh
-              GH_TOKEN="$PROJECT_TOKEN" .github/scripts/update-kanban.sh --issue <issue-number> --status "In review"
-              ```
-              If this fails, continue — the PR creation is what matters.
-
-            ## IF TRIGGERED FROM A PR REVIEW (fixing review feedback)
-            If this was triggered by a PR review requesting changes:
-            - Read the review comments to understand what needs to be fixed
-            - Checkout the PR branch (not main)
-            - Fix the issues raised in the review
-            - Run typecheck and tests
-            - Commit and push the fixes to the same branch
-            - Post a comment on the PR: "Fixed the review feedback. Ready for re-review."
-
-            ## IMPORTANT RULES
-            - Always follow CLAUDE.md guidelines
-            - Never use `any` type in TypeScript
-            - Never skip writing tests
-            - Always run typecheck before committing
+          if [ "$STATUS" = "success" ]; then
+            PR_URL=$(gh pr list --head "claude/issue-${ISSUE_NUM}" --json url --jq '.[0].url' 2>/dev/null || echo "")
+            if [ -n "$PR_URL" ]; then
+              gh issue comment "$ISSUE_NUM" --body "Implementation complete. PR: $PR_URL"
+            fi
+          elif [ "$STATUS" = "failure" ]; then
+            gh issue comment "$ISSUE_NUM" --body "Claude encountered an error. See [workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+            gh issue edit "$ISSUE_NUM" --remove-label "claude-code" 2>/dev/null || true
+          fi
