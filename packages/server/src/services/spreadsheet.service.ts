@@ -8,6 +8,7 @@ interface SpreadsheetSummary {
   title: string;
   isStarred: boolean;
   isTemplate: boolean;
+  folderId: string | null;
   createdAt: Date;
   updatedAt: Date;
   owner: { id: string; name: string | null; avatarUrl: string | null };
@@ -187,6 +188,7 @@ export async function listSpreadsheets(
         title: true,
         isStarred: true,
         isTemplate: true,
+        folderId: true,
         createdAt: true,
         updatedAt: true,
         owner: { select: { id: true, name: true, avatarUrl: true } },
@@ -204,6 +206,7 @@ export async function listSpreadsheets(
     title: s.title,
     isStarred: s.isStarred,
     isTemplate: s.isTemplate,
+    folderId: s.folderId,
     createdAt: s.createdAt,
     updatedAt: s.updatedAt,
     owner: s.owner,

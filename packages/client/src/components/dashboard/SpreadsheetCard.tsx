@@ -4,9 +4,16 @@ interface SpreadsheetSummary {
   id: string;
   title: string;
   isStarred: boolean;
+  folderId: string | null;
   updatedAt: string;
   owner: { id: string; name: string | null; avatarUrl: string | null };
   role: string;
+}
+
+interface FolderSummary {
+  id: string;
+  name: string;
+  _count: { children: number; spreadsheets: number };
 }
 
 interface SpreadsheetCardProps {
@@ -16,6 +23,11 @@ interface SpreadsheetCardProps {
   onDuplicate: (id: string) => Promise<void>;
   onToggleStar: (id: string) => Promise<void>;
   onRename: (id: string, title: string) => Promise<void>;
+  folders?: FolderSummary[];
+  onMoveToFolder?: (
+    spreadsheetId: string,
+    folderId: string | null,
+  ) => Promise<void>;
 }
 
 const PREVIEW_PALETTES = [
@@ -42,8 +54,11 @@ export function SpreadsheetCard({
   onDuplicate,
   onToggleStar,
   onRename,
+  folders,
+  onMoveToFolder,
 }: SpreadsheetCardProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const [showMoveMenu, setShowMoveMenu] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [newTitle, setNewTitle] = useState(spreadsheet.title);
 
@@ -466,6 +481,75 @@ export function SpreadsheetCard({
             >
               Make a copy
             </button>
+            {spreadsheet.role === "owner" && onMoveToFolder && (
+              <>
+                <div className="my-1 border-t border-gray-100" />
+                <div className="relative">
+                  <button
+                    onClick={() => setShowMoveMenu(!showMoveMenu)}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                    data-testid={`move-btn-${spreadsheet.id}`}
+                  >
+                    Move to
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      className="ml-2"
+                    >
+                      <path
+                        d="M4 3l3 3-3 3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  {showMoveMenu && (
+                    <div
+                      className="absolute left-full top-0 z-20 w-44 rounded-xl border border-gray-200 bg-white py-1 shadow-xl ml-1"
+                      data-testid={`move-menu-${spreadsheet.id}`}
+                    >
+                      {spreadsheet.folderId && (
+                        <button
+                          onClick={() => {
+                            setShowMenu(false);
+                            setShowMoveMenu(false);
+                            onMoveToFolder(spreadsheet.id, null);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                          data-testid={`move-to-root-${spreadsheet.id}`}
+                        >
+                          My Drive (root)
+                        </button>
+                      )}
+                      {folders && folders.length > 0 ? (
+                        folders.map((f) => (
+                          <button
+                            key={f.id}
+                            onClick={() => {
+                              setShowMenu(false);
+                              setShowMoveMenu(false);
+                              onMoveToFolder(spreadsheet.id, f.id);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 truncate"
+                            data-testid={`move-to-folder-${f.id}`}
+                          >
+                            {f.name}
+                          </button>
+                        ))
+                      ) : (
+                        <span className="block px-4 py-2 text-sm text-gray-400">
+                          No folders
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
             {spreadsheet.role === "owner" && (
               <>
                 <div className="my-1 border-t border-gray-100" />

@@ -2,12 +2,15 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCloudStore } from "../../stores/cloudStore";
 import { useAuthStore } from "../../stores/authStore";
+import { useFolderStore } from "../../stores/folderStore";
 import { SpreadsheetCard } from "./SpreadsheetCard";
 import { SpreadsheetListItem } from "./SpreadsheetListItem";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { TemplateGallery } from "./TemplateGallery";
 import { TrashView } from "./TrashView";
 import { GridSpaceLogo } from "../ui/GridSpaceLogo";
+import { FolderBreadcrumbs } from "./FolderBreadcrumbs";
+import { FolderCard } from "./FolderCard";
 
 type FilterType = "all" | "owned" | "shared" | "starred";
 type DashboardTab = "spreadsheets" | "trash";
@@ -39,13 +42,29 @@ export default function DashboardPage() {
   const setViewMode = useCloudStore((s) => s.setViewMode);
   const setPage = useCloudStore((s) => s.setPage);
 
+  // Folder state
+  const folders = useFolderStore((s) => s.folders);
+  const currentFolderId = useFolderStore((s) => s.currentFolderId);
+  const breadcrumbs = useFolderStore((s) => s.breadcrumbs);
+  const fetchFolders = useFolderStore((s) => s.fetchFolders);
+  const navigateToFolder = useFolderStore((s) => s.navigateToFolder);
+  const createFolder = useFolderStore((s) => s.createFolder);
+  const renameFolder = useFolderStore((s) => s.renameFolder);
+  const deleteFolder = useFolderStore((s) => s.deleteFolder);
+  const moveSpreadsheetToFolder = useFolderStore(
+    (s) => s.moveSpreadsheetToFolder,
+  );
+
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [searchInput, setSearchInput] = useState(search);
   const [activeTab, setActiveTab] = useState<DashboardTab>("spreadsheets");
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchSpreadsheets();
+      fetchFolders();
     }
   }, [
     isAuthenticated,
@@ -55,6 +74,7 @@ export default function DashboardPage() {
     sortDir,
     page,
     fetchSpreadsheets,
+    fetchFolders,
   ]);
 
   // Debounce search
@@ -113,6 +133,50 @@ export default function DashboardPage() {
     await logout();
     navigate("/login");
   }, [logout, navigate]);
+
+  const handleCreateFolder = useCallback(async () => {
+    if (!newFolderName.trim()) return;
+    try {
+      await createFolder(newFolderName.trim());
+      setNewFolderName("");
+      setIsCreatingFolder(false);
+    } catch {
+      // Error handled in store
+    }
+  }, [newFolderName, createFolder]);
+
+  const handleMoveToFolder = useCallback(
+    async (spreadsheetId: string, folderId: string | null) => {
+      try {
+        await moveSpreadsheetToFolder(spreadsheetId, folderId);
+        // Refresh to show updated state
+        fetchSpreadsheets();
+        fetchFolders();
+      } catch {
+        // Error handled in store
+      }
+    },
+    [moveSpreadsheetToFolder, fetchSpreadsheets, fetchFolders],
+  );
+
+  const handleOpenFolder = useCallback(
+    (folderId: string) => {
+      navigateToFolder(folderId);
+    },
+    [navigateToFolder],
+  );
+
+  const handleBreadcrumbNavigate = useCallback(
+    (folderId: string | null) => {
+      navigateToFolder(folderId);
+    },
+    [navigateToFolder],
+  );
+
+  // Filter spreadsheets to only show those in the current folder
+  const filteredSpreadsheets = currentFolderId
+    ? spreadsheets.filter((s) => s.folderId === currentFolderId)
+    : spreadsheets.filter((s) => !s.folderId);
 
   const filters: { label: string; value: FilterType }[] = [
     { label: "All", value: "all" },
@@ -227,7 +291,7 @@ export default function DashboardPage() {
         className="mx-auto max-w-7xl px-6 py-8"
         style={{ padding: "32px 24px" }}
       >
-        {/* Section header + Create + View Toggle */}
+        {/* Section header + Create + New Folder + View Toggle */}
         <div className="mb-6 flex items-center gap-4">
           <button
             onClick={handleCreate}
@@ -248,6 +312,29 @@ export default function DashboardPage() {
               <line x1="3" y1="9" x2="15" y2="9" />
             </svg>
             New Spreadsheet
+          </button>
+
+          <button
+            onClick={() => setIsCreatingFolder(true)}
+            className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:border-gray-400 active:scale-[0.98]"
+            style={{ padding: "10px 20px" }}
+            data-testid="create-folder-btn"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+              <line x1="12" y1="11" x2="12" y2="17" />
+              <line x1="9" y1="14" x2="15" y2="14" />
+            </svg>
+            New Folder
           </button>
 
           <div className="flex-1" />
@@ -300,9 +387,79 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Folder Breadcrumbs */}
+        {currentFolderId && (
+          <div className="mb-4">
+            <FolderBreadcrumbs
+              breadcrumbs={breadcrumbs}
+              onNavigate={handleBreadcrumbNavigate}
+            />
+          </div>
+        )}
+
+        {/* New Folder inline form */}
+        {isCreatingFolder && (
+          <div
+            className="mb-4 flex items-center gap-3"
+            data-testid="new-folder-form"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              className="flex-shrink-0"
+            >
+              <path
+                d="M2 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                fill="#8ab4f8"
+                stroke="#5e97f6"
+                strokeWidth="0.5"
+              />
+            </svg>
+            <input
+              type="text"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              placeholder="Folder name"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleCreateFolder();
+                if (e.key === "Escape") {
+                  setIsCreatingFolder(false);
+                  setNewFolderName("");
+                }
+              }}
+              className="rounded-md border border-[#1a73e8] px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#1a73e8]/30"
+              data-testid="new-folder-input"
+            />
+            <button
+              onClick={handleCreateFolder}
+              className="rounded-md bg-[#1a73e8] px-4 py-1.5 text-sm font-medium text-white hover:bg-[#1765cc]"
+              data-testid="new-folder-submit"
+            >
+              Create
+            </button>
+            <button
+              onClick={() => {
+                setIsCreatingFolder(false);
+                setNewFolderName("");
+              }}
+              className="rounded-md px-4 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100"
+              data-testid="new-folder-cancel"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
         {/* Section heading */}
         <h2 className="mb-3 text-base font-medium text-gray-700">
-          {activeTab === "trash" ? "Trash" : "Recent spreadsheets"}
+          {activeTab === "trash"
+            ? "Trash"
+            : currentFolderId
+              ? breadcrumbs[breadcrumbs.length - 1]?.name || "Folder"
+              : "Recent spreadsheets"}
         </h2>
 
         {/* Filter Tabs */}
@@ -414,99 +571,123 @@ export default function DashboardPage() {
             {/* Loading Skeleton */}
             {isListLoading && <DashboardSkeleton viewMode={viewMode} />}
 
-            {/* Empty State */}
-            {!isListLoading && spreadsheets.length === 0 && (
+            {/* Folders */}
+            {!isListLoading && folders.length > 0 && (
               <div
-                className="flex flex-col items-center py-24"
-                data-testid="empty-state"
+                className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                data-testid="folder-grid"
               >
-                <svg
-                  width="96"
-                  height="96"
-                  viewBox="0 0 96 96"
-                  fill="none"
-                  className="mb-8"
-                >
-                  <rect
-                    x="12"
-                    y="12"
-                    width="72"
-                    height="72"
-                    rx="10"
-                    fill="#eff6ff"
-                    stroke="#1a73e8"
-                    strokeWidth="2"
+                {folders.map((f) => (
+                  <FolderCard
+                    key={f.id}
+                    folder={f}
+                    onOpen={handleOpenFolder}
+                    onRename={renameFolder}
+                    onDelete={deleteFolder}
                   />
-                  <line
-                    x1="12"
-                    y1="36"
-                    x2="84"
-                    y2="36"
-                    stroke="#93c5fd"
-                    strokeWidth="1.5"
-                  />
-                  <line
-                    x1="12"
-                    y1="60"
-                    x2="84"
-                    y2="60"
-                    stroke="#93c5fd"
-                    strokeWidth="1.5"
-                  />
-                  <line
-                    x1="36"
-                    y1="12"
-                    x2="36"
-                    y2="84"
-                    stroke="#93c5fd"
-                    strokeWidth="1.5"
-                  />
-                  <line
-                    x1="60"
-                    y1="12"
-                    x2="60"
-                    y2="84"
-                    stroke="#93c5fd"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-                <p className="mb-2 text-xl font-semibold text-gray-800">
-                  No spreadsheets yet
-                </p>
-                <p className="mb-8 text-sm text-gray-500">
-                  Create your first spreadsheet to get started
-                </p>
-                <button
-                  onClick={handleCreate}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#1a73e8] px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#1765cc] hover:shadow-lg active:scale-[0.98]"
-                  style={{ padding: "10px 24px" }}
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 18 18"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  >
-                    <line x1="9" y1="3" x2="9" y2="15" />
-                    <line x1="3" y1="9" x2="15" y2="9" />
-                  </svg>
-                  Create your first spreadsheet
-                </button>
+                ))}
               </div>
             )}
 
+            {/* Empty State */}
+            {!isListLoading &&
+              filteredSpreadsheets.length === 0 &&
+              folders.length === 0 && (
+                <div
+                  className="flex flex-col items-center py-24"
+                  data-testid="empty-state"
+                >
+                  <svg
+                    width="96"
+                    height="96"
+                    viewBox="0 0 96 96"
+                    fill="none"
+                    className="mb-8"
+                  >
+                    <rect
+                      x="12"
+                      y="12"
+                      width="72"
+                      height="72"
+                      rx="10"
+                      fill="#eff6ff"
+                      stroke="#1a73e8"
+                      strokeWidth="2"
+                    />
+                    <line
+                      x1="12"
+                      y1="36"
+                      x2="84"
+                      y2="36"
+                      stroke="#93c5fd"
+                      strokeWidth="1.5"
+                    />
+                    <line
+                      x1="12"
+                      y1="60"
+                      x2="84"
+                      y2="60"
+                      stroke="#93c5fd"
+                      strokeWidth="1.5"
+                    />
+                    <line
+                      x1="36"
+                      y1="12"
+                      x2="36"
+                      y2="84"
+                      stroke="#93c5fd"
+                      strokeWidth="1.5"
+                    />
+                    <line
+                      x1="60"
+                      y1="12"
+                      x2="60"
+                      y2="84"
+                      stroke="#93c5fd"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                  <p className="mb-2 text-xl font-semibold text-gray-800">
+                    {currentFolderId
+                      ? "This folder is empty"
+                      : "No spreadsheets yet"}
+                  </p>
+                  <p className="mb-8 text-sm text-gray-500">
+                    {currentFolderId
+                      ? "Move spreadsheets here or create a new one"
+                      : "Create your first spreadsheet to get started"}
+                  </p>
+                  <button
+                    onClick={handleCreate}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#1a73e8] px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#1765cc] hover:shadow-lg active:scale-[0.98]"
+                    style={{ padding: "10px 24px" }}
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 18 18"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    >
+                      <line x1="9" y1="3" x2="9" y2="15" />
+                      <line x1="3" y1="9" x2="15" y2="9" />
+                    </svg>
+                    Create your first spreadsheet
+                  </button>
+                </div>
+              )}
+
             {/* Spreadsheet Grid/List */}
-            {!isListLoading && spreadsheets.length > 0 && (
+            {!isListLoading && filteredSpreadsheets.length > 0 && (
               <>
                 {viewMode === "grid" ? (
                   <div
                     className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
                     data-testid="spreadsheet-grid"
                   >
-                    {spreadsheets.map((s) => (
+                    {filteredSpreadsheets.map((s) => (
                       <SpreadsheetCard
                         key={s.id}
                         spreadsheet={s}
@@ -515,6 +696,8 @@ export default function DashboardPage() {
                         onDuplicate={handleDuplicate}
                         onToggleStar={handleToggleStar}
                         onRename={handleRename}
+                        folders={folders}
+                        onMoveToFolder={handleMoveToFolder}
                       />
                     ))}
                   </div>
@@ -541,7 +724,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div className="divide-y divide-gray-100">
-                      {spreadsheets.map((s) => (
+                      {filteredSpreadsheets.map((s) => (
                         <SpreadsheetListItem
                           key={s.id}
                           spreadsheet={s}

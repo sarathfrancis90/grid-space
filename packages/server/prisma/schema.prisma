@@ -32,6 +32,7 @@ model User {
   extensions         Extension[]
   notificationRules  NotificationRule[]
   filterViews        FilterView[]
+  folders            Folder[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -41,6 +42,28 @@ model User {
   @@map("users")
 }
 
+// ─── FOLDER ──────────────────────────────────────────────────
+model Folder {
+  id             String    @id @default(cuid())
+  name           String
+
+  userId         String    @map("user_id")
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  parentId       String?   @map("parent_id")
+  parent         Folder?   @relation("FolderChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children       Folder[]  @relation("FolderChildren")
+
+  spreadsheets   Spreadsheet[]
+
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([parentId])
+  @@map("folders")
+}
+
 // ─── SPREADSHEET ───────────────────────────────────────────
 model Spreadsheet {
   id             String    @id @default(cuid())
@@ -48,6 +71,9 @@ model Spreadsheet {
 
   ownerId        String    @map("owner_id")
   owner          User      @relation("OwnedSpreadsheets", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  folderId       String?   @map("folder_id")
+  folder         Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   shareLink      String?   @unique @map("share_link")
   shareLinkRole  String?   @map("share_link_role")
@@ -74,6 +100,7 @@ model Spreadsheet {
   @@index([ownerId])
   @@index([updatedAt])
   @@index([deletedAt])
+  @@index([folderId])
   @@map("spreadsheets")
 }
 
