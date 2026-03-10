@@ -142,7 +142,30 @@ export default function SpreadsheetEditorPage() {
     if (id) toggleStar(id);
   }, [id, toggleStar]);
 
-  if (isLoading || error || !currentSpreadsheet) {
+  if (isLoading && !currentSpreadsheet) {
+    return <SpreadsheetLoader />;
+  }
+
+  if (error && !currentSpreadsheet) {
+    return (
+      <div
+        className="flex min-h-screen items-center justify-center"
+        data-testid="spreadsheet-error"
+      >
+        <div className="text-center">
+          <p className="mb-2 text-sm text-red-500">{error}</p>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            Back to dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentSpreadsheet) {
     return <SpreadsheetLoader />;
   }
 

@@ -47,11 +47,8 @@ export function CollaboratorAvatars(): React.ReactElement | null {
   const connectedUsers = useRealtimeStore((state) => state.connectedUsers);
   const connectionStatus = useRealtimeStore((state) => state.connectionStatus);
 
-  if (connectionStatus === "disconnected" || connectedUsers.length === 0) {
-    return null;
-  }
-
   // Deduplicate by userId (show unique users, not tabs)
+  // Must be called before any early return to satisfy Rules of Hooks
   const users = useMemo(() => {
     const uniqueUsers = new Map<string, PresenceUser>();
     for (const user of connectedUsers) {
@@ -61,6 +58,11 @@ export function CollaboratorAvatars(): React.ReactElement | null {
     }
     return Array.from(uniqueUsers.values());
   }, [connectedUsers]);
+
+  if (connectionStatus === "disconnected" || users.length === 0) {
+    return null;
+  }
+
   const maxDisplay = 5;
   const displayUsers = users.slice(0, maxDisplay);
   const overflow = users.length - maxDisplay;
