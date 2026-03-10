@@ -123,6 +123,14 @@ export function MenuBar() {
           action: () => setOpenMenu(null),
         },
         {
+          label: "Import",
+          testId: "menu-file-import",
+          action: () => {
+            useUIStore.getState().setImportDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Save",
           testId: "menu-file-save",
           shortcut: "Ctrl+S",
