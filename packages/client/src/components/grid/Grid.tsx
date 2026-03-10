@@ -636,9 +636,11 @@ export function Grid() {
           ctx.textAlign = hAlign;
 
           const displayValue =
-            isHyperlink && cellData?.hyperlink?.label
-              ? cellData.hyperlink.label
-              : formatCellValue(cellValue, fmt?.numberFormat);
+            gs.showFormulas && cellData?.formula
+              ? cellData.formula
+              : isHyperlink && cellData?.hyperlink?.label
+                ? cellData.hyperlink.label
+                : formatCellValue(cellValue, fmt?.numberFormat);
           const pad = 4;
           // Offset for icon set icons
           let iconOffset = 0;

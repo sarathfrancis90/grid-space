@@ -40,6 +40,7 @@ export function MenuBar() {
   const menuRef = useRef<HTMLDivElement>(null);
   const showGridlines = useUIStore((s) => s.showGridlines);
   const showFormulaBar = useUIStore((s) => s.showFormulaBar);
+  const showFormulas = useGridStore((s) => s.showFormulas);
   const macroIsRecording = useMacroStore((s) => s.isRecording);
 
   const handleMenuClick = useCallback(
@@ -418,6 +419,16 @@ export function MenuBar() {
           checked: showFormulaBar,
           action: () => {
             useUIStore.getState().setShowFormulaBar(!showFormulaBar);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: showFormulas ? "✓ Show formulas" : "  Show formulas",
+          testId: "menu-view-show-formulas",
+          checked: showFormulas,
+          shortcut: "Ctrl+`",
+          action: () => {
+            useGridStore.getState().toggleShowFormulas();
             setOpenMenu(null);
           },
         },
