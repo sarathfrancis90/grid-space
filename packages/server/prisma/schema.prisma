@@ -31,6 +31,7 @@ model User {
   notificationPrefs  NotificationPreference[]
   extensions         Extension[]
   notificationRules  NotificationRule[]
+  filterViews        FilterView[]
 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -347,6 +348,27 @@ model NotificationRule {
   @@index([spreadsheetId])
   @@index([userId, spreadsheetId])
   @@map("notification_rules")
+}
+
+// ─── FILTER VIEW ────────────────────────────────────────
+model FilterView {
+  id             String      @id @default(cuid())
+
+  spreadsheetId  String      @map("spreadsheet_id")
+  sheetId        String      @map("sheet_id")
+
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name           String      @default("Filter View")
+  criteria       Json        @default("[]")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@index([spreadsheetId, sheetId])
+  @@index([userId])
+  @@map("filter_views")
 }
 
 // ─── EXTENSION ──────────────────────────────────────────
