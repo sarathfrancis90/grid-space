@@ -188,6 +188,31 @@ export async function changePassword(
   }
 }
 
+export async function uploadAvatar(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const user = await authService.uploadAvatar(req.user!.id, req.body.avatar);
+    res.json(apiSuccess(user));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function removeAvatar(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const user = await authService.removeAvatar(req.user!.id);
+    res.json(apiSuccess(user));
+  } catch (err) {
+    next(err);
+  }
+}
 export async function deleteAccount(
   req: AuthRequest,
   res: Response,

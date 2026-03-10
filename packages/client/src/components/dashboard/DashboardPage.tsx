@@ -174,11 +174,26 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3 ml-8">
             <button
               onClick={() => navigate("/profile")}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1a73e8] text-sm font-medium text-white transition-colors hover:bg-[#1765cc]"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1a73e8] text-sm font-medium text-white transition-colors hover:bg-[#1765cc] overflow-hidden"
               data-testid="profile-link"
               title={user?.name || user?.email || "Profile"}
+              style={{ padding: 0, overflow: "hidden" }}
             >
-              {userInitial}
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt="Avatar"
+                  className="h-9 w-9 rounded-full object-cover"
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                userInitial
+              )}
             </button>
             <button
               onClick={handleLogout}
