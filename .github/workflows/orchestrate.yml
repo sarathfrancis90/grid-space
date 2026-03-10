@@ -1,7 +1,5 @@
 name: Orchestrate Issues
 
-# Dispatch parity issues to Claude in dependency-aware waves.
-# Trigger manually, or let the "wave-advance" job auto-trigger after PRs merge.
 on:
   workflow_dispatch:
     inputs:
@@ -15,18 +13,15 @@ on:
         default: "false"
         type: boolean
       max_parallel:
-        description: "Max issues to dispatch in parallel (prevents GitHub Actions quota exhaustion)"
+        description: "Max issues to dispatch in parallel"
         required: false
         default: "3"
 
-  # Auto-advance when a Claude PR merges into main
   push:
     branches: [main]
 
 jobs:
-  # ─── Plan & Dispatch ──────────────────────────────────────────────────────
   orchestrate:
-    # On push: only run if the merge commit message looks like a Claude PR
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'push' && contains(github.event.head_commit.message, 'Closes #'))
@@ -44,64 +39,62 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      # ── Step 1: Fetch all open parity issues and their state ──
-      - name: Fetch issues and classify
+      - name: Plan wave
         id: plan
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
+          # ── Fetch issues ──
           echo "::group::Fetching open parity issues"
-          ISSUES=$(gh issue list --state open --label parity \
-            --json number,title,body,labels --limit 50)
-          ISSUE_COUNT=$(echo "$ISSUES" | jq length)
+          gh issue list --state open --label parity \
+            --json number,title,labels --limit 50 > /tmp/issues.json
+          ISSUE_COUNT=$(jq length /tmp/issues.json)
           echo "Found $ISSUE_COUNT open parity issues"
           echo "::endgroup::"
 
           if [ "$ISSUE_COUNT" = "0" ]; then
             echo "No issues to dispatch."
             echo "wave=0" >> "$GITHUB_OUTPUT"
-            echo "plan=[]" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # Check which issues already have active PRs (in-flight work)
+          # ── Check in-flight PRs ──
           echo "::group::Checking for in-flight PRs"
           IN_FLIGHT=""
-          for NUM in $(echo "$ISSUES" | jq -r '.[].number'); do
+          for NUM in $(jq -r '.[].number' /tmp/issues.json); do
             PR=$(gh pr list --state open --search "Closes #${NUM}" --json number --jq '.[0].number' 2>/dev/null || echo "")
             if [ -n "$PR" ]; then
               IN_FLIGHT="$IN_FLIGHT $NUM"
-              echo "  #$NUM has open PR #$PR — skipping"
+              echo "  #$NUM has open PR #$PR — skip"
             fi
           done
           echo "::endgroup::"
 
-          # Classify each issue by domain and detect file conflicts
+          # ── Classify issues using index-based iteration ──
           echo "::group::Classifying issues"
-          PLAN="[]"
-          for ROW in $(echo "$ISSUES" | jq -c '.[]'); do
-            NUM=$(echo "$ROW" | jq -r '.number')
-            TITLE=$(echo "$ROW" | jq -r '.title')
+          echo "[]" > /tmp/plan.json
+
+          IDX=0
+          while [ "$IDX" -lt "$ISSUE_COUNT" ]; do
+            NUM=$(jq -r ".[$IDX].number" /tmp/issues.json)
+            TITLE=$(jq -r ".[$IDX].title" /tmp/issues.json)
+            IDX=$((IDX + 1))
 
             # Skip in-flight
-            if echo "$IN_FLIGHT" | grep -qw "$NUM"; then
+            if echo " $IN_FLIGHT " | grep -q " $NUM "; then
+              echo "  #$NUM — skipped (in-flight)"
               continue
             fi
 
-            # Domain classification via title keywords
+            # Domain classification
             DOMAIN="fullstack"
             KEY_FILES=""
             AGENT_DOCS=""
             HINT=""
             STORES=""
-            DEPS="[]"
+            HAS_DEPS="false"
 
             case "$TITLE" in
               *[Cc]onditional*[Ff]ormat*)
@@ -109,200 +102,154 @@ jobs:
                 KEY_FILES="packages/client/src/components/data/ConditionalFormatManager.tsx,packages/client/src/components/ui/MenuBar.tsx"
                 AGENT_DOCS="agent_docs/state-management.md"
                 STORES="uiStore"
-                HINT="ConditionalFormatManager.tsx exists but is unreachable. Add a menu item in Format menu to open it."
+                HINT="ConditionalFormatManager.tsx exists but is unreachable. Add menu item in Format menu."
                 ;;
-              *[Cc][Ss][Vv]*[Dd]ownload*|*[Dd]ownload*[Cc][Ss][Vv]*)
+              *[Dd]ownload*[Cc][Ss][Vv]*|*[Cc][Ss][Vv]*[Dd]ownload*|*[Cc][Ss][Vv]*missing*)
                 DOMAIN="frontend-file-ops"
                 KEY_FILES="packages/client/src/components/file-ops/,packages/client/src/components/ui/MenuBar.tsx"
                 AGENT_DOCS="agent_docs/state-management.md"
-                HINT="toCSV() utility exists in file-ops. Add Download as CSV option next to XLSX/PDF in File menu."
+                HINT="toCSV() exists in file-ops. Add Download as CSV option in File menu."
                 ;;
               *[Tt]rash*|*[Rr]ecycle*)
                 DOMAIN="fullstack"
-                KEY_FILES="packages/server/prisma/schema.prisma,packages/server/src/routes/spreadsheet.routes.ts,packages/server/src/services/spreadsheet.service.ts,packages/client/src/components/dashboard/DashboardPage.tsx,packages/client/src/stores/cloudStore.ts"
+                KEY_FILES="packages/server/prisma/schema.prisma,packages/server/src/routes/spreadsheet.routes.ts,packages/client/src/components/dashboard/DashboardPage.tsx,packages/client/src/stores/cloudStore.ts"
                 AGENT_DOCS="agent_docs/backend-architecture.md,agent_docs/state-management.md,agent_docs/api-design.md"
-                HINT="Needs: 1) Add deletedAt field to Prisma schema 2) Soft-delete API endpoint 3) Trash tab on dashboard 4) Restore endpoint."
+                HINT="Add deletedAt to Prisma schema, soft-delete endpoint, Trash tab on dashboard, restore endpoint."
                 ;;
               *[Ff]older*)
                 DOMAIN="fullstack"
                 KEY_FILES="packages/server/prisma/schema.prisma,packages/client/src/components/dashboard/DashboardPage.tsx,packages/client/src/stores/cloudStore.ts"
-                AGENT_DOCS="agent_docs/backend-architecture.md,agent_docs/state-management.md,agent_docs/api-design.md"
-                HINT="Needs: 1) Folder model in Prisma 2) CRUD API for folders 3) Dashboard sidebar/breadcrumb nav 4) Move-to-folder action."
-                DEPS='["trash"]'
+                AGENT_DOCS="agent_docs/backend-architecture.md,agent_docs/state-management.md"
+                HINT="Folder model in Prisma, CRUD API, dashboard breadcrumb nav, move-to-folder."
+                HAS_DEPS="true"
                 ;;
               *[Ss]how*[Ff]ormula*)
                 DOMAIN="frontend-grid"
                 KEY_FILES="packages/client/src/components/ui/MenuBar.tsx,packages/client/src/stores/gridStore.ts,packages/client/src/components/grid/Grid.tsx"
                 AGENT_DOCS="agent_docs/grid-rendering.md,agent_docs/state-management.md"
                 STORES="gridStore,cellStore,uiStore"
-                HINT="Add View menu item + Ctrl+backtick shortcut. Toggle gridStore.showFormulas flag. Grid renderer checks flag to display formula text vs computed value."
+                HINT="View menu item + Ctrl+backtick. Toggle gridStore.showFormulas. Grid shows formula text vs value."
                 ;;
               *[Aa]vatar*[Uu]pload*)
                 DOMAIN="fullstack"
                 KEY_FILES="packages/server/prisma/schema.prisma,packages/server/src/routes/auth.routes.ts,packages/client/src/components/auth/ProfilePage.tsx"
                 AGENT_DOCS="agent_docs/auth-system.md,agent_docs/backend-architecture.md"
-                HINT="avatarUrl field exists in schema. Need: 1) Upload endpoint on server 2) Profile page upload UI 3) Display in CollaboratorAvatars."
+                HINT="avatarUrl field exists in schema. Need upload endpoint, profile UI, display in CollaboratorAvatars."
                 ;;
               *[Ss]uggestion*|*[Tt]rack*[Cc]hange*)
                 DOMAIN="fullstack"
-                KEY_FILES="packages/server/prisma/schema.prisma,packages/client/src/stores/cellStore.ts,packages/client/src/components/grid/Grid.tsx,packages/client/src/components/toolbar/Toolbar.tsx"
-                AGENT_DOCS="agent_docs/backend-architecture.md,agent_docs/state-management.md,agent_docs/collaboration-system.md"
-                HINT="Major feature: needs suggestion model in DB, WebSocket events for suggestions, UI mode toggle, accept/reject UI."
-                DEPS='["filter-view"]'
+                KEY_FILES="packages/server/prisma/schema.prisma,packages/client/src/stores/cellStore.ts,packages/client/src/components/grid/Grid.tsx"
+                AGENT_DOCS="agent_docs/collaboration-system.md,agent_docs/state-management.md"
+                HINT="Suggestion model in DB, WebSocket events, UI mode toggle, accept/reject UI."
+                HAS_DEPS="true"
                 ;;
               *[Ff]ilter*[Vv]iew*)
                 DOMAIN="fullstack"
-                KEY_FILES="packages/server/prisma/schema.prisma,packages/client/src/components/data/,packages/client/src/components/ui/MenuBar.tsx,packages/client/src/stores/filterStore.ts"
-                AGENT_DOCS="agent_docs/backend-architecture.md,agent_docs/state-management.md,agent_docs/api-design.md"
-                HINT="Needs: 1) FilterView model in Prisma 2) CRUD API 3) Data menu submenu 4) Active filter view indicator in grid header."
+                KEY_FILES="packages/server/prisma/schema.prisma,packages/client/src/stores/filterStore.ts,packages/client/src/components/ui/MenuBar.tsx"
+                AGENT_DOCS="agent_docs/backend-architecture.md,agent_docs/state-management.md"
+                HINT="FilterView model in Prisma, CRUD API, Data menu submenu, active filter indicator."
                 ;;
               *[Pp]ublish*[Ww]eb*)
                 DOMAIN="fullstack"
                 KEY_FILES="packages/server/prisma/schema.prisma,packages/server/src/routes/spreadsheet.routes.ts,packages/client/src/components/sharing/ShareDialog.tsx"
                 AGENT_DOCS="agent_docs/backend-architecture.md,agent_docs/api-design.md"
-                HINT="Needs: 1) Public token/slug for spreadsheets 2) Public read-only route (no auth) 3) Share dialog section for publishing."
+                HINT="Public token/slug, read-only route (no auth), Share dialog publish section."
                 ;;
-              *[Ii]nsert*[Mm]enu*|*[Cc]omment*[Cc]heckbox*[Dd]ropdown*)
+              *[Ii]nsert*menu*|*[Cc]omment*[Cc]heckbox*|*[Cc]heckbox*[Dd]ropdown*)
                 DOMAIN="frontend-menu"
-                KEY_FILES="packages/client/src/components/ui/MenuBar.tsx,packages/client/src/components/ui/CommentsSidebar.tsx,packages/client/src/stores/spreadsheetStore.ts"
+                KEY_FILES="packages/client/src/components/ui/MenuBar.tsx,packages/client/src/stores/spreadsheetStore.ts"
                 AGENT_DOCS="agent_docs/state-management.md"
                 STORES="uiStore"
-                HINT="Add Comment/Checkbox/Dropdown/New Sheet items to Insert menu. Comment opens CommentsSidebar, Checkbox/Dropdown use DataValidation, New Sheet calls spreadsheetStore.addSheet()."
+                HINT="Add Comment/Checkbox/Dropdown/New Sheet to Insert menu."
                 ;;
               *[Ee]mail*[Aa]ttach*)
                 DOMAIN="fullstack"
                 KEY_FILES="packages/server/src/email/,packages/client/src/components/ui/MenuBar.tsx"
                 AGENT_DOCS="agent_docs/backend-architecture.md"
-                HINT="Needs: 1) Email dialog component 2) Server endpoint that generates attachment + sends via Resend 3) File menu entry."
+                HINT="Email dialog, server endpoint to generate attachment + send via Resend, File menu entry."
                 ;;
-              *[Cc]ontext*[Mm]enu*)
+              *[Cc]ontext*[Mm]enu*|*right-click*)
                 DOMAIN="frontend-menu"
                 KEY_FILES="packages/client/src/components/ui/ContextMenu.tsx,packages/client/src/components/grid/Grid.tsx"
                 AGENT_DOCS="agent_docs/state-management.md"
                 STORES="uiStore"
-                HINT="Expand ContextMenu.tsx with insert/delete row/col, hide, resize, comment, link, protect range items."
+                HINT="Expand ContextMenu with insert/delete row/col, hide, resize, comment, link, protect."
                 ;;
-              *[Ee]dit*[Mm]enu*)
+              *[Ee]dit*[Mm]enu*|*[Ee]dit*[Pp]aste*)
                 DOMAIN="frontend-menu"
                 KEY_FILES="packages/client/src/components/ui/MenuBar.tsx,packages/client/src/components/ui/PasteSpecialDialog.tsx"
                 AGENT_DOCS="agent_docs/state-management.md"
                 STORES="uiStore"
                 HINT="Add Paste Special submenu, Select All, Delete values/row/column to Edit menu."
                 ;;
-              *[Vv]ersion*[Hh]istory*[Ff]ile*|*[Ff]ile*[Vv]ersion*)
+              *[Vv]ersion*[Hh]istory*)
                 DOMAIN="frontend-menu"
                 KEY_FILES="packages/client/src/components/ui/MenuBar.tsx,packages/client/src/components/versions/VersionHistorySidebar.tsx,packages/client/src/stores/uiStore.ts"
                 AGENT_DOCS="agent_docs/state-management.md"
                 STORES="uiStore"
-                HINT="VersionHistorySidebar already rendered. Add File menu entry to toggle its visibility via uiStore."
+                HINT="VersionHistorySidebar exists. Add File menu entry to toggle visibility via uiStore."
                 ;;
               *[Ii]mport*[Ff]ile*|*[Ff]ile*[Ii]mport*)
                 DOMAIN="frontend-file-ops"
                 KEY_FILES="packages/client/src/components/file-ops/,packages/client/src/components/ui/MenuBar.tsx"
                 AGENT_DOCS="agent_docs/state-management.md"
-                HINT="Add Import dialog with file upload, format detection, import mode (replace/insert/append). Leverage existing SheetJS/PapaParse."
+                HINT="Import dialog with file upload, format detection, import modes. Use SheetJS/PapaParse."
                 ;;
               *[Nn]otification*[Rr]ule*)
                 DOMAIN="fullstack"
-                KEY_FILES="packages/server/prisma/schema.prisma,packages/server/src/services/,packages/client/src/components/notifications/,packages/client/src/components/ui/MenuBar.tsx"
+                KEY_FILES="packages/server/prisma/schema.prisma,packages/client/src/components/notifications/,packages/client/src/components/ui/MenuBar.tsx"
                 AGENT_DOCS="agent_docs/backend-architecture.md,agent_docs/api-design.md"
-                HINT="Tools > Notifications is a stub. Needs: 1) NotificationRule model in Prisma 2) CRUD API 3) Config dialog 4) Backend trigger on spreadsheet changes."
+                HINT="NotificationRule model, CRUD API, config dialog from Tools > Notifications."
                 ;;
             esac
 
-            # Build JSON entry
-            ENTRY=$(jq -n \
-              --argjson num "$NUM" \
-              --arg title "$TITLE" \
-              --arg domain "$DOMAIN" \
-              --arg key_files "$KEY_FILES" \
-              --arg agent_docs "$AGENT_DOCS" \
-              --arg hint "$HINT" \
-              --arg stores "$STORES" \
-              --argjson deps "$DEPS" \
-              '{number: $num, title: $title, domain: $domain, key_files: $key_files, agent_docs: $agent_docs, hint: $hint, stores: $stores, deps: $deps}')
-            PLAN=$(echo "$PLAN" | jq --argjson entry "$ENTRY" '. + [$entry]')
-            echo "  #$NUM → $DOMAIN"
+            # Add to plan
+            jq --argjson num "$NUM" \
+               --arg title "$TITLE" \
+               --arg domain "$DOMAIN" \
+               --arg key_files "$KEY_FILES" \
+               --arg agent_docs "$AGENT_DOCS" \
+               --arg hint "$HINT" \
+               --arg stores "$STORES" \
+               --arg has_deps "$HAS_DEPS" \
+               '. + [{number: $num, title: $title, domain: $domain, key_files: $key_files, agent_docs: $agent_docs, hint: $hint, stores: $stores, has_deps: $has_deps}]' \
+               /tmp/plan.json > /tmp/plan_new.json
+            mv /tmp/plan_new.json /tmp/plan.json
+            echo "  #$NUM -> $DOMAIN"
           done
           echo "::endgroup::"
 
-          # ── Dependency resolution: build waves ──
+          # ── Build waves ──
           echo "::group::Building waves"
-          WAVE1="[]"
-          WAVE2="[]"
-          TRASH_NUM=""
-          FILTER_NUM=""
+          jq '[.[] | select(.has_deps == "false")]' /tmp/plan.json > /tmp/wave1.json
+          jq '[.[] | select(.has_deps == "true")]' /tmp/plan.json > /tmp/wave2.json
 
-          for ROW in $(echo "$PLAN" | jq -c '.[]'); do
-            NUM=$(echo "$ROW" | jq -r '.number')
-            TITLE=$(echo "$ROW" | jq -r '.title')
-            DEPS=$(echo "$ROW" | jq -r '.deps | length')
-
-            if [ "$DEPS" = "0" ]; then
-              WAVE1=$(echo "$WAVE1" | jq --argjson row "$ROW" '. + [$row]')
-              # Track dependency targets
-              case "$TITLE" in
-                *[Tt]rash*|*[Rr]ecycle*) TRASH_NUM="$NUM" ;;
-                *[Ff]ilter*[Vv]iew*) FILTER_NUM="$NUM" ;;
-              esac
-            else
-              WAVE2=$(echo "$WAVE2" | jq --argjson row "$ROW" '. + [$row]')
-            fi
-          done
-
-          W1_COUNT=$(echo "$WAVE1" | jq length)
-          W2_COUNT=$(echo "$WAVE2" | jq length)
-          echo "Wave 1: $W1_COUNT issues (independent)"
-          echo "Wave 2: $W2_COUNT issues (has dependencies)"
+          W1=$(jq length /tmp/wave1.json)
+          W2=$(jq length /tmp/wave2.json)
+          echo "Wave 1: $W1 issues | Wave 2: $W2 issues"
           echo "::endgroup::"
 
-          # Determine which wave to dispatch
-          REQUESTED_WAVE="${{ inputs.wave || '0' }}"
-          if [ "$REQUESTED_WAVE" = "0" ]; then
-            # Auto-detect: if wave 1 has issues, dispatch wave 1
-            if [ "$W1_COUNT" -gt 0 ]; then
-              REQUESTED_WAVE="1"
-            elif [ "$W2_COUNT" -gt 0 ]; then
-              REQUESTED_WAVE="2"
-            else
-              REQUESTED_WAVE="0"
-            fi
+          # Determine wave
+          REQUESTED="${{ inputs.wave || '0' }}"
+          if [ "$REQUESTED" = "0" ]; then
+            if [ "$W1" -gt 0 ]; then REQUESTED="1"; elif [ "$W2" -gt 0 ]; then REQUESTED="2"; fi
           fi
+          echo "wave=$REQUESTED" >> "$GITHUB_OUTPUT"
 
-          echo "wave=$REQUESTED_WAVE" >> "$GITHUB_OUTPUT"
-
-          # Save plans for dispatch step
-          echo "$WAVE1" > /tmp/wave1.json
-          echo "$WAVE2" > /tmp/wave2.json
-
-          # Conflict grouping: issues sharing key files should be sequential
-          # Extract primary file for each issue in the active wave
-          if [ "$REQUESTED_WAVE" = "1" ]; then
-            ACTIVE_WAVE="$WAVE1"
+          # ── Conflict grouping ──
+          if [ "$REQUESTED" = "1" ]; then
+            ACTIVE="/tmp/wave1.json"
           else
-            ACTIVE_WAVE="$WAVE2"
+            ACTIVE="/tmp/wave2.json"
           fi
 
-          # Group by whether they touch MenuBar.tsx (common conflict point)
-          MENUBAR_GROUP="[]"
-          OTHER_GROUP="[]"
-          for ROW in $(echo "$ACTIVE_WAVE" | jq -c '.[]'); do
-            KF=$(echo "$ROW" | jq -r '.key_files')
-            if echo "$KF" | grep -q "MenuBar"; then
-              MENUBAR_GROUP=$(echo "$MENUBAR_GROUP" | jq --argjson row "$ROW" '. + [$row]')
-            else
-              OTHER_GROUP=$(echo "$OTHER_GROUP" | jq --argjson row "$ROW" '. + [$row]')
-            fi
-          done
+          jq '[.[] | select(.key_files | contains("MenuBar"))]' "$ACTIVE" > /tmp/menubar_group.json
+          jq '[.[] | select(.key_files | contains("MenuBar") | not)]' "$ACTIVE" > /tmp/other_group.json
 
-          MG_COUNT=$(echo "$MENUBAR_GROUP" | jq length)
-          OG_COUNT=$(echo "$OTHER_GROUP" | jq length)
-          echo "Conflict analysis: $MG_COUNT issues touch MenuBar.tsx (sequential), $OG_COUNT are independent"
+          MG=$(jq length /tmp/menubar_group.json)
+          OG=$(jq length /tmp/other_group.json)
+          echo "Conflict groups: $MG MenuBar (sequential), $OG independent"
 
-          echo "$MENUBAR_GROUP" > /tmp/menubar_group.json
-          echo "$OTHER_GROUP" > /tmp/other_group.json
-
-      # ── Step 2: Dispatch issues ──
       - name: Dispatch wave
         id: dispatch
         if: steps.plan.outputs.wave != '0' && inputs.dry_run != 'true'
@@ -314,136 +261,106 @@ jobs:
           WAVE="${{ steps.plan.outputs.wave }}"
           DISPATCHED=0
 
-          echo "═══════════════════════════════════════"
-          echo " Dispatching Wave $WAVE"
+          echo "Dispatching Wave $WAVE"
           echo "═══════════════════════════════════════"
 
-          # Function to build and post the context comment
           dispatch_issue() {
-            local ROW="$1"
-            local NUM=$(echo "$ROW" | jq -r '.number')
-            local TITLE=$(echo "$ROW" | jq -r '.title')
-            local DOMAIN=$(echo "$ROW" | jq -r '.domain')
-            local KEY_FILES=$(echo "$ROW" | jq -r '.key_files')
-            local AGENT_DOCS_STR=$(echo "$ROW" | jq -r '.agent_docs')
-            local HINT=$(echo "$ROW" | jq -r '.hint')
-            local STORES=$(echo "$ROW" | jq -r '.stores')
+            local IDX="$1"
+            local FILE="$2"
+            local NUM=$(jq -r ".[$IDX].number" "$FILE")
+            local TITLE=$(jq -r ".[$IDX].title" "$FILE")
+            local DOMAIN=$(jq -r ".[$IDX].domain" "$FILE")
+            local KEY_FILES=$(jq -r ".[$IDX].key_files" "$FILE")
+            local DOCS=$(jq -r ".[$IDX].agent_docs" "$FILE")
+            local HINT=$(jq -r ".[$IDX].hint" "$FILE")
+            local STORES=$(jq -r ".[$IDX].stores" "$FILE")
 
             echo ""
-            echo "── Dispatching #$NUM: $TITLE ──"
+            echo "── #$NUM: $TITLE ──"
 
-            # Build the context comment
-            COMMENT="@claude Please implement this issue.\n\n"
-            COMMENT+="## Architecture Context\n\n"
-            COMMENT+="**Domain:** $DOMAIN\n\n"
+            # Build context comment
+            {
+              echo "## Architecture Context"
+              echo ""
+              echo "**Domain:** $DOMAIN"
+              echo ""
+              if [ -n "$HINT" ]; then
+                echo "### Implementation Guidance"
+                echo "$HINT"
+                echo ""
+              fi
+              if [ -n "$KEY_FILES" ]; then
+                echo "### Key Files to Read First"
+                echo "$KEY_FILES" | tr ',' '\n' | while read -r f; do
+                  [ -n "$f" ] && echo "- \`$f\`"
+                done
+                echo ""
+              fi
+              if [ -n "$DOCS" ]; then
+                echo "### Architecture Docs"
+                echo "$DOCS" | tr ',' '\n' | while read -r d; do
+                  [ -n "$d" ] && echo "- \`$d\`"
+                done
+                echo ""
+              fi
+              if [ -n "$STORES" ]; then
+                echo "### Zustand Stores"
+                echo "$STORES" | tr ',' '\n' | while read -r s; do
+                  [ -n "$s" ] && echo "- \`packages/client/src/stores/${s}.ts\`"
+                done
+                echo ""
+              fi
+              echo "### Quality Gates"
+              echo "1. \`npx tsc --noEmit\`"
+              echo "2. \`npx vitest run\`"
+              echo "3. \`npm run build\`"
+            } > /tmp/comment.md
 
-            if [ -n "$HINT" ] && [ "$HINT" != "null" ]; then
-              COMMENT+="### Implementation Guidance\n"
-              COMMENT+="$HINT\n\n"
-            fi
+            # Post context comment
+            gh issue comment "$NUM" --body-file /tmp/comment.md
 
-            if [ -n "$KEY_FILES" ] && [ "$KEY_FILES" != "null" ]; then
-              COMMENT+="### Key Files to Read First\n"
-              IFS=',' read -ra FILES <<< "$KEY_FILES"
-              for f in "${FILES[@]}"; do
-                COMMENT+="- \`$f\`\n"
-              done
-              COMMENT+="\n"
-            fi
-
-            if [ -n "$AGENT_DOCS_STR" ] && [ "$AGENT_DOCS_STR" != "null" ]; then
-              COMMENT+="### Architecture Docs to Reference\n"
-              IFS=',' read -ra DOCS <<< "$AGENT_DOCS_STR"
-              for d in "${DOCS[@]}"; do
-                COMMENT+="- \`$d\`\n"
-              done
-              COMMENT+="\n"
-            fi
-
-            if [ -n "$STORES" ] && [ "$STORES" != "null" ]; then
-              COMMENT+="### Relevant Zustand Stores\n"
-              IFS=',' read -ra SS <<< "$STORES"
-              for s in "${SS[@]}"; do
-                COMMENT+="- \`packages/client/src/stores/${s}.ts\`\n"
-              done
-              COMMENT+="\n"
-            fi
-
-            COMMENT+="### Quality Gates\n"
-            COMMENT+="1. \`npx tsc --noEmit\` — fix all type errors\n"
-            COMMENT+="2. \`npx vitest run\` — fix all test failures\n"
-            COMMENT+="3. \`npm run build\` — verify production build\n\n"
-
-            COMMENT+="### Rules\n"
-            COMMENT+="- Follow CLAUDE.md and the agent_docs referenced above\n"
-            COMMENT+="- Keep changes minimal and focused on this issue only\n"
-            COMMENT+="- Write at least one Vitest unit test for new functionality\n"
-            COMMENT+="- Do NOT use \`any\` in TypeScript\n"
-            COMMENT+="- Business logic in stores/services, not in React components\n"
-
-            # Post context comment on the issue (Claude reads this during implementation)
-            printf '%b' "$COMMENT" | gh issue comment "$NUM" --body-file -
-
-            # Add tracking label
+            # Add label
             gh issue edit "$NUM" --add-label "claude-code" 2>/dev/null || true
 
-            # Trigger Claude Code workflow via workflow_dispatch
+            # Trigger Claude Code workflow
             gh workflow run "Claude Code" --field issue_number="$NUM"
 
-            echo "  Dispatched #$NUM (workflow triggered)"
+            echo "  #$NUM dispatched"
           }
 
-          # ── Dispatch independent issues first (parallel-safe) ──
-          OTHER_COUNT=$(jq length /tmp/other_group.json)
-          echo ""
-          echo "Dispatching $OTHER_COUNT independent issues..."
-          COUNT=0
-          for ROW in $(jq -c '.[]' /tmp/other_group.json); do
-            if [ "$COUNT" -ge "$MAX_PARALLEL" ]; then
-              echo "  Hit max parallel limit ($MAX_PARALLEL). Remaining will be dispatched in next run."
-              break
-            fi
-            dispatch_issue "$ROW"
-            COUNT=$((COUNT + 1))
+          # Independent issues (parallel-safe)
+          OG_COUNT=$(jq length /tmp/other_group.json)
+          echo "Independent issues: $OG_COUNT"
+          I=0
+          while [ "$I" -lt "$OG_COUNT" ] && [ "$DISPATCHED" -lt "$MAX_PARALLEL" ]; do
+            dispatch_issue "$I" /tmp/other_group.json
+            I=$((I + 1))
             DISPATCHED=$((DISPATCHED + 1))
           done
 
-          # ── Dispatch MenuBar group: only the first one ──
-          # (subsequent ones dispatch after PR merges to avoid merge conflicts)
+          # MenuBar group — only first one
           MG_COUNT=$(jq length /tmp/menubar_group.json)
           if [ "$MG_COUNT" -gt 0 ] && [ "$DISPATCHED" -lt "$MAX_PARALLEL" ]; then
             echo ""
-            echo "Dispatching 1 of $MG_COUNT MenuBar-touching issues (sequential to avoid conflicts)..."
-            FIRST_MENUBAR=$(jq -c '.[0]' /tmp/menubar_group.json)
-            dispatch_issue "$FIRST_MENUBAR"
+            echo "MenuBar group: dispatching 1 of $MG_COUNT (sequential)"
+            dispatch_issue "0" /tmp/menubar_group.json
             DISPATCHED=$((DISPATCHED + 1))
-
-            if [ "$MG_COUNT" -gt 1 ]; then
-              REMAINING=$((MG_COUNT - 1))
-              echo "  $REMAINING MenuBar issues queued — will auto-dispatch after this PR merges."
-            fi
           fi
 
           echo ""
           echo "═══════════════════════════════════════"
-          echo " Dispatched $DISPATCHED issues in wave $WAVE"
-          echo "═══════════════════════════════════════"
+          echo "Dispatched $DISPATCHED issues"
           echo "dispatched_count=$DISPATCHED" >> "$GITHUB_OUTPUT"
 
-      # ── Dry-run summary ──
-      - name: Dry-run plan
+      - name: Dry-run summary
         if: inputs.dry_run == 'true'
         run: |
           echo "═══════════════════════════════════════"
-          echo " DRY RUN — Plan Only"
+          echo " DRY RUN — Wave ${{ steps.plan.outputs.wave }}"
           echo "═══════════════════════════════════════"
           echo ""
-          echo "Wave ${{ steps.plan.outputs.wave }}:"
-          echo ""
-          echo "Independent issues:"
+          echo "Independent:"
           jq -r '.[] | "  #\(.number) [\(.domain)] \(.title)"' /tmp/other_group.json
           echo ""
-          echo "MenuBar-touching issues (sequential):"
+          echo "MenuBar (sequential):"
           jq -r '.[] | "  #\(.number) [\(.domain)] \(.title)"' /tmp/menubar_group.json
-          echo ""
-          echo "To dispatch: re-run this workflow with dry_run=false"
