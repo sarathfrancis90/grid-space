@@ -247,6 +247,15 @@ export function MenuBar() {
             setOpenMenu(null);
           },
         },
+        {
+          label: "Email this file",
+          testId: "menu-file-email",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setEmailDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
       ],
     },
     {

@@ -12,6 +12,7 @@ import {
   restoreSpreadsheet,
   permanentlyDeleteSpreadsheet,
 } from "../controllers/spreadsheet.controller";
+import { emailSpreadsheet } from "../controllers/emailAttachment.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { writeLimiter } from "../middleware/rateLimit.middleware";
@@ -31,6 +32,15 @@ const updateSchema = {
   body: z.object({
     title: z.string().min(1).max(200).optional(),
     isStarred: z.boolean().optional(),
+  }),
+};
+
+const emailSchema = {
+  body: z.object({
+    recipients: z.array(z.string().email()).min(1).max(10),
+    subject: z.string().min(1).max(500),
+    message: z.string().max(2000).default(""),
+    format: z.enum(["pdf", "xlsx", "csv"]),
   }),
 };
 
@@ -60,6 +70,14 @@ router.post("/:id/star", writeLimiter, toggleStar);
 
 // POST /api/spreadsheets/:id/restore — restore from trash
 router.post("/:id/restore", writeLimiter, restoreSpreadsheet);
+
+// POST /api/spreadsheets/:id/email — send spreadsheet as email attachment
+router.post(
+  "/:id/email",
+  writeLimiter,
+  validate(emailSchema),
+  emailSpreadsheet,
+);
 
 // DELETE /api/spreadsheets/:id/permanent — permanently delete from trash
 router.delete("/:id/permanent", writeLimiter, permanentlyDeleteSpreadsheet);
