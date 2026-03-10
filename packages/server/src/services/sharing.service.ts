@@ -10,6 +10,7 @@ interface Collaborator {
   userId: string;
   role: string;
   createdAt: Date;
+  pending?: boolean;
   user: {
     id: string;
     name: string | null;
@@ -70,7 +71,7 @@ export async function checkUserRole(
   return (ss.access[0]?.role as Role) ?? null;
 }
 
-/** List collaborators for a spreadsheet */
+/** List collaborators for a spreadsheet (includes pending invites) */
 export async function listCollaborators(
   spreadsheetId: string,
   userId: string,
@@ -79,20 +80,40 @@ export async function listCollaborators(
   const role = await checkUserRole(spreadsheetId, userId);
   if (!role) throw new ForbiddenError("Access denied");
 
-  const access = await prisma.spreadsheetAccess.findMany({
-    where: { spreadsheetId },
-    include: {
-      user: {
-        select: { id: true, name: true, email: true, avatarUrl: true },
+  const [access, pending] = await Promise.all([
+    prisma.spreadsheetAccess.findMany({
+      where: { spreadsheetId },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, avatarUrl: true },
+        },
       },
-    },
-    orderBy: { createdAt: "asc" },
-  });
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.pendingInvite.findMany({
+      where: { spreadsheetId },
+      orderBy: { createdAt: "asc" },
+    }),
+  ]);
 
-  return access;
+  const pendingCollaborators: Collaborator[] = pending.map((p) => ({
+    id: p.id,
+    userId: `pending-${p.id}`,
+    role: p.role,
+    createdAt: p.createdAt,
+    pending: true,
+    user: {
+      id: `pending-${p.id}`,
+      name: null,
+      email: p.email,
+      avatarUrl: null,
+    },
+  }));
+
+  return [...access, ...pendingCollaborators];
 }
 
-/** Add a collaborator by email */
+/** Add a collaborator by email (creates pending invite if user not registered) */
 export async function addCollaborator(
   spreadsheetId: string,
   actorId: string,
@@ -107,7 +128,45 @@ export async function addCollaborator(
   });
 
   if (!targetUser) {
-    throw new NotFoundError("User not found with that email");
+    // User not registered — create a pending invite
+    const existingInvite = await prisma.pendingInvite.findUnique({
+      where: { spreadsheetId_email: { spreadsheetId, email } },
+    });
+
+    if (existingInvite) {
+      throw new AppError(
+        409,
+        "An invitation is already pending for this email",
+      );
+    }
+
+    const invite = await prisma.pendingInvite.create({
+      data: {
+        spreadsheetId,
+        email,
+        role,
+        invitedById: actorId,
+      },
+    });
+
+    logger.info(
+      { actorId, spreadsheetId, email, role },
+      "Pending invite created for unregistered user",
+    );
+
+    return {
+      id: invite.id,
+      userId: `pending-${invite.id}`,
+      role: invite.role,
+      createdAt: invite.createdAt,
+      pending: true,
+      user: {
+        id: `pending-${invite.id}`,
+        name: null,
+        email: invite.email,
+        avatarUrl: null,
+      },
+    };
   }
 
   // Check if already has access
@@ -183,13 +242,27 @@ export async function changeRole(
   return updated;
 }
 
-/** Remove a collaborator */
+/** Remove a collaborator or pending invite */
 export async function removeCollaborator(
   spreadsheetId: string,
   actorId: string,
   targetUserId: string,
 ): Promise<void> {
   await requireOwner(spreadsheetId, actorId);
+
+  // Check if this is a pending invite (id starts with "pending-")
+  if (targetUserId.startsWith("pending-")) {
+    const inviteId = targetUserId.replace("pending-", "");
+    const invite = await prisma.pendingInvite.findUnique({
+      where: { id: inviteId },
+    });
+    if (!invite || invite.spreadsheetId !== spreadsheetId) {
+      throw new NotFoundError("Pending invite not found");
+    }
+    await prisma.pendingInvite.delete({ where: { id: inviteId } });
+    logger.info({ actorId, spreadsheetId, inviteId }, "Pending invite removed");
+    return;
+  }
 
   const access = await prisma.spreadsheetAccess.findUnique({
     where: {
@@ -370,6 +443,46 @@ export async function transferOwnership(
   logger.info(
     { actorId, spreadsheetId, newOwnerId: newOwner.id },
     "Ownership transferred",
+  );
+}
+
+/** Claim all pending invites for a newly registered email */
+export async function claimPendingInvites(
+  userId: string,
+  email: string,
+): Promise<void> {
+  const invites = await prisma.pendingInvite.findMany({
+    where: { email },
+  });
+
+  if (invites.length === 0) return;
+
+  await prisma.$transaction(async (tx) => {
+    for (const invite of invites) {
+      // Grant access (skip if somehow already exists)
+      await tx.spreadsheetAccess.upsert({
+        where: {
+          spreadsheetId_userId: {
+            spreadsheetId: invite.spreadsheetId,
+            userId,
+          },
+        },
+        update: { role: invite.role },
+        create: {
+          spreadsheetId: invite.spreadsheetId,
+          userId,
+          role: invite.role,
+        },
+      });
+    }
+
+    // Delete all pending invites for this email
+    await tx.pendingInvite.deleteMany({ where: { email } });
+  });
+
+  logger.info(
+    { userId, email, count: invites.length },
+    "Pending invites claimed on registration",
   );
 }
 

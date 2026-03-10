@@ -274,7 +274,7 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        {c.user.name || c.user.email}
+                        {c.pending ? c.user.email : c.user.name || c.user.email}
                         {c.userId === user?.id && (
                           <span
                             className="ml-1 text-xs text-gray-400"
@@ -284,11 +284,58 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
                           </span>
                         )}
                       </p>
-                      <p className="text-xs text-gray-500">{c.user.email}</p>
+                      <p className="text-xs text-gray-500">
+                        {c.pending ? "Invitation sent" : c.user.email}
+                      </p>
                     </div>
                   </div>
 
-                  {c.role === "owner" ? (
+                  {c.pending ? (
+                    <div
+                      className="flex items-center gap-1"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      <span
+                        className="rounded bg-yellow-100 px-1.5 py-0.5 text-xs text-yellow-700"
+                        style={{
+                          backgroundColor: "#fef9c3",
+                          color: "#a16207",
+                          padding: "2px 6px",
+                          borderRadius: "4px",
+                          fontSize: "12px",
+                        }}
+                      >
+                        Pending
+                      </span>
+                      <button
+                        onClick={() =>
+                          removeCollaborator(spreadsheetId, c.userId)
+                        }
+                        className="ml-1 text-gray-400 hover:text-red-500"
+                        style={{ marginLeft: "4px" }}
+                        title="Cancel invite"
+                        data-testid={`remove-btn-${c.userId}`}
+                      >
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : c.role === "owner" ? (
                     <span className="text-xs text-gray-500">Owner</span>
                   ) : (
                     <div

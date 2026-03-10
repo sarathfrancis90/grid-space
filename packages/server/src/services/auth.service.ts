@@ -4,6 +4,7 @@ import { env } from "../config/env";
 import prisma from "../models/prisma";
 import { AppError } from "../utils/AppError";
 import logger from "../utils/logger";
+import { claimPendingInvites } from "./sharing.service";
 
 const SALT_ROUNDS = 12;
 const ACCESS_TOKEN_EXPIRY = 900; // 15 minutes in seconds
@@ -124,6 +125,8 @@ export async function findOrCreateOAuthUser(
         createdAt: true,
       },
     });
+    // Claim any pending sharing invites for this email
+    await claimPendingInvites(user.id, user.email);
     logger.info({ userId: user.id, provider }, "OAuth user created");
   } else {
     // Update avatar if not set
@@ -177,6 +180,9 @@ export async function register(
   });
 
   const tokens = generateTokens(user.id, user.email);
+
+  // Claim any pending sharing invites for this email
+  await claimPendingInvites(user.id, user.email);
 
   logger.info({ userId: user.id }, "User registered");
 

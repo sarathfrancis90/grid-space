@@ -58,6 +58,7 @@ model Spreadsheet {
 
   sheets         Sheet[]
   access         SpreadsheetAccess[]
+  pendingInvites PendingInvite[]
   versions       Version[]
   webhooks       Webhook[]
   comments       Comment[]
@@ -89,6 +90,24 @@ model SpreadsheetAccess {
   @@index([userId])
   @@index([spreadsheetId])
   @@map("spreadsheet_access")
+}
+
+// ─── PENDING INVITE ────────────────────────────────────────
+model PendingInvite {
+  id             String      @id @default(cuid())
+
+  spreadsheetId  String      @map("spreadsheet_id")
+  spreadsheet    Spreadsheet @relation(fields: [spreadsheetId], references: [id], onDelete: Cascade)
+
+  email          String
+  role           String      @default("viewer")
+  invitedById    String      @map("invited_by_id")
+
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@unique([spreadsheetId, email])
+  @@index([email])
+  @@map("pending_invites")
 }
 
 // ─── SHEET (TAB) ───────────────────────────────────────────

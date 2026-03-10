@@ -21,6 +21,13 @@ vi.mock("../models/prisma", () => {
       delete: vi.fn(),
       upsert: vi.fn(),
     },
+    pendingInvite: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+    },
     $transaction: vi.fn(),
     $disconnect: vi.fn(),
   };
@@ -59,6 +66,13 @@ const mockPrisma = prisma as unknown as {
     delete: ReturnType<typeof vi.fn>;
     upsert: ReturnType<typeof vi.fn>;
   };
+  pendingInvite: {
+    findMany: ReturnType<typeof vi.fn>;
+    findUnique: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+    deleteMany: ReturnType<typeof vi.fn>;
+  };
   $transaction: ReturnType<typeof vi.fn>;
 };
 
@@ -82,6 +96,9 @@ describe("Sharing Routes", () => {
         ownerId: "user-1",
         access: [],
       });
+
+      // No pending invites
+      mockPrisma.pendingInvite.findMany.mockResolvedValue([]);
 
       mockPrisma.spreadsheetAccess.findMany.mockResolvedValue([
         {

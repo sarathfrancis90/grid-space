@@ -7,6 +7,7 @@ interface Collaborator {
   userId: string;
   role: string;
   createdAt: string;
+  pending?: boolean;
   user: {
     id: string;
     name: string | null;
