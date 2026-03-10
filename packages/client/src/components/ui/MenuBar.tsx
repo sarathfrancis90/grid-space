@@ -213,6 +213,17 @@ export function MenuBar() {
           },
         },
         {
+          label: "Download as CSV",
+          testId: "menu-file-download-csv",
+          action: () => {
+            const sid = useSpreadsheetStore.getState().activeSheetId;
+            const cells = useCellStore.getState().cells.get(sid) ?? new Map();
+            const csvString = toCSV(cells);
+            downloadFile(csvString, "spreadsheet.csv", "text/csv");
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Print",
           testId: "menu-file-print",
           shortcut: "Ctrl+P",
