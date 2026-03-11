@@ -90,7 +90,7 @@ describe("Theme store", () => {
   it("defaults to the default theme", () => {
     const state = useThemeStore.getState();
     expect(state.activeThemeId).toBe("default");
-    expect(state.activeTheme.name).toBe("Default");
+    expect(state.activeTheme.name).toBe("Standard");
   });
 
   it("can switch to another theme", () => {

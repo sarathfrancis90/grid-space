@@ -49,7 +49,7 @@ import { ScriptEditor } from "../macros/ScriptEditor";
 import { NamedFunctionsDialog } from "../ui/NamedFunctionsDialog";
 import { AIAnalysisPanel } from "../data/AIAnalysisPanel";
 import { KeyboardShortcutsDialog } from "../ui/KeyboardShortcutsDialog";
-import { ThemeDialog } from "../ui/ThemeDialog";
+import { ThemeSidebar } from "../ui/ThemeSidebar";
 import { NotificationRulesDialog } from "../notifications/NotificationRulesDialog";
 import { ImportDialog } from "../file-ops/ImportDialog";
 import { DetailsDialog } from "../ui/DetailsDialog";
@@ -83,11 +83,7 @@ function KeyboardShortcutsWrapper() {
   );
 }
 
-function ThemeDialogWrapper() {
-  const isOpen = useUIStore((s) => s.isThemeDialogOpen);
-  const close = useUIStore((s) => s.setThemeDialogOpen);
-  return <ThemeDialog isOpen={isOpen} onClose={() => close(false)} />;
-}
+/* ThemeDialogWrapper removed — ThemeSidebar is rendered in sidebar area */
 
 function BandedRowsDialogWrapper() {
   const isOpen = useUIStore((s) => s.isBandedRowsDialogOpen);
@@ -433,6 +429,7 @@ export default function SpreadsheetEditorPage() {
         <CommentsSidebar currentUserId={user?.id} />
         <AIAnalysisPanel />
         <SuggestionsSidebar />
+        <ThemeSidebar />
       </div>
 
       {/* Sheet tabs */}
@@ -470,7 +467,7 @@ export default function SpreadsheetEditorPage() {
       <ScriptEditor />
       <NamedFunctionsDialog />
       <KeyboardShortcutsWrapper />
-      <ThemeDialogWrapper />
+
       <NotificationRulesDialog />
       <ImportDialog />
       <DetailsDialog />
