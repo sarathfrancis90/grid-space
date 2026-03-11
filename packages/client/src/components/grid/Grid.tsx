@@ -14,6 +14,7 @@ import { useFormulaStore } from "../../stores/formulaStore";
 import { useFindReplaceStore } from "../../stores/findReplaceStore";
 import { useValidationStore } from "../../stores/validationStore";
 import { useDataStore } from "../../stores/dataStore";
+import { useFilterStore } from "../../stores/filterStore";
 import { useCommentStore } from "../../stores/commentStore";
 import { useNamedRangeStore } from "../../stores/namedRangeStore";
 import { colToLetter, getCellKey } from "../../utils/coordinates";
@@ -48,6 +49,11 @@ const HYPERLINK_COLOR = "#1a73e8";
 const GROUP_BTN_SIZE = 12;
 const SUGGESTION_BG = "rgba(255, 200, 50, 0.15)";
 const SUGGESTION_BORDER_COLOR = "#f59e0b";
+const COMMENT_TRIANGLE_COLOR = "#000000";
+const COMMENT_TRIANGLE_SIZE = 6;
+const FILTER_ICON_COLOR = "#188038";
+const SORT_ICON_COLOR = "#5f6368";
+const PROTECTED_HATCH_COLOR = "rgba(0, 0, 0, 0.04)";
 
 type DragMode = "none" | "select" | "resize-col" | "resize-row" | "fill-handle";
 
@@ -304,10 +310,17 @@ export function Grid() {
     const vs = useValidationStore.getState();
     const ds = useDataStore.getState();
     const fs = useFormatStore.getState();
+    const commentState = useCommentStore.getState();
+    const filterState = useFilterStore.getState();
     const validationRules = vs.rules.get(activeSheetId);
     const rowGroups = ds.getRowGroups(activeSheetId);
     const colGroups = ds.getColGroups(activeSheetId);
     const conditionalRules = fs.getConditionalRules(activeSheetId);
+    const protectedRanges = ds.getProtectedRanges(activeSheetId);
+    const sortCriteria = filterState.sortCriteria.get(activeSheetId) ?? [];
+    const columnFilters = filterState.columnFilters.get(activeSheetId) ?? [];
+    const filtersEnabled =
+      filterState.filtersEnabled.get(activeSheetId) ?? false;
 
     // Build set of rows/cols hidden by collapsed groups
     const groupCollapsedRows = new Set<number>();
@@ -385,6 +398,49 @@ export function Grid() {
             Math.round(cellW),
             Math.round(cellH),
           );
+        }
+
+        // Protected cell hatched shading
+        for (const pr of protectedRanges) {
+          if (
+            r >= pr.startRow &&
+            r <= pr.endRow &&
+            c >= pr.startCol &&
+            c <= pr.endCol
+          ) {
+            ctx.fillStyle = PROTECTED_HATCH_COLOR;
+            ctx.fillRect(
+              Math.round(cellX),
+              Math.round(cellY),
+              Math.round(cellW),
+              Math.round(cellH),
+            );
+            // Draw diagonal hatch lines
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(
+              Math.round(cellX),
+              Math.round(cellY),
+              Math.round(cellW),
+              Math.round(cellH),
+            );
+            ctx.clip();
+            ctx.strokeStyle = "rgba(0, 0, 0, 0.06)";
+            ctx.lineWidth = 1;
+            const step = 8;
+            const hx0 = Math.round(cellX);
+            const hy0 = Math.round(cellY);
+            const hx1 = hx0 + Math.round(cellW);
+            const hy1 = hy0 + Math.round(cellH);
+            for (let d = hx0 - Math.round(cellH); d < hx1; d += step) {
+              ctx.beginPath();
+              ctx.moveTo(d, hy0);
+              ctx.lineTo(d + (hy1 - hy0), hy1);
+              ctx.stroke();
+            }
+            ctx.restore();
+            break;
+          }
         }
 
         // Suggestion highlight: show pending suggestions with colored background + border
@@ -808,6 +864,20 @@ export function Grid() {
             ctx.fill();
           }
         }
+
+        // Comment indicator from commentStore — black triangle in top-right corner
+        const hasStoreComment = commentState.hasComment(activeSheetId, cellKey);
+        if (hasStoreComment && !cellData?.comment && !cellData?.note) {
+          const triX = Math.round(cellX + cellW);
+          const triY = Math.round(cellY);
+          ctx.beginPath();
+          ctx.moveTo(triX - COMMENT_TRIANGLE_SIZE, triY);
+          ctx.lineTo(triX, triY);
+          ctx.lineTo(triX, triY + COMMENT_TRIANGLE_SIZE);
+          ctx.closePath();
+          ctx.fillStyle = COMMENT_TRIANGLE_COLOR;
+          ctx.fill();
+        }
       }
     }
 
@@ -936,6 +1006,54 @@ export function Grid() {
         Math.round(colX + colW / 2),
         Math.round(chh / 2),
       );
+
+      // Filter funnel icon on columns with active filter
+      if (filtersEnabled) {
+        const hasFilter = columnFilters.some((f) => f.col === c);
+        if (hasFilter) {
+          const iconX = Math.round(colX + colW - 12);
+          const iconY = Math.round(chh / 2);
+          ctx.fillStyle = FILTER_ICON_COLOR;
+          ctx.beginPath();
+          // Funnel shape: wide top narrowing to bottom
+          ctx.moveTo(iconX - 4, iconY - 4);
+          ctx.lineTo(iconX + 4, iconY - 4);
+          ctx.lineTo(iconX + 1, iconY);
+          ctx.lineTo(iconX + 1, iconY + 4);
+          ctx.lineTo(iconX - 1, iconY + 4);
+          ctx.lineTo(iconX - 1, iconY);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+
+      // Sort direction arrow on sorted columns
+      const sortCrit = sortCriteria.find((s) => s.col === c);
+      if (sortCrit) {
+        const arrowX = Math.round(
+          colX +
+            colW -
+            (filtersEnabled && columnFilters.some((f) => f.col === c)
+              ? 22
+              : 12),
+        );
+        const arrowY = Math.round(chh / 2);
+        ctx.fillStyle = SORT_ICON_COLOR;
+        ctx.beginPath();
+        if (sortCrit.direction === "asc") {
+          // Up arrow
+          ctx.moveTo(arrowX, arrowY - 4);
+          ctx.lineTo(arrowX + 3, arrowY + 2);
+          ctx.lineTo(arrowX - 3, arrowY + 2);
+        } else {
+          // Down arrow
+          ctx.moveTo(arrowX, arrowY + 4);
+          ctx.lineTo(arrowX + 3, arrowY - 2);
+          ctx.lineTo(arrowX - 3, arrowY - 2);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
     }
 
     ctx.beginPath();
@@ -1073,6 +1191,8 @@ export function Grid() {
       useDataStore.subscribe(scheduleRedraw),
       useFormatStore.subscribe(scheduleRedraw),
       useSuggestionsStore.subscribe(scheduleRedraw),
+      useCommentStore.subscribe(scheduleRedraw),
+      useFilterStore.subscribe(scheduleRedraw),
     ];
     scheduleRedraw();
     return () => {
