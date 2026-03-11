@@ -19,6 +19,8 @@ import { useCommentStore } from "../../stores/commentStore";
 import { useValidationStore } from "../../stores/validationStore";
 import { useSuggestionsStore } from "../../stores/suggestionsStore";
 import { useThemeStore } from "../../stores/themeStore";
+import { AboutDialog } from "./AboutDialog";
+import { WhatsNewDialog } from "./WhatsNewDialog";
 import { FilterViewMenu } from "../data/FilterViewMenu";
 import { exportXLSX, downloadFile, toCSV } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
@@ -43,6 +45,8 @@ interface MenuDef {
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [hoveredSubmenu, setHoveredSubmenu] = useState<string | null>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const showGridlines = useUIStore((s) => s.showGridlines);
   const showFormulaBar = useUIStore((s) => s.showFormulaBar);
@@ -1137,350 +1141,406 @@ export function MenuBar() {
           testId: "menu-help-functions",
           action: () => setOpenMenu(null),
         },
+        {
+          label: "What's new",
+          separator: true,
+          testId: "menu-help-whats-new",
+          action: () => {
+            setWhatsNewOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Report an issue",
+          testId: "menu-help-report-issue",
+          action: () => {
+            window.open(
+              "https://github.com/sarathfrancis90/grid-space/issues",
+              "_blank",
+              "noopener,noreferrer",
+            );
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Terms of Service",
+          separator: true,
+          testId: "menu-help-terms",
+          action: () => {
+            window.open("/terms", "_blank", "noopener,noreferrer");
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Privacy Policy",
+          testId: "menu-help-privacy",
+          action: () => {
+            window.open("/privacy", "_blank", "noopener,noreferrer");
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "About GridSpace",
+          separator: true,
+          testId: "menu-help-about",
+          action: () => {
+            setAboutOpen(true);
+            setOpenMenu(null);
+          },
+        },
       ],
     },
   ];
 
   return (
-    <div
-      ref={menuRef}
-      data-testid="menu-bar"
-      className="flex items-center bg-white px-2 h-7"
-      style={{ padding: "0 8px", height: "28px" }}
-    >
-      {menus.map((menu) => (
-        <div key={menu.label} className="relative">
-          <button
-            data-testid={menu.testId}
-            className={`text-[13px] px-3 py-1 rounded transition-colors ${
-              openMenu === menu.label
-                ? "bg-gray-200 text-gray-900"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-            }`}
-            style={{ padding: "4px 12px" }}
-            onClick={() => handleMenuClick(menu.label)}
-            onMouseEnter={() => {
-              if (openMenu !== null) setOpenMenu(menu.label);
-            }}
-            type="button"
-          >
-            {menu.label}
-          </button>
-          {openMenu === menu.label && (
-            <div
-              data-testid={`${menu.testId}-dropdown`}
-              className="absolute left-0 top-full z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-56"
+    <>
+      <div
+        ref={menuRef}
+        data-testid="menu-bar"
+        className="flex items-center bg-white px-2 h-7"
+        style={{ padding: "0 8px", height: "28px" }}
+      >
+        {menus.map((menu) => (
+          <div key={menu.label} className="relative">
+            <button
+              data-testid={menu.testId}
+              className={`text-[13px] px-3 py-1 rounded transition-colors ${
+                openMenu === menu.label
+                  ? "bg-gray-200 text-gray-900"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              }`}
+              style={{ padding: "4px 12px" }}
+              onClick={() => handleMenuClick(menu.label)}
+              onMouseEnter={() => {
+                if (openMenu !== null) setOpenMenu(menu.label);
+              }}
+              type="button"
             >
-              {menu.items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="relative"
-                  onMouseEnter={() => {
-                    if (item.submenuId) setHoveredSubmenu(item.submenuId);
-                  }}
-                  onMouseLeave={() => {
-                    if (item.submenuId) setHoveredSubmenu(null);
-                  }}
-                >
-                  {item.separator && idx > 0 && (
-                    <div className="h-px bg-gray-100 my-1 mx-3" />
-                  )}
-                  <button
-                    data-testid={item.testId}
-                    className="w-full flex items-center justify-between px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
-                    style={{ padding: "6px 16px" }}
-                    onClick={item.action}
-                    type="button"
+              {menu.label}
+            </button>
+            {openMenu === menu.label && (
+              <div
+                data-testid={`${menu.testId}-dropdown`}
+                className="absolute left-0 top-full z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-56"
+              >
+                {menu.items.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="relative"
+                    onMouseEnter={() => {
+                      if (item.submenuId) setHoveredSubmenu(item.submenuId);
+                    }}
+                    onMouseLeave={() => {
+                      if (item.submenuId) setHoveredSubmenu(null);
+                    }}
                   >
-                    <span>{item.label}</span>
-                    {item.shortcut && (
-                      <span className="text-gray-400 text-[11px] ml-8 font-mono">
-                        {item.shortcut}
-                      </span>
+                    {item.separator && idx > 0 && (
+                      <div className="h-px bg-gray-100 my-1 mx-3" />
                     )}
-                    {item.submenuId && (
-                      <span className="text-gray-400 text-[11px] ml-8">▸</span>
-                    )}
-                  </button>
-                  {item.submenuId === "paste-special" &&
-                    hoveredSubmenu === "paste-special" && (
-                      <div
-                        data-testid="menu-edit-paste-special-submenu"
-                        className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-56"
-                      >
-                        {[
-                          {
-                            label: "Values only",
-                            testId: "menu-edit-paste-values",
-                            shortcut: "Ctrl+Shift+V",
-                            mode: "values" as const,
-                          },
-                          {
-                            label: "Format only",
-                            testId: "menu-edit-paste-format",
-                            mode: "format" as const,
-                          },
-                          {
-                            label: "Formula only",
-                            testId: "menu-edit-paste-formula",
-                            mode: "formula" as const,
-                          },
-                          {
-                            label: "All except borders",
-                            testId: "menu-edit-paste-all-except-borders",
-                            mode: "allExceptBorders" as const,
-                          },
-                          {
-                            label: "Column widths only",
-                            testId: "menu-edit-paste-col-widths",
-                            mode: "columnWidths" as const,
-                          },
-                          {
-                            label: "Data validation only",
-                            testId: "menu-edit-paste-data-validation",
-                            mode: "dataValidation" as const,
-                          },
-                          {
-                            label: "Conditional formatting only",
-                            testId: "menu-edit-paste-cond-format",
-                            mode: "conditionalFormatting" as const,
-                          },
-                          {
-                            label: "Transposed",
-                            testId: "menu-edit-paste-transpose",
-                            mode: "values" as const,
-                            transpose: true,
-                          },
-                        ].map((psItem) => (
-                          <button
-                            key={psItem.testId}
-                            data-testid={psItem.testId}
-                            className="w-full flex items-center justify-between px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
-                            style={{ padding: "6px 16px" }}
-                            onClick={() => {
-                              performPasteSpecial(
-                                psItem.transpose
-                                  ? { mode: psItem.mode, transpose: true }
-                                  : psItem.mode,
-                              );
-                              setOpenMenu(null);
-                            }}
-                            type="button"
-                          >
-                            <span>{psItem.label}</span>
-                            {psItem.shortcut && (
-                              <span className="text-gray-400 text-[11px] ml-8 font-mono">
-                                {psItem.shortcut}
-                              </span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  {item.submenuId === "filter-views" &&
-                    hoveredSubmenu === "filter-views" && (
-                      <FilterViewMenu onClose={() => setOpenMenu(null)} />
-                    )}
-                  {item.submenuId === "addons" &&
-                    hoveredSubmenu === "addons" && (
-                      <div
-                        data-testid="menu-extensions-addons-submenu"
-                        className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-48"
-                      >
-                        <button
-                          data-testid="menu-extensions-get-addons"
-                          className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
-                          style={{ padding: "6px 16px" }}
-                          onClick={() => {
-                            alert("Add-ons marketplace coming soon.");
-                            setOpenMenu(null);
-                          }}
-                          type="button"
+                    <button
+                      data-testid={item.testId}
+                      className="w-full flex items-center justify-between px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                      style={{ padding: "6px 16px" }}
+                      onClick={item.action}
+                      type="button"
+                    >
+                      <span>{item.label}</span>
+                      {item.shortcut && (
+                        <span className="text-gray-400 text-[11px] ml-8 font-mono">
+                          {item.shortcut}
+                        </span>
+                      )}
+                      {item.submenuId && (
+                        <span className="text-gray-400 text-[11px] ml-8">
+                          ▸
+                        </span>
+                      )}
+                    </button>
+                    {item.submenuId === "paste-special" &&
+                      hoveredSubmenu === "paste-special" && (
+                        <div
+                          data-testid="menu-edit-paste-special-submenu"
+                          className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-56"
                         >
-                          Get add-ons
-                        </button>
-                        <button
-                          data-testid="menu-extensions-manage-addons"
-                          className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
-                          style={{ padding: "6px 16px" }}
-                          onClick={() => {
-                            alert("No add-ons installed.");
-                            setOpenMenu(null);
-                          }}
-                          type="button"
-                        >
-                          Manage add-ons
-                        </button>
-                      </div>
-                    )}
-                  {item.submenuId === "format-font" &&
-                    hoveredSubmenu === "format-font" && (
-                      <div
-                        data-testid="menu-format-font-submenu"
-                        className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-48 max-h-64 overflow-y-auto"
-                      >
-                        {[
-                          "Arial",
-                          "Times New Roman",
-                          "Courier New",
-                          "Georgia",
-                          "Verdana",
-                          "Helvetica",
-                          "Trebuchet MS",
-                          "Comic Sans MS",
-                        ].map((font) => (
-                          <button
-                            key={font}
-                            data-testid={`menu-format-font-${font.toLowerCase().replace(/\s+/g, "-")}`}
-                            className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
-                            style={{ padding: "6px 16px", fontFamily: font }}
-                            onClick={() => {
-                              useFormatStore
-                                .getState()
-                                .setFormatOnSelection({ fontFamily: font });
-                              setOpenMenu(null);
-                            }}
-                            type="button"
-                          >
-                            {font}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  {item.submenuId === "format-font-size" &&
-                    hoveredSubmenu === "format-font-size" && (
-                      <div
-                        data-testid="menu-format-font-size-submenu"
-                        className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-32 max-h-64 overflow-y-auto"
-                      >
-                        {[6, 7, 8, 9, 10, 11, 12, 14, 18, 24, 36].map(
-                          (size) => (
+                          {[
+                            {
+                              label: "Values only",
+                              testId: "menu-edit-paste-values",
+                              shortcut: "Ctrl+Shift+V",
+                              mode: "values" as const,
+                            },
+                            {
+                              label: "Format only",
+                              testId: "menu-edit-paste-format",
+                              mode: "format" as const,
+                            },
+                            {
+                              label: "Formula only",
+                              testId: "menu-edit-paste-formula",
+                              mode: "formula" as const,
+                            },
+                            {
+                              label: "All except borders",
+                              testId: "menu-edit-paste-all-except-borders",
+                              mode: "allExceptBorders" as const,
+                            },
+                            {
+                              label: "Column widths only",
+                              testId: "menu-edit-paste-col-widths",
+                              mode: "columnWidths" as const,
+                            },
+                            {
+                              label: "Data validation only",
+                              testId: "menu-edit-paste-data-validation",
+                              mode: "dataValidation" as const,
+                            },
+                            {
+                              label: "Conditional formatting only",
+                              testId: "menu-edit-paste-cond-format",
+                              mode: "conditionalFormatting" as const,
+                            },
+                            {
+                              label: "Transposed",
+                              testId: "menu-edit-paste-transpose",
+                              mode: "values" as const,
+                              transpose: true,
+                            },
+                          ].map((psItem) => (
                             <button
-                              key={size}
-                              data-testid={`menu-format-font-size-${size}`}
-                              className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                              key={psItem.testId}
+                              data-testid={psItem.testId}
+                              className="w-full flex items-center justify-between px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
                               style={{ padding: "6px 16px" }}
                               onClick={() => {
-                                useFormatStore
-                                  .getState()
-                                  .setFormatOnSelection({ fontSize: size });
+                                performPasteSpecial(
+                                  psItem.transpose
+                                    ? { mode: psItem.mode, transpose: true }
+                                    : psItem.mode,
+                                );
                                 setOpenMenu(null);
                               }}
                               type="button"
                             >
-                              {size}
+                              <span>{psItem.label}</span>
+                              {psItem.shortcut && (
+                                <span className="text-gray-400 text-[11px] ml-8 font-mono">
+                                  {psItem.shortcut}
+                                </span>
+                              )}
                             </button>
-                          ),
-                        )}
-                      </div>
-                    )}
-                  {item.submenuId === "format-text-wrapping" &&
-                    hoveredSubmenu === "format-text-wrapping" && (
-                      <div
-                        data-testid="menu-format-text-wrapping-submenu"
-                        className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-40"
-                      >
-                        {(
-                          [
-                            { label: "Overflow", value: "overflow" },
-                            { label: "Wrap", value: "wrap" },
-                            { label: "Clip", value: "clip" },
-                          ] as const
-                        ).map((opt) => (
-                          <button
-                            key={opt.value}
-                            data-testid={`menu-format-wrap-${opt.value}`}
-                            className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
-                            style={{ padding: "6px 16px" }}
-                            onClick={() => {
-                              useFormatStore
-                                .getState()
-                                .setFormatOnSelection({ wrapText: opt.value });
-                              setOpenMenu(null);
-                            }}
-                            type="button"
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  {item.submenuId === "format-text-rotation" &&
-                    hoveredSubmenu === "format-text-rotation" && (
-                      <div
-                        data-testid="menu-format-text-rotation-submenu"
-                        className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-48"
-                      >
-                        {[
-                          { label: "None", angle: 0 },
-                          { label: "Tilt up", angle: 45 },
-                          { label: "Tilt down", angle: -45 },
-                          { label: "Stack vertically", angle: 255 },
-                          { label: "Rotate up", angle: 90 },
-                          { label: "Rotate down", angle: -90 },
-                        ].map((opt) => (
-                          <button
-                            key={opt.label}
-                            data-testid={`menu-format-rotation-${opt.label.toLowerCase().replace(/\s+/g, "-")}`}
-                            className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
-                            style={{ padding: "6px 16px" }}
-                            onClick={() => {
-                              useFormatStore.getState().setFormatOnSelection({
-                                textRotation: opt.angle,
-                              });
-                              setOpenMenu(null);
-                            }}
-                            type="button"
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                        <div className="h-px bg-gray-100 my-1 mx-3" />
+                          ))}
+                        </div>
+                      )}
+                    {item.submenuId === "filter-views" &&
+                      hoveredSubmenu === "filter-views" && (
+                        <FilterViewMenu onClose={() => setOpenMenu(null)} />
+                      )}
+                    {item.submenuId === "addons" &&
+                      hoveredSubmenu === "addons" && (
                         <div
-                          data-testid="menu-format-rotation-custom"
-                          className="px-4 py-1.5 flex items-center gap-2"
-                          style={{ padding: "6px 16px" }}
+                          data-testid="menu-extensions-addons-submenu"
+                          className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-48"
                         >
-                          <label className="text-[13px] text-gray-700">
-                            Custom angle:
-                          </label>
-                          <input
-                            data-testid="menu-format-rotation-custom-input"
-                            type="number"
-                            min={-90}
-                            max={90}
-                            defaultValue={0}
-                            className="w-14 h-6 text-[12px] border border-gray-300 rounded px-1 text-center"
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                const val = parseInt(
-                                  (e.target as HTMLInputElement).value,
-                                  10,
-                                );
-                                if (!isNaN(val)) {
-                                  const clamped = Math.max(
-                                    -90,
-                                    Math.min(90, val),
-                                  );
+                          <button
+                            data-testid="menu-extensions-get-addons"
+                            className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                            style={{ padding: "6px 16px" }}
+                            onClick={() => {
+                              alert("Add-ons marketplace coming soon.");
+                              setOpenMenu(null);
+                            }}
+                            type="button"
+                          >
+                            Get add-ons
+                          </button>
+                          <button
+                            data-testid="menu-extensions-manage-addons"
+                            className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                            style={{ padding: "6px 16px" }}
+                            onClick={() => {
+                              alert("No add-ons installed.");
+                              setOpenMenu(null);
+                            }}
+                            type="button"
+                          >
+                            Manage add-ons
+                          </button>
+                        </div>
+                      )}
+                    {item.submenuId === "format-font" &&
+                      hoveredSubmenu === "format-font" && (
+                        <div
+                          data-testid="menu-format-font-submenu"
+                          className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-48 max-h-64 overflow-y-auto"
+                        >
+                          {[
+                            "Arial",
+                            "Times New Roman",
+                            "Courier New",
+                            "Georgia",
+                            "Verdana",
+                            "Helvetica",
+                            "Trebuchet MS",
+                            "Comic Sans MS",
+                          ].map((font) => (
+                            <button
+                              key={font}
+                              data-testid={`menu-format-font-${font.toLowerCase().replace(/\s+/g, "-")}`}
+                              className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                              style={{ padding: "6px 16px", fontFamily: font }}
+                              onClick={() => {
+                                useFormatStore
+                                  .getState()
+                                  .setFormatOnSelection({ fontFamily: font });
+                                setOpenMenu(null);
+                              }}
+                              type="button"
+                            >
+                              {font}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    {item.submenuId === "format-font-size" &&
+                      hoveredSubmenu === "format-font-size" && (
+                        <div
+                          data-testid="menu-format-font-size-submenu"
+                          className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-32 max-h-64 overflow-y-auto"
+                        >
+                          {[6, 7, 8, 9, 10, 11, 12, 14, 18, 24, 36].map(
+                            (size) => (
+                              <button
+                                key={size}
+                                data-testid={`menu-format-font-size-${size}`}
+                                className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                                style={{ padding: "6px 16px" }}
+                                onClick={() => {
                                   useFormatStore
                                     .getState()
-                                    .setFormatOnSelection({
-                                      textRotation: clamped,
-                                    });
+                                    .setFormatOnSelection({ fontSize: size });
                                   setOpenMenu(null);
-                                }
-                              }
-                            }}
-                          />
+                                }}
+                                type="button"
+                              >
+                                {size}
+                              </button>
+                            ),
+                          )}
                         </div>
-                      </div>
-                    )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+                      )}
+                    {item.submenuId === "format-text-wrapping" &&
+                      hoveredSubmenu === "format-text-wrapping" && (
+                        <div
+                          data-testid="menu-format-text-wrapping-submenu"
+                          className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-40"
+                        >
+                          {(
+                            [
+                              { label: "Overflow", value: "overflow" },
+                              { label: "Wrap", value: "wrap" },
+                              { label: "Clip", value: "clip" },
+                            ] as const
+                          ).map((opt) => (
+                            <button
+                              key={opt.value}
+                              data-testid={`menu-format-wrap-${opt.value}`}
+                              className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                              style={{ padding: "6px 16px" }}
+                              onClick={() => {
+                                useFormatStore.getState().setFormatOnSelection({
+                                  wrapText: opt.value,
+                                });
+                                setOpenMenu(null);
+                              }}
+                              type="button"
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    {item.submenuId === "format-text-rotation" &&
+                      hoveredSubmenu === "format-text-rotation" && (
+                        <div
+                          data-testid="menu-format-text-rotation-submenu"
+                          className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-48"
+                        >
+                          {[
+                            { label: "None", angle: 0 },
+                            { label: "Tilt up", angle: 45 },
+                            { label: "Tilt down", angle: -45 },
+                            { label: "Stack vertically", angle: 255 },
+                            { label: "Rotate up", angle: 90 },
+                            { label: "Rotate down", angle: -90 },
+                          ].map((opt) => (
+                            <button
+                              key={opt.label}
+                              data-testid={`menu-format-rotation-${opt.label.toLowerCase().replace(/\s+/g, "-")}`}
+                              className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                              style={{ padding: "6px 16px" }}
+                              onClick={() => {
+                                useFormatStore.getState().setFormatOnSelection({
+                                  textRotation: opt.angle,
+                                });
+                                setOpenMenu(null);
+                              }}
+                              type="button"
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                          <div className="h-px bg-gray-100 my-1 mx-3" />
+                          <div
+                            data-testid="menu-format-rotation-custom"
+                            className="px-4 py-1.5 flex items-center gap-2"
+                            style={{ padding: "6px 16px" }}
+                          >
+                            <label className="text-[13px] text-gray-700">
+                              Custom angle:
+                            </label>
+                            <input
+                              data-testid="menu-format-rotation-custom-input"
+                              type="number"
+                              min={-90}
+                              max={90}
+                              defaultValue={0}
+                              className="w-14 h-6 text-[12px] border border-gray-300 rounded px-1 text-center"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  const val = parseInt(
+                                    (e.target as HTMLInputElement).value,
+                                    10,
+                                  );
+                                  if (!isNaN(val)) {
+                                    const clamped = Math.max(
+                                      -90,
+                                      Math.min(90, val),
+                                    );
+                                    useFormatStore
+                                      .getState()
+                                      .setFormatOnSelection({
+                                        textRotation: clamped,
+                                      });
+                                    setOpenMenu(null);
+                                  }
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <AboutDialog open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <WhatsNewDialog
+        open={whatsNewOpen}
+        onClose={() => setWhatsNewOpen(false)}
+      />
+    </>
   );
 }
