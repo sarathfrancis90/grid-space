@@ -52,6 +52,7 @@ import { KeyboardShortcutsDialog } from "../ui/KeyboardShortcutsDialog";
 import { ThemeDialog } from "../ui/ThemeDialog";
 import { NotificationRulesDialog } from "../notifications/NotificationRulesDialog";
 import { ImportDialog } from "../file-ops/ImportDialog";
+import { DetailsDialog } from "../ui/DetailsDialog";
 import { SuggestionsSidebar } from "../suggestions/SuggestionsSidebar";
 import { useMacroRecorder } from "../../hooks/useMacroRecorder";
 import { useAutoSave } from "../../hooks/useAutoSave";
@@ -365,6 +366,7 @@ export default function SpreadsheetEditorPage() {
       <ThemeDialogWrapper />
       <NotificationRulesDialog />
       <ImportDialog />
+      <DetailsDialog />
       <OfflineIndicator />
       <Suspense fallback={null}>
         <ChartOverlay />

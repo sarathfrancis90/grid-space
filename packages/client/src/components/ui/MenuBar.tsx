@@ -13,6 +13,7 @@ import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useChartStore } from "../../stores/chartStore";
 import { useMacroStore } from "../../stores/macroStore";
 import { useCloudStore } from "../../stores/cloudStore";
+import { useSharingStore } from "../../stores/sharingStore";
 import { useVersionStore } from "../../stores/versionStore";
 import { useCommentStore } from "../../stores/commentStore";
 import { useValidationStore } from "../../stores/validationStore";
@@ -134,6 +135,72 @@ export function MenuBar() {
           testId: "menu-file-import",
           action: () => {
             useUIStore.getState().setImportDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Make a copy",
+          testId: "menu-file-make-copy",
+          action: () => {
+            const spreadsheetId =
+              useCloudStore.getState().currentSpreadsheet?.id;
+            if (spreadsheetId) {
+              useCloudStore.getState().duplicateSpreadsheet(spreadsheetId);
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Share",
+          testId: "menu-file-share",
+          action: () => {
+            const spreadsheetId =
+              useCloudStore.getState().currentSpreadsheet?.id;
+            if (spreadsheetId) {
+              useSharingStore.getState().openDialog(spreadsheetId);
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Rename",
+          testId: "menu-file-rename",
+          action: () => {
+            const titleEl = document.querySelector(
+              '[data-testid="editor-title"]',
+            ) as HTMLElement | null;
+            if (titleEl) titleEl.click();
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Move to trash",
+          testId: "menu-file-move-to-trash",
+          action: () => {
+            const spreadsheetId =
+              useCloudStore.getState().currentSpreadsheet?.id;
+            if (spreadsheetId) {
+              const confirmed = window.confirm(
+                "Move this spreadsheet to trash?",
+              );
+              if (confirmed) {
+                useCloudStore
+                  .getState()
+                  .deleteSpreadsheet(spreadsheetId)
+                  .then(() => {
+                    window.location.href = "/dashboard";
+                  });
+              }
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Details",
+          testId: "menu-file-details",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setDetailsDialogOpen(true);
             setOpenMenu(null);
           },
         },
@@ -943,16 +1010,12 @@ export function MenuBar() {
                       </span>
                     )}
                     {item.submenuId && (
-                      <span className="text-gray-400 text-[11px] ml-8">
-                        ▸
-                      </span>
+                      <span className="text-gray-400 text-[11px] ml-8">▸</span>
                     )}
                   </button>
                   {item.submenuId === "filter-views" &&
                     hoveredSubmenu === "filter-views" && (
-                      <FilterViewMenu
-                        onClose={() => setOpenMenu(null)}
-                      />
+                      <FilterViewMenu onClose={() => setOpenMenu(null)} />
                     )}
                 </div>
               ))}
