@@ -11,6 +11,7 @@ import { useClipboardStore } from "../../stores/clipboardStore";
 import { useHistoryStore } from "../../stores/historyStore";
 import { useCommentStore } from "../../stores/commentStore";
 import { useNamedRangeStore } from "../../stores/namedRangeStore";
+import { useFilterStore } from "../../stores/filterStore";
 import { getCellKey, colToLetter } from "../../utils/coordinates";
 
 interface ContextMenuUIProps {
@@ -201,6 +202,85 @@ export function ContextMenuUI({
     onClose();
   }, [onClose]);
 
+  const handleGetCellLink = useCallback(() => {
+    if (!selectedCell) return;
+    const cellRef = `${colToLetter(selectedCell.col)}${selectedCell.row + 1}`;
+    const url = `${window.location.origin}${window.location.pathname}#cell=${cellRef}`;
+    navigator.clipboard.writeText(url).catch(() => {
+      window.prompt("Copy this link:", url);
+    });
+    onClose();
+  }, [selectedCell, onClose]);
+
+  const handleHideRow = useCallback(() => {
+    if (!selectedCell) return;
+    useGridStore.getState().hideRows([selectedCell.row]);
+    onClose();
+  }, [selectedCell, onClose]);
+
+  const handleHideCol = useCallback(() => {
+    if (!selectedCell) return;
+    useGridStore.getState().hideCols([selectedCell.col]);
+    onClose();
+  }, [selectedCell, onClose]);
+
+  const handleResizeRow = useCallback(() => {
+    if (!selectedCell) return;
+    const gs = useGridStore.getState();
+    const input = window.prompt(
+      "Enter row height (pixels):",
+      String(gs.getRowHeight(selectedCell.row)),
+    );
+    if (input !== null) {
+      const height = parseInt(input, 10);
+      if (!isNaN(height) && height > 0) {
+        gs.setRowHeight(selectedCell.row, height);
+      }
+    }
+    onClose();
+  }, [selectedCell, onClose]);
+
+  const handleResizeCol = useCallback(() => {
+    if (!selectedCell) return;
+    const gs = useGridStore.getState();
+    const input = window.prompt(
+      "Enter column width (pixels):",
+      String(gs.getColumnWidth(selectedCell.col)),
+    );
+    if (input !== null) {
+      const width = parseInt(input, 10);
+      if (!isNaN(width) && width > 0) {
+        gs.setColumnWidth(selectedCell.col, width);
+      }
+    }
+    onClose();
+  }, [selectedCell, onClose]);
+
+  const handleSortAZ = useCallback(() => {
+    if (!selectedCell) return;
+    useFilterStore
+      .getState()
+      .setSortCriteria(sheetId, [
+        { col: selectedCell.col, direction: "asc" as const },
+      ]);
+    onClose();
+  }, [sheetId, selectedCell, onClose]);
+
+  const handleSortZA = useCallback(() => {
+    if (!selectedCell) return;
+    useFilterStore
+      .getState()
+      .setSortCriteria(sheetId, [
+        { col: selectedCell.col, direction: "desc" as const },
+      ]);
+    onClose();
+  }, [sheetId, selectedCell, onClose]);
+
+  const handleCreateFilter = useCallback(() => {
+    useFilterStore.getState().toggleFilters(sheetId);
+    onClose();
+  }, [sheetId, onClose]);
+
   const cellMenuItems: MenuItem[] = [
     { label: "Cut", action: handleCut, shortcut: "Ctrl+X", testId: "ctx-cut" },
     {
@@ -254,6 +334,27 @@ export function ContextMenuUI({
       testId: "ctx-delete-col",
     },
     {
+      label: "Hide row",
+      action: handleHideRow,
+      testId: "ctx-hide-row",
+    },
+    {
+      label: "Hide column",
+      action: handleHideCol,
+      testId: "ctx-hide-col",
+    },
+    {
+      label: "Resize row",
+      action: handleResizeRow,
+      testId: "ctx-resize-row",
+    },
+    {
+      label: "Resize column",
+      action: handleResizeCol,
+      separator: true,
+      testId: "ctx-resize-col",
+    },
+    {
       label: "Insert comment",
       action: handleAddComment,
       testId: "ctx-add-comment",
@@ -264,22 +365,53 @@ export function ContextMenuUI({
       testId: "ctx-insert-link",
     },
     {
+      label: "Get link to this cell",
+      action: handleGetCellLink,
+      separator: true,
+      testId: "ctx-get-cell-link",
+    },
+    {
       label: "Define named range",
       action: handleDefineNamedRange,
-      separator: true,
       testId: "ctx-define-named-range",
     },
     {
       label: "Protect range",
       action: handleProtectRange,
+      separator: true,
       testId: "ctx-protect-range",
+    },
+    {
+      label: "Sort sheet A → Z",
+      action: handleSortAZ,
+      testId: "ctx-sort-az",
+    },
+    {
+      label: "Sort sheet Z → A",
+      action: handleSortZA,
+      testId: "ctx-sort-za",
+    },
+    {
+      label: "Create filter",
+      action: handleCreateFilter,
+      testId: "ctx-create-filter",
     },
   ];
 
   const rowMenuItems: MenuItem[] = [
-    { label: "Cut", action: handleCut, testId: "ctx-cut" },
-    { label: "Copy", action: handleCopy, testId: "ctx-copy" },
-    { label: "Paste", action: handlePaste, testId: "ctx-paste" },
+    { label: "Cut", action: handleCut, shortcut: "Ctrl+X", testId: "ctx-cut" },
+    {
+      label: "Copy",
+      action: handleCopy,
+      shortcut: "Ctrl+C",
+      testId: "ctx-copy",
+    },
+    {
+      label: "Paste",
+      action: handlePaste,
+      shortcut: "Ctrl+V",
+      testId: "ctx-paste",
+    },
     {
       label: "Insert row above",
       action: handleInsertRow,
@@ -317,14 +449,30 @@ export function ContextMenuUI({
         }
         onClose();
       },
+      separator: true,
       testId: "ctx-resize-row",
+    },
+    {
+      label: "Protect range",
+      action: handleProtectRange,
+      testId: "ctx-protect-range",
     },
   ];
 
   const colMenuItems: MenuItem[] = [
-    { label: "Cut", action: handleCut, testId: "ctx-cut" },
-    { label: "Copy", action: handleCopy, testId: "ctx-copy" },
-    { label: "Paste", action: handlePaste, testId: "ctx-paste" },
+    { label: "Cut", action: handleCut, shortcut: "Ctrl+X", testId: "ctx-cut" },
+    {
+      label: "Copy",
+      action: handleCopy,
+      shortcut: "Ctrl+C",
+      testId: "ctx-copy",
+    },
+    {
+      label: "Paste",
+      action: handlePaste,
+      shortcut: "Ctrl+V",
+      testId: "ctx-paste",
+    },
     {
       label: "Insert column left",
       action: handleInsertCol,
@@ -366,7 +514,38 @@ export function ContextMenuUI({
         }
         onClose();
       },
+      separator: true,
       testId: "ctx-resize-col",
+    },
+    {
+      label: "Sort sheet A → Z",
+      action: () => {
+        useFilterStore
+          .getState()
+          .setSortCriteria(sheetId, [
+            { col: targetIndex, direction: "asc" as const },
+          ]);
+        onClose();
+      },
+      testId: "ctx-sort-az",
+    },
+    {
+      label: "Sort sheet Z → A",
+      action: () => {
+        useFilterStore
+          .getState()
+          .setSortCriteria(sheetId, [
+            { col: targetIndex, direction: "desc" as const },
+          ]);
+        onClose();
+      },
+      separator: true,
+      testId: "ctx-sort-za",
+    },
+    {
+      label: "Protect range",
+      action: handleProtectRange,
+      testId: "ctx-protect-range",
     },
   ];
 
