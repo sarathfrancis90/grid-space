@@ -15,13 +15,22 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
   const isLoading = useSharingStore((s) => s.isLoading);
   const isDialogOpen = useSharingStore((s) => s.isDialogOpen);
   const error = useSharingStore((s) => s.error);
+  const viewerRestrictions = useSharingStore((s) => s.viewerRestrictions);
   const fetchCollaborators = useSharingStore((s) => s.fetchCollaborators);
   const addCollaborator = useSharingStore((s) => s.addCollaborator);
   const changeRole = useSharingStore((s) => s.changeRole);
   const removeCollaborator = useSharingStore((s) => s.removeCollaborator);
+  const transferOwnership = useSharingStore((s) => s.transferOwnership);
   const fetchShareLink = useSharingStore((s) => s.fetchShareLink);
   const createShareLink = useSharingStore((s) => s.createShareLink);
   const disableShareLink = useSharingStore((s) => s.disableShareLink);
+  const updateLinkExpiration = useSharingStore((s) => s.updateLinkExpiration);
+  const fetchViewerRestrictions = useSharingStore(
+    (s) => s.fetchViewerRestrictions,
+  );
+  const updateViewerRestrictions = useSharingStore(
+    (s) => s.updateViewerRestrictions,
+  );
   const publishInfo = useSharingStore((s) => s.publishInfo);
   const fetchPublishInfo = useSharingStore((s) => s.fetchPublishInfo);
   const publishToWeb = useSharingStore((s) => s.publishToWeb);
@@ -31,16 +40,33 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<RoleOption>("viewer");
+  const [notifyPeople, setNotifyPeople] = useState(true);
+  const [notifyMessage, setNotifyMessage] = useState("");
   const [copied, setCopied] = useState(false);
   const [linkRole, setLinkRole] = useState<RoleOption>("viewer");
+  const [linkExpiration, setLinkExpiration] = useState("");
+  const [transferTarget, setTransferTarget] = useState<string | null>(null);
   const [publishCopied, setPublishCopied] = useState(false);
   const [embedCopied, setEmbedCopied] = useState(false);
+
+  const isOwner = collaborators.some(
+    (c) => c.userId === user?.id && c.role === "owner",
+  );
+
+  useEffect(() => {
+    if (shareLink.expiresAt) {
+      setLinkExpiration(shareLink.expiresAt.split("T")[0]);
+    } else {
+      setLinkExpiration("");
+    }
+  }, [shareLink.expiresAt]);
 
   useEffect(() => {
     if (isDialogOpen && spreadsheetId) {
       fetchCollaborators(spreadsheetId);
       fetchShareLink(spreadsheetId);
       fetchPublishInfo(spreadsheetId);
+      fetchViewerRestrictions(spreadsheetId);
     }
   }, [
     isDialogOpen,
@@ -48,6 +74,7 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
     fetchCollaborators,
     fetchShareLink,
     fetchPublishInfo,
+    fetchViewerRestrictions,
   ]);
 
   useEffect(() => {
@@ -64,10 +91,40 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
     try {
       await addCollaborator(spreadsheetId, email.trim(), role);
       setEmail("");
+      setNotifyMessage("");
     } catch {
       // Error shown in store
     }
   }, [email, role, spreadsheetId, addCollaborator]);
+
+  const handleTransferOwnership = useCallback(
+    async (userId: string) => {
+      try {
+        await transferOwnership(spreadsheetId, userId);
+        setTransferTarget(null);
+      } catch {
+        // Error shown in store
+      }
+    },
+    [spreadsheetId, transferOwnership],
+  );
+
+  const handleLinkExpirationChange = useCallback(
+    async (value: string) => {
+      setLinkExpiration(value);
+      await updateLinkExpiration(spreadsheetId, value || null);
+    },
+    [spreadsheetId, updateLinkExpiration],
+  );
+
+  const handleViewerRestrictionToggle = useCallback(
+    async (key: "disableDownload" | "disablePrint" | "disableCopy") => {
+      await updateViewerRestrictions(spreadsheetId, {
+        [key]: !viewerRestrictions[key],
+      });
+    },
+    [spreadsheetId, viewerRestrictions, updateViewerRestrictions],
+  );
 
   const handleCopyLink = useCallback(async () => {
     if (!shareLink.shareLink) return;
@@ -265,6 +322,47 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
               Add
             </button>
           </div>
+
+          {/* Notify people checkbox */}
+          <div className="mt-2" style={{ marginTop: "8px" }}>
+            <label
+              className="flex items-center gap-2 text-sm text-gray-600"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={notifyPeople}
+                onChange={(e) => setNotifyPeople(e.target.checked)}
+                className="rounded border-gray-300"
+                data-testid="notify-checkbox"
+              />
+              Notify people
+            </label>
+            {notifyPeople && (
+              <textarea
+                value={notifyMessage}
+                onChange={(e) => setNotifyMessage(e.target.value)}
+                placeholder="Add a message (optional)"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                style={{
+                  marginTop: "4px",
+                  width: "100%",
+                  padding: "8px 12px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  resize: "vertical",
+                  minHeight: "60px",
+                }}
+                rows={2}
+                data-testid="notify-message"
+              />
+            )}
+          </div>
         </div>
 
         {/* Collaborator list */}
@@ -418,6 +516,65 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
                         <option value="commenter">Commenter</option>
                         <option value="editor">Editor</option>
                       </select>
+                      {isOwner && (
+                        <>
+                          {transferTarget === c.userId ? (
+                            <div
+                              className="flex items-center gap-1"
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              <button
+                                onClick={() =>
+                                  handleTransferOwnership(c.userId)
+                                }
+                                className="rounded bg-orange-500 px-2 py-0.5 text-xs text-white hover:bg-orange-600"
+                                style={{
+                                  padding: "2px 8px",
+                                  backgroundColor: "#f97316",
+                                  color: "white",
+                                  borderRadius: "4px",
+                                  fontSize: "12px",
+                                }}
+                                data-testid={`confirm-transfer-${c.userId}`}
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                onClick={() => setTransferTarget(null)}
+                                className="text-xs text-gray-400 hover:text-gray-600"
+                                data-testid={`cancel-transfer-${c.userId}`}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setTransferTarget(c.userId)}
+                              className="text-xs text-orange-500 hover:text-orange-700"
+                              title="Transfer ownership"
+                              data-testid={`transfer-btn-${c.userId}`}
+                            >
+                              <svg
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                                />
+                              </svg>
+                            </button>
+                          )}
+                        </>
+                      )}
                       <button
                         onClick={() =>
                           removeCollaborator(spreadsheetId, c.userId)
@@ -512,6 +669,42 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
                   Disable link
                 </button>
               </div>
+
+              {/* Link expiration */}
+              <div
+                className="mt-2 flex items-center gap-2"
+                style={{
+                  marginTop: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <label className="text-xs text-gray-500">Expires:</label>
+                <input
+                  type="date"
+                  value={linkExpiration}
+                  onChange={(e) => handleLinkExpirationChange(e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="rounded border border-gray-200 px-2 py-0.5 text-xs"
+                  style={{
+                    padding: "2px 8px",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                  }}
+                  data-testid="link-expiration-input"
+                />
+                {linkExpiration && (
+                  <button
+                    onClick={() => handleLinkExpirationChange("")}
+                    className="text-xs text-gray-400 hover:text-gray-600"
+                    data-testid="clear-expiration-btn"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div
@@ -548,6 +741,90 @@ export function ShareDialog({ spreadsheetId }: ShareDialogProps) {
             </div>
           )}
         </div>
+
+        {/* Viewer restrictions */}
+        {isOwner && (
+          <div
+            className="border-t border-gray-200 pt-4 mt-4"
+            style={{
+              borderTop: "1px solid #e5e7eb",
+              paddingTop: "16px",
+              marginTop: "16px",
+            }}
+            data-testid="viewer-restrictions-section"
+          >
+            <h3
+              className="mb-2 text-sm font-medium text-gray-700"
+              style={{ marginBottom: "8px" }}
+            >
+              Viewer restrictions
+            </h3>
+            <p
+              className="mb-2 text-xs text-gray-500"
+              style={{ marginBottom: "8px" }}
+            >
+              Restrict what viewers and commenters can do.
+            </p>
+            <div className="space-y-2">
+              <label
+                className="flex items-center gap-2 text-sm text-gray-600"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={viewerRestrictions.disableDownload}
+                  onChange={() =>
+                    handleViewerRestrictionToggle("disableDownload")
+                  }
+                  className="rounded border-gray-300"
+                  data-testid="restrict-download-checkbox"
+                />
+                Disable downloading
+              </label>
+              <label
+                className="flex items-center gap-2 text-sm text-gray-600"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={viewerRestrictions.disablePrint}
+                  onChange={() => handleViewerRestrictionToggle("disablePrint")}
+                  className="rounded border-gray-300"
+                  data-testid="restrict-print-checkbox"
+                />
+                Disable printing
+              </label>
+              <label
+                className="flex items-center gap-2 text-sm text-gray-600"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={viewerRestrictions.disableCopy}
+                  onChange={() => handleViewerRestrictionToggle("disableCopy")}
+                  className="rounded border-gray-300"
+                  data-testid="restrict-copy-checkbox"
+                />
+                Disable copying
+              </label>
+            </div>
+          </div>
+        )}
 
         {/* Publish to web section */}
         <div
