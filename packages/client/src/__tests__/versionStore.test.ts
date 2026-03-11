@@ -227,6 +227,7 @@ describe("versionStore", () => {
             createdAt: "2026-02-26T10:00:00Z",
             createdBy: { id: "u1", name: "Alice", avatarUrl: null },
             hasChangeset: true,
+            changeSummary: null,
           },
         ],
         groupedVersions: [
@@ -239,6 +240,7 @@ describe("versionStore", () => {
                 createdAt: "2026-02-26T10:00:00Z",
                 createdBy: { id: "u1", name: "Alice", avatarUrl: null },
                 hasChangeset: true,
+                changeSummary: null,
               },
             ],
           },
@@ -299,6 +301,111 @@ describe("versionStore", () => {
       expect(state.selectedVersionId).toBeNull();
       expect(state.previewVersion).toBeNull();
       expect(state.diffs).toEqual([]);
+    });
+  });
+
+  describe("compareVersions", () => {
+    it("should fetch diffs between two versions", async () => {
+      const mockDiffs = [
+        {
+          sheetId: "s1",
+          sheetName: "Sheet1",
+          changes: [{ cellKey: "A1", oldValue: "old", newValue: "new" }],
+        },
+      ];
+
+      mockApi.get.mockResolvedValue(mockDiffs);
+
+      await useVersionStore
+        .getState()
+        .compareVersions("spreadsheet-1", "v1", "v2");
+
+      expect(mockApi.get).toHaveBeenCalledWith(
+        "/spreadsheets/spreadsheet-1/versions/v1/diff?compareToId=v2",
+      );
+
+      const state = useVersionStore.getState();
+      expect(state.compareVersionId).toBe("v2");
+      expect(state.compareDiffs).toHaveLength(1);
+      expect(state.isComparing).toBe(false);
+    });
+
+    it("should set error on compare failure", async () => {
+      mockApi.get.mockRejectedValue(new Error("Compare failed"));
+
+      await useVersionStore
+        .getState()
+        .compareVersions("spreadsheet-1", "v1", "v2");
+
+      const state = useVersionStore.getState();
+      expect(state.error).toBe("Compare failed");
+      expect(state.isComparing).toBe(false);
+    });
+  });
+
+  describe("clearCompare", () => {
+    it("should reset compare state", () => {
+      useVersionStore.setState({
+        compareVersionId: "v2",
+        compareDiffs: [{ sheetId: "s1", sheetName: "Sheet1", changes: [] }],
+        isComparing: false,
+      });
+
+      useVersionStore.getState().clearCompare();
+
+      const state = useVersionStore.getState();
+      expect(state.compareVersionId).toBeNull();
+      expect(state.compareDiffs).toEqual([]);
+      expect(state.isComparing).toBe(false);
+    });
+  });
+
+  describe("downloadVersion", () => {
+    it("should fetch version and trigger download", async () => {
+      const mockVersion = {
+        id: "v1",
+        name: "Release 1",
+        snapshot: { title: "Test", sheets: [] },
+        changeset: null,
+        createdAt: "2026-02-26T10:00:00Z",
+        createdBy: { id: "u1", name: "Alice", avatarUrl: null },
+      };
+
+      mockApi.get.mockResolvedValue(mockVersion);
+
+      // Mock DOM APIs
+      const mockCreateObjectURL = vi.fn().mockReturnValue("blob:mock-url");
+      const mockRevokeObjectURL = vi.fn();
+      const mockClick = vi.fn();
+      const mockAppendChild = vi.fn();
+      const mockRemoveChild = vi.fn();
+      const mockCreateElement = vi.fn().mockReturnValue({
+        href: "",
+        download: "",
+        click: mockClick,
+      });
+
+      global.URL.createObjectURL = mockCreateObjectURL;
+      global.URL.revokeObjectURL = mockRevokeObjectURL;
+      document.createElement = mockCreateElement;
+      document.body.appendChild = mockAppendChild;
+      document.body.removeChild = mockRemoveChild;
+
+      await useVersionStore.getState().downloadVersion("spreadsheet-1", "v1");
+
+      expect(mockApi.get).toHaveBeenCalledWith(
+        "/spreadsheets/spreadsheet-1/versions/v1",
+      );
+      expect(mockClick).toHaveBeenCalled();
+    });
+
+    it("should set error on download failure", async () => {
+      mockApi.get.mockRejectedValue(new Error("Download failed"));
+
+      await useVersionStore.getState().downloadVersion("spreadsheet-1", "v1");
+
+      const state = useVersionStore.getState();
+      expect(state.error).toBe("Download failed");
     });
   });
 });

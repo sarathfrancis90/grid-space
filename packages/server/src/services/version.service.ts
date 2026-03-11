@@ -16,6 +16,7 @@ interface VersionSummary {
   createdAt: Date;
   createdBy: VersionUser;
   hasChangeset: boolean;
+  changeSummary: string | null;
 }
 
 interface VersionDetail {
@@ -151,6 +152,56 @@ function computeChangeset(
   return { sheetChanges };
 }
 
+/** Generate a human-readable summary of a changeset */
+function generateChangeSummary(changeset: unknown): string | null {
+  if (!changeset || typeof changeset !== "object") return null;
+
+  const cs = changeset as {
+    sheetChanges?: Array<{
+      sheetName: string;
+      cellChanges: Record<string, { old: unknown; new: unknown }>;
+    }>;
+  };
+
+  if (!cs.sheetChanges || cs.sheetChanges.length === 0) return null;
+
+  const parts: string[] = [];
+  let totalCellChanges = 0;
+  let sheetsAdded = 0;
+  let sheetsDeleted = 0;
+
+  for (const sc of cs.sheetChanges) {
+    const keys = Object.keys(sc.cellChanges);
+    if (keys.includes("__added__")) {
+      sheetsAdded++;
+    } else if (keys.includes("__deleted__")) {
+      sheetsDeleted++;
+    } else {
+      totalCellChanges += keys.length;
+    }
+  }
+
+  if (sheetsAdded > 0) {
+    parts.push(`${sheetsAdded} sheet${sheetsAdded > 1 ? "s" : ""} added`);
+  }
+  if (sheetsDeleted > 0) {
+    parts.push(`${sheetsDeleted} sheet${sheetsDeleted > 1 ? "s" : ""} removed`);
+  }
+  if (totalCellChanges > 0) {
+    const sheetCount = cs.sheetChanges.filter(
+      (s) =>
+        !Object.keys(s.cellChanges).includes("__added__") &&
+        !Object.keys(s.cellChanges).includes("__deleted__"),
+    ).length;
+    parts.push(
+      `${totalCellChanges} cell${totalCellChanges > 1 ? "s" : ""} changed` +
+        (sheetCount > 1 ? ` across ${sheetCount} sheets` : ""),
+    );
+  }
+
+  return parts.length > 0 ? parts.join(", ") : null;
+}
+
 async function getVersionUser(userId: string): Promise<VersionUser> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -237,6 +288,7 @@ export async function createVersion(
     createdAt: version.createdAt,
     createdBy,
     hasChangeset: version.changeset !== null,
+    changeSummary: generateChangeSummary(version.changeset),
   };
 }
 
@@ -269,6 +321,7 @@ export async function listVersions(
     createdAt: v.createdAt,
     createdBy: v.createdBy,
     hasChangeset: v.changeset !== null,
+    changeSummary: generateChangeSummary(v.changeset),
   }));
 
   return { versions: mapped, total };
@@ -401,6 +454,7 @@ export async function nameVersion(
     createdAt: updated.createdAt,
     createdBy: updated.createdBy,
     hasChangeset: updated.changeset !== null,
+    changeSummary: generateChangeSummary(updated.changeset),
   };
 }
 
@@ -645,6 +699,7 @@ export async function listGroupedVersions(
       createdAt: v.createdAt,
       createdBy: v.createdBy,
       hasChangeset: v.changeset !== null,
+      changeSummary: generateChangeSummary(v.changeset),
     });
   }
 
