@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import type { CellData, CellPosition } from "../types/grid";
+import type { CellData, CellPosition, SelectionRange } from "../types/grid";
 import { getCellKey } from "../utils/coordinates";
 
 interface FindReplaceState {
@@ -11,6 +11,9 @@ interface FindReplaceState {
   useRegex: boolean;
   caseSensitive: boolean;
   matchEntireCell: boolean;
+  searchInFormulas: boolean;
+  searchInSelection: boolean;
+  selectionScope: SelectionRange | null;
   matches: CellPosition[];
   currentMatchIndex: number;
 
@@ -21,6 +24,11 @@ interface FindReplaceState {
   setUseRegex: (val: boolean) => void;
   setCaseSensitive: (val: boolean) => void;
   setMatchEntireCell: (val: boolean) => void;
+  setSearchInFormulas: (val: boolean) => void;
+  setSearchInSelection: (
+    val: boolean,
+    selection?: SelectionRange | null,
+  ) => void;
 
   findAll: (
     sheetId: string,
@@ -135,6 +143,9 @@ export const useFindReplaceStore = create<FindReplaceState>()(
     useRegex: false,
     caseSensitive: false,
     matchEntireCell: false,
+    searchInFormulas: false,
+    searchInSelection: false,
+    selectionScope: null,
     matches: [],
     currentMatchIndex: -1,
 
@@ -191,6 +202,27 @@ export const useFindReplaceStore = create<FindReplaceState>()(
       });
     },
 
+    setSearchInFormulas: (val: boolean) => {
+      set((state) => {
+        state.searchInFormulas = val;
+        state.matches = [];
+        state.currentMatchIndex = -1;
+      });
+    },
+
+    setSearchInSelection: (val: boolean, selection?: SelectionRange | null) => {
+      set((state) => {
+        state.searchInSelection = val;
+        if (val && selection) {
+          state.selectionScope = selection;
+        } else if (!val) {
+          state.selectionScope = null;
+        }
+        state.matches = [];
+        state.currentMatchIndex = -1;
+      });
+    },
+
     findAll: (
       sheetId: string,
       cells: Map<string, CellData>,
@@ -205,11 +237,31 @@ export const useFindReplaceStore = create<FindReplaceState>()(
         state.matchEntireCell,
       );
 
+      const scope = state.searchInSelection ? state.selectionScope : null;
+      const startRow = scope ? Math.min(scope.start.row, scope.end.row) : 0;
+      const endRow = scope
+        ? Math.max(scope.start.row, scope.end.row)
+        : totalRows - 1;
+      const startCol = scope ? Math.min(scope.start.col, scope.end.col) : 0;
+      const endCol = scope
+        ? Math.max(scope.start.col, scope.end.col)
+        : totalCols - 1;
+
       const found: CellPosition[] = [];
-      for (let r = 0; r < totalRows; r++) {
-        for (let c = 0; c < totalCols; c++) {
+      for (let r = startRow; r <= endRow; r++) {
+        for (let c = startCol; c <= endCol; c++) {
           const cell = cells.get(getCellKey(r, c));
-          if (cell?.value != null) {
+          if (!cell) continue;
+
+          if (state.searchInFormulas) {
+            const formulaText = cell.formula ?? "";
+            if (formulaText && matcher(formulaText)) {
+              found.push({ row: r, col: c });
+              continue;
+            }
+          }
+
+          if (cell.value != null) {
             const strVal = String(cell.value);
             if (matcher(strVal)) {
               found.push({ row: r, col: c });
