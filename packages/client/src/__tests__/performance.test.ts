@@ -30,8 +30,8 @@ describe("S8-018: 10k rows smooth scroll", () => {
 
   it("getRowAtY returns valid row for large datasets", () => {
     useGridStore.getState().setTotalRows(10000);
-    // Default row height is 25px, row 100 is at y=2500
-    const row = useGridStore.getState().getRowAtY(2500);
+    // Default row height is 21px, row 100 is at y=2100
+    const row = useGridStore.getState().getRowAtY(2100);
     expect(row).toBe(100);
   });
 

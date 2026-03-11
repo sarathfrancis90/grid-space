@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
 const DEFAULT_COL_WIDTH = 100;
-const DEFAULT_ROW_HEIGHT = 25;
+const DEFAULT_ROW_HEIGHT = 21;
 const ROW_HEADER_WIDTH = 50;
 const COL_HEADER_HEIGHT = 25;
 
