@@ -87,4 +87,22 @@ describe("uiStore", () => {
     useUIStore.getState().setSelectedCell(null);
     expect(useUIStore.getState().selectedCell).toBeNull();
   });
+
+  it("toolbar starts expanded (not collapsed)", () => {
+    expect(useUIStore.getState().isToolbarCollapsed).toBe(false);
+  });
+
+  it("toggleToolbarCollapsed toggles the collapsed state", () => {
+    useUIStore.getState().toggleToolbarCollapsed();
+    expect(useUIStore.getState().isToolbarCollapsed).toBe(true);
+    useUIStore.getState().toggleToolbarCollapsed();
+    expect(useUIStore.getState().isToolbarCollapsed).toBe(false);
+  });
+
+  it("setToolbarCollapsed sets the collapsed state directly", () => {
+    useUIStore.getState().setToolbarCollapsed(true);
+    expect(useUIStore.getState().isToolbarCollapsed).toBe(true);
+    useUIStore.getState().setToolbarCollapsed(false);
+    expect(useUIStore.getState().isToolbarCollapsed).toBe(false);
+  });
 });
