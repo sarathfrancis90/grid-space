@@ -150,13 +150,17 @@ export interface ColumnFilter {
 // Data Validation
 export type ValidationRuleType =
   | "number-range"
+  | "whole-number"
   | "text-length"
   | "date-range"
   | "dropdown-list"
+  | "list-from-range"
   | "checkbox"
   | "custom-formula"
   | "email"
   | "url";
+
+export type ValidationMode = "strict" | "warning";
 
 export interface ValidationRule {
   type: ValidationRuleType;
@@ -165,9 +169,13 @@ export interface ValidationRule {
   minDate?: string;
   maxDate?: string;
   listValues?: string[];
+  listRange?: string;
   formula?: string;
   allowBlank?: boolean;
   errorMessage?: string;
+  inputMessage?: string;
+  mode?: ValidationMode;
+  showDropdownArrow?: boolean;
 }
 
 // Named Ranges

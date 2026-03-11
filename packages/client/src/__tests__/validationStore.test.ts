@@ -260,4 +260,104 @@ describe("validateValue", () => {
     expect(validateValue(rule, "").valid).toBe(true);
     expect(validateValue(rule, null).valid).toBe(true);
   });
+
+  // === New features: whole-number, list-from-range, strict/warning, inputMessage ===
+
+  it("whole-number: valid whole numbers", () => {
+    const rule: ValidationRule = { type: "whole-number", min: 1, max: 100 };
+    expect(validateValue(rule, 5).valid).toBe(true);
+    expect(validateValue(rule, 100).valid).toBe(true);
+  });
+
+  it("whole-number: rejects decimals", () => {
+    const rule: ValidationRule = { type: "whole-number", min: 1, max: 100 };
+    const result = validateValue(rule, 5.5);
+    expect(result.valid).toBe(false);
+    expect(result.message).toContain("whole number");
+  });
+
+  it("whole-number: rejects non-numbers", () => {
+    const rule: ValidationRule = { type: "whole-number" };
+    expect(validateValue(rule, "abc").valid).toBe(false);
+  });
+
+  it("whole-number: respects min/max", () => {
+    const rule: ValidationRule = { type: "whole-number", min: 5, max: 10 };
+    expect(validateValue(rule, 3).valid).toBe(false);
+    expect(validateValue(rule, 12).valid).toBe(false);
+    expect(validateValue(rule, 7).valid).toBe(true);
+  });
+
+  it("list-from-range: validates against resolved values", () => {
+    const rule: ValidationRule = {
+      type: "list-from-range",
+      listRange: "A1:A3",
+    };
+    const resolved = ["Apple", "Banana", "Cherry"];
+    expect(validateValue(rule, "Apple", resolved).valid).toBe(true);
+    expect(validateValue(rule, "Grape", resolved).valid).toBe(false);
+  });
+
+  it("list-from-range: valid when no resolved values", () => {
+    const rule: ValidationRule = {
+      type: "list-from-range",
+      listRange: "A1:A3",
+    };
+    expect(validateValue(rule, "anything").valid).toBe(true);
+  });
+
+  it("warning mode: returns valid with isWarning flag", () => {
+    const rule: ValidationRule = {
+      type: "number-range",
+      min: 1,
+      max: 10,
+      mode: "warning",
+    };
+    const result = validateValue(rule, 15);
+    expect(result.valid).toBe(true);
+    expect(result.isWarning).toBe(true);
+    expect(result.message).toBeDefined();
+  });
+
+  it("strict mode: returns invalid without isWarning flag", () => {
+    const rule: ValidationRule = {
+      type: "number-range",
+      min: 1,
+      max: 10,
+      mode: "strict",
+    };
+    const result = validateValue(rule, 15);
+    expect(result.valid).toBe(false);
+    expect(result.isWarning).toBeUndefined();
+  });
+
+  it("warning mode: blank rejection also uses warning", () => {
+    const rule: ValidationRule = {
+      type: "number-range",
+      allowBlank: false,
+      mode: "warning",
+    };
+    const result = validateValue(rule, "");
+    expect(result.valid).toBe(true);
+    expect(result.isWarning).toBe(true);
+  });
+
+  it("inputMessage is stored on the rule", () => {
+    const rule: ValidationRule = {
+      type: "number-range",
+      min: 1,
+      max: 10,
+      inputMessage: "Enter a number 1-10",
+    };
+    expect(rule.inputMessage).toBe("Enter a number 1-10");
+  });
+
+  it("showDropdownArrow is stored on dropdown rules", () => {
+    const rule: ValidationRule = {
+      type: "dropdown-list",
+      listValues: ["A", "B"],
+      showDropdownArrow: true,
+    };
+    expect(rule.showDropdownArrow).toBe(true);
+  });
 });
