@@ -378,29 +378,9 @@ export function MenuBar() {
           },
         },
         {
-          label: "Paste values only",
-          testId: "menu-edit-paste-values",
-          shortcut: "Ctrl+Shift+V",
-          action: () => {
-            performPasteSpecial("values");
-            setOpenMenu(null);
-          },
-        },
-        {
-          label: "Paste format only",
-          testId: "menu-edit-paste-format",
-          action: () => {
-            performPasteSpecial("format");
-            setOpenMenu(null);
-          },
-        },
-        {
-          label: "Paste transposed",
-          testId: "menu-edit-paste-transpose",
-          action: () => {
-            performPasteSpecial({ mode: "values", transpose: true });
-            setOpenMenu(null);
-          },
+          label: "Paste special",
+          testId: "menu-edit-paste-special",
+          submenuId: "paste-special",
         },
         {
           label: "Select all",
@@ -475,6 +455,104 @@ export function MenuBar() {
               useGridStore
                 .getState()
                 .setTotalCols(Math.max(1, gs.totalCols - 1));
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Move row up",
+          testId: "menu-edit-move-row-up",
+          separator: true,
+          action: () => {
+            const sel = useUIStore.getState().selectedCell;
+            if (sel && sel.row > 0) {
+              const gs = useGridStore.getState();
+              const sid = useSpreadsheetStore.getState().activeSheetId;
+              useHistoryStore.getState().pushUndo();
+              useCellStore
+                .getState()
+                .moveRow(sid, sel.row, sel.row - 1, gs.totalCols);
+              // Swap row heights
+              const h1 = gs.getRowHeight(sel.row);
+              const h2 = gs.getRowHeight(sel.row - 1);
+              gs.setRowHeight(sel.row, h2);
+              gs.setRowHeight(sel.row - 1, h1);
+              useUIStore
+                .getState()
+                .setSelectedCell({ row: sel.row - 1, col: sel.col });
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Move row down",
+          testId: "menu-edit-move-row-down",
+          action: () => {
+            const sel = useUIStore.getState().selectedCell;
+            if (sel) {
+              const gs = useGridStore.getState();
+              if (sel.row < gs.totalRows - 1) {
+                const sid = useSpreadsheetStore.getState().activeSheetId;
+                useHistoryStore.getState().pushUndo();
+                useCellStore
+                  .getState()
+                  .moveRow(sid, sel.row, sel.row + 1, gs.totalCols);
+                const h1 = gs.getRowHeight(sel.row);
+                const h2 = gs.getRowHeight(sel.row + 1);
+                gs.setRowHeight(sel.row, h2);
+                gs.setRowHeight(sel.row + 1, h1);
+                useUIStore
+                  .getState()
+                  .setSelectedCell({ row: sel.row + 1, col: sel.col });
+              }
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Move column left",
+          testId: "menu-edit-move-col-left",
+          action: () => {
+            const sel = useUIStore.getState().selectedCell;
+            if (sel && sel.col > 0) {
+              const gs = useGridStore.getState();
+              const sid = useSpreadsheetStore.getState().activeSheetId;
+              useHistoryStore.getState().pushUndo();
+              useCellStore
+                .getState()
+                .moveCol(sid, sel.col, sel.col - 1, gs.totalRows);
+              const w1 = gs.getColumnWidth(sel.col);
+              const w2 = gs.getColumnWidth(sel.col - 1);
+              gs.setColumnWidth(sel.col, w2);
+              gs.setColumnWidth(sel.col - 1, w1);
+              useUIStore
+                .getState()
+                .setSelectedCell({ row: sel.row, col: sel.col - 1 });
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Move column right",
+          testId: "menu-edit-move-col-right",
+          action: () => {
+            const sel = useUIStore.getState().selectedCell;
+            if (sel) {
+              const gs = useGridStore.getState();
+              if (sel.col < gs.totalCols - 1) {
+                const sid = useSpreadsheetStore.getState().activeSheetId;
+                useHistoryStore.getState().pushUndo();
+                useCellStore
+                  .getState()
+                  .moveCol(sid, sel.col, sel.col + 1, gs.totalRows);
+                const w1 = gs.getColumnWidth(sel.col);
+                const w2 = gs.getColumnWidth(sel.col + 1);
+                gs.setColumnWidth(sel.col, w2);
+                gs.setColumnWidth(sel.col + 1, w1);
+                useUIStore
+                  .getState()
+                  .setSelectedCell({ row: sel.row, col: sel.col + 1 });
+              }
             }
             setOpenMenu(null);
           },
@@ -1055,6 +1133,81 @@ export function MenuBar() {
                       <span className="text-gray-400 text-[11px] ml-8">▸</span>
                     )}
                   </button>
+                  {item.submenuId === "paste-special" &&
+                    hoveredSubmenu === "paste-special" && (
+                      <div
+                        data-testid="menu-edit-paste-special-submenu"
+                        className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-56"
+                      >
+                        {[
+                          {
+                            label: "Values only",
+                            testId: "menu-edit-paste-values",
+                            shortcut: "Ctrl+Shift+V",
+                            mode: "values" as const,
+                          },
+                          {
+                            label: "Format only",
+                            testId: "menu-edit-paste-format",
+                            mode: "format" as const,
+                          },
+                          {
+                            label: "Formula only",
+                            testId: "menu-edit-paste-formula",
+                            mode: "formula" as const,
+                          },
+                          {
+                            label: "All except borders",
+                            testId: "menu-edit-paste-all-except-borders",
+                            mode: "allExceptBorders" as const,
+                          },
+                          {
+                            label: "Column widths only",
+                            testId: "menu-edit-paste-col-widths",
+                            mode: "columnWidths" as const,
+                          },
+                          {
+                            label: "Data validation only",
+                            testId: "menu-edit-paste-data-validation",
+                            mode: "dataValidation" as const,
+                          },
+                          {
+                            label: "Conditional formatting only",
+                            testId: "menu-edit-paste-cond-format",
+                            mode: "conditionalFormatting" as const,
+                          },
+                          {
+                            label: "Transposed",
+                            testId: "menu-edit-paste-transpose",
+                            mode: "values" as const,
+                            transpose: true,
+                          },
+                        ].map((psItem) => (
+                          <button
+                            key={psItem.testId}
+                            data-testid={psItem.testId}
+                            className="w-full flex items-center justify-between px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                            style={{ padding: "6px 16px" }}
+                            onClick={() => {
+                              performPasteSpecial(
+                                psItem.transpose
+                                  ? { mode: psItem.mode, transpose: true }
+                                  : psItem.mode,
+                              );
+                              setOpenMenu(null);
+                            }}
+                            type="button"
+                          >
+                            <span>{psItem.label}</span>
+                            {psItem.shortcut && (
+                              <span className="text-gray-400 text-[11px] ml-8 font-mono">
+                                {psItem.shortcut}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   {item.submenuId === "filter-views" &&
                     hoveredSubmenu === "filter-views" && (
                       <FilterViewMenu onClose={() => setOpenMenu(null)} />
