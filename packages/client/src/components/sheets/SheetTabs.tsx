@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useCellStore } from "../../stores/cellStore";
 
@@ -33,7 +33,48 @@ export function SheetTabs() {
   const [editName, setEditName] = useState("");
   const [contextMenu, setContextMenu] = useState<TabContextMenu | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [allSheetsOpen, setAllSheetsOpen] = useState(false);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const allSheetsRef = useRef<HTMLDivElement>(null);
+
+  const checkOverflow = useCallback(() => {
+    const container = tabsContainerRef.current;
+    if (!container) return;
+    const hasOverflow = container.scrollWidth > container.clientWidth;
+    setShowLeftArrow(hasOverflow && container.scrollLeft > 1);
+    setShowRightArrow(
+      hasOverflow &&
+        container.scrollLeft <
+          container.scrollWidth - container.clientWidth - 1,
+    );
+  }, []);
+
+  useEffect(() => {
+    const container = tabsContainerRef.current;
+    if (!container) return;
+    checkOverflow();
+    const resizeObserver = new ResizeObserver(checkOverflow);
+    resizeObserver.observe(container);
+    container.addEventListener("scroll", checkOverflow);
+    return () => {
+      resizeObserver.disconnect();
+      container.removeEventListener("scroll", checkOverflow);
+    };
+  }, [checkOverflow, sheets.length]);
+
+  const scrollTabs = useCallback((direction: "left" | "right") => {
+    const container = tabsContainerRef.current;
+    if (!container) return;
+    const scrollAmount = 150;
+    container.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  }, []);
 
   const handleTabClick = useCallback(
     (sheetId: string) => {
@@ -61,6 +102,15 @@ export function SheetTabs() {
     (e: React.MouseEvent, sheetId: string) => {
       e.preventDefault();
       setContextMenu({ x: e.clientX, y: e.clientY, sheetId });
+    },
+    [],
+  );
+
+  const openContextMenuFromDropdown = useCallback(
+    (e: React.MouseEvent, sheetId: string) => {
+      e.stopPropagation();
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      setContextMenu({ x: rect.left, y: rect.top, sheetId });
     },
     [],
   );
@@ -107,21 +157,134 @@ export function SheetTabs() {
     [setTabColor],
   );
 
+  const handleAllSheetsSelect = useCallback(
+    (sheetId: string) => {
+      setActiveSheet(sheetId);
+      useCellStore.getState().ensureSheet(sheetId);
+      setAllSheetsOpen(false);
+    },
+    [setActiveSheet],
+  );
+
+  useEffect(() => {
+    if (!allSheetsOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        allSheetsRef.current &&
+        !allSheetsRef.current.contains(e.target as Node)
+      ) {
+        setAllSheetsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [allSheetsOpen]);
+
   return (
     <div
       data-testid="sheet-tabs-container"
-      className="flex items-center h-9 bg-[#f0f0f0] border-t border-gray-300 pl-2 overflow-x-auto overflow-y-hidden select-none"
+      className="flex items-center h-9 bg-[#f0f0f0] border-t border-gray-300 pl-2 select-none"
       style={{ height: "36px", paddingLeft: "8px" }}
     >
+      {/* Add Sheet Button */}
       <button
         data-testid="add-sheet-btn"
         onClick={() => addSheet()}
-        className="w-7 h-7 rounded hover:bg-gray-200 cursor-pointer text-lg text-gray-600 mr-1 flex items-center justify-center transition-colors"
-        style={{ width: "28px", height: "28px", marginRight: "4px" }}
+        className="w-7 h-7 rounded hover:bg-gray-200 cursor-pointer text-lg text-gray-600 flex items-center justify-center transition-colors flex-shrink-0"
+        style={{ width: "28px", height: "28px" }}
       >
         +
       </button>
-      <div className="flex gap-px overflow-x-auto flex-1 items-end h-full">
+
+      {/* All Sheets Hamburger Menu */}
+      <div className="relative flex-shrink-0" ref={allSheetsRef}>
+        <button
+          data-testid="all-sheets-btn"
+          onClick={() => setAllSheetsOpen((prev) => !prev)}
+          className="w-7 h-7 rounded hover:bg-gray-200 cursor-pointer text-gray-600 flex items-center justify-center transition-colors mx-0.5"
+          style={{ width: "28px", height: "28px" }}
+          title="All sheets"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <line x1="3" y1="4" x2="13" y2="4" />
+            <line x1="3" y1="8" x2="13" y2="8" />
+            <line x1="3" y1="12" x2="13" y2="12" />
+          </svg>
+        </button>
+        {allSheetsOpen && (
+          <div
+            data-testid="all-sheets-menu"
+            className="absolute bottom-full left-0 mb-1 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] py-1 z-[300]"
+          >
+            {sheets.map((sheet) => (
+              <div
+                key={sheet.id}
+                data-testid={`all-sheets-item-${sheet.id}`}
+                onClick={() => handleAllSheetsSelect(sheet.id)}
+                className={`px-4 py-1.5 cursor-pointer text-[13px] hover:bg-blue-50 flex items-center gap-2 ${
+                  sheet.id === activeSheetId ? "bg-blue-50 font-medium" : ""
+                }`}
+              >
+                {sheet.tabColor && (
+                  <span
+                    className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                    style={{ backgroundColor: sheet.tabColor }}
+                  />
+                )}
+                <span className="truncate">{sheet.name}</span>
+                {sheet.id === activeSheetId && (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="currentColor"
+                    className="ml-auto flex-shrink-0 text-blue-600"
+                  >
+                    <path
+                      d="M2 6l3 3 5-5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                  </svg>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Left Navigation Arrow */}
+      {showLeftArrow && (
+        <button
+          data-testid="tabs-scroll-left"
+          onClick={() => scrollTabs("left")}
+          className="w-6 h-6 rounded hover:bg-gray-200 cursor-pointer text-gray-500 flex items-center justify-center transition-colors flex-shrink-0"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <path
+              d="M8 1L3 6l5 5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              fill="none"
+            />
+          </svg>
+        </button>
+      )}
+
+      {/* Tabs Container */}
+      <div
+        ref={tabsContainerRef}
+        className="flex gap-px overflow-x-auto flex-1 items-end h-full"
+        style={{ scrollbarWidth: "none" }}
+      >
         {sheets.map((sheet, idx) => (
           <div
             key={sheet.id}
@@ -133,13 +296,13 @@ export function SheetTabs() {
             onClick={() => handleTabClick(sheet.id)}
             onDoubleClick={() => handleDoubleClick(sheet.id, sheet.name)}
             onContextMenu={(e) => handleContextMenu(e, sheet.id)}
-            className={`px-4 cursor-pointer text-xs whitespace-nowrap min-w-[60px] text-center transition-colors ${
+            className={`group px-4 cursor-pointer text-xs whitespace-nowrap min-w-[60px] text-center transition-colors flex items-center gap-0.5 ${
               sheet.id === activeSheetId
                 ? "bg-white text-gray-800 font-medium rounded-t border-l border-r border-t border-gray-300"
                 : "bg-transparent text-gray-600 hover:bg-gray-200/60 rounded-t border border-transparent"
             }`}
             style={{
-              padding: "6px 16px",
+              padding: "6px 12px 6px 16px",
               borderBottom: sheet.tabColor
                 ? `3px solid ${sheet.tabColor}`
                 : sheet.id === activeSheetId
@@ -170,12 +333,42 @@ export function SheetTabs() {
                 autoFocus
               />
             ) : (
-              sheet.name
+              <>
+                <span>{sheet.name}</span>
+                {/* Tab Dropdown Triangle */}
+                <span
+                  data-testid={`sheet-tab-dropdown-${sheet.id}`}
+                  onClick={(e) => openContextMenuFromDropdown(e, sheet.id)}
+                  className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-700 flex-shrink-0"
+                  style={{ fontSize: "8px", lineHeight: 1 }}
+                >
+                  ▼
+                </span>
+              </>
             )}
           </div>
         ))}
       </div>
 
+      {/* Right Navigation Arrow */}
+      {showRightArrow && (
+        <button
+          data-testid="tabs-scroll-right"
+          onClick={() => scrollTabs("right")}
+          className="w-6 h-6 rounded hover:bg-gray-200 cursor-pointer text-gray-500 flex items-center justify-center transition-colors flex-shrink-0"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <path
+              d="M4 1l5 5-5 5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              fill="none"
+            />
+          </svg>
+        </button>
+      )}
+
+      {/* Context Menu */}
       {contextMenu && (
         <div
           data-testid="sheet-context-menu-backdrop"
