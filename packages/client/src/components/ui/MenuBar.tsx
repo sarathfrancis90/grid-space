@@ -771,6 +771,55 @@ export function MenuBar() {
             setOpenMenu(null);
           },
         },
+        {
+          label: "Function",
+          testId: "menu-insert-function",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setFunctionPickerOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Sparkline",
+          testId: "menu-insert-sparkline",
+          action: () => {
+            const sel = useUIStore.getState().selectedCell;
+            if (sel) {
+              const sid = useSpreadsheetStore.getState().activeSheetId;
+              useCellStore.getState().setCell(sid, sel.row, sel.col, {
+                value: "=SPARKLINE()",
+                formula: "=SPARKLINE()",
+              });
+              useUIStore.getState().startEditing(sel, "=SPARKLINE()");
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Drawing",
+          testId: "menu-insert-drawing",
+          action: () => {
+            useUIStore.getState().setDrawingDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Pivot table",
+          testId: "menu-insert-pivot",
+          separator: true,
+          action: () => {
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Slicer",
+          testId: "menu-insert-slicer",
+          action: () => {
+            useUIStore.getState().setSlicerDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
       ],
     },
     {
