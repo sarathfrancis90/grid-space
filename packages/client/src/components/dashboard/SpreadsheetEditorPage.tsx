@@ -11,6 +11,8 @@ import { useCloudStore } from "../../stores/cloudStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useAuthStore } from "../../stores/authStore";
 import { useSharingStore } from "../../stores/sharingStore";
+import { useCommentStore } from "../../stores/commentStore";
+import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { Grid } from "../grid";
 import { MenuBar } from "../ui/MenuBar";
 import { FormulaBar } from "../formula-bar/FormulaBar";
@@ -111,8 +113,15 @@ export default function SpreadsheetEditorPage() {
   const toggleStar = useCloudStore((s) => s.toggleStar);
 
   const showFormulaBar = useUIStore((s) => s.showFormulaBar);
+  const isToolbarCollapsed = useUIStore((s) => s.isToolbarCollapsed);
+  const setToolbarCollapsed = useUIStore((s) => s.setToolbarCollapsed);
   const user = useAuthStore((s) => s.user);
   const openShareDialog = useSharingStore((s) => s.openDialog);
+  const activeSheetId = useSpreadsheetStore((s) => s.activeSheetId);
+  const commentCount = useCommentStore((s) =>
+    activeSheetId ? s.getCommentCount(activeSheetId) : 0,
+  );
+  const openCommentPanel = useCommentStore((s) => s.openPanel);
   const activeView = useViewStore((s) => s.activeView);
   const isMobile = useIsMobile();
 
@@ -277,6 +286,37 @@ export default function SpreadsheetEditorPage() {
         >
           <ConnectionStatus />
           <CollaboratorAvatars />
+
+          {/* Comment icon with count badge */}
+          <button
+            onClick={openCommentPanel}
+            className="relative rounded p-1 hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+            style={{ padding: "4px" }}
+            data-testid="titlebar-comment-button"
+            title="Open comments"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            {commentCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-medium text-white"
+                data-testid="comment-count-badge"
+              >
+                {commentCount}
+              </span>
+            )}
+          </button>
+
           <button
             onClick={handleShare}
             className="rounded-full bg-[#1a73e8] px-5 py-1.5 text-sm font-medium text-white hover:bg-[#1765cc] transition-colors shadow-sm"
@@ -286,6 +326,27 @@ export default function SpreadsheetEditorPage() {
             Share
           </button>
           <NotificationCenter />
+
+          {/* User avatar */}
+          {user && (
+            <button
+              onClick={() => navigate("/profile")}
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#1a73e8] text-sm font-medium text-white hover:opacity-90"
+              style={{ width: "32px", height: "32px", fontSize: "14px" }}
+              data-testid="titlebar-user-avatar"
+              title={user.name ?? user.email}
+            >
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name ?? "User"}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                (user.name ?? user.email).charAt(0).toUpperCase()
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -295,8 +356,38 @@ export default function SpreadsheetEditorPage() {
       {/* Menu bar — hidden on mobile */}
       {!isMobile && <MenuBar />}
 
-      {/* Toolbar — collapses on mobile */}
-      {isMobile ? <MobileToolbar /> : <Toolbar />}
+      {/* Toolbar — collapses on mobile or when user collapses it */}
+      {isMobile ? (
+        <MobileToolbar />
+      ) : isToolbarCollapsed ? (
+        <div
+          className="flex items-center justify-end px-2 py-0.5 bg-[#f3f3f3] border-b border-gray-200"
+          style={{ padding: "2px 8px" }}
+        >
+          <button
+            data-testid="toolbar-expand-button"
+            className="h-6 w-6 flex items-center justify-center rounded-sm hover:bg-gray-200 text-gray-500"
+            onClick={() => setToolbarCollapsed(false)}
+            title="Show toolbar"
+            type="button"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+        </div>
+      ) : (
+        <Toolbar />
+      )}
 
       {/* Formula bar */}
       {showFormulaBar && <FormulaBar />}

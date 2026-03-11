@@ -73,6 +73,7 @@ interface UIState {
   isConditionalFormatOpen: boolean;
   isEmailDialogOpen: boolean;
   isDetailsDialogOpen: boolean;
+  isToolbarCollapsed: boolean;
   isFullscreen: boolean;
   isFormulaBarExpanded: boolean;
   isFunctionPickerOpen: boolean;
@@ -114,6 +115,7 @@ interface UIState {
   setConditionalFormatOpen: (open: boolean) => void;
   setEmailDialogOpen: (open: boolean) => void;
   setDetailsDialogOpen: (open: boolean) => void;
+  setToolbarCollapsed: (collapsed: boolean) => void;
   setFullscreen: (fullscreen: boolean) => void;
   setFormulaBarExpanded: (expanded: boolean) => void;
   setFunctionPickerOpen: (open: boolean) => void;
@@ -158,6 +160,7 @@ export const useUIStore = create<UIState>()(
     isConditionalFormatOpen: false,
     isEmailDialogOpen: false,
     isDetailsDialogOpen: false,
+    isToolbarCollapsed: false,
     isFullscreen: false,
     isFormulaBarExpanded: false,
     isFunctionPickerOpen: false,
@@ -393,6 +396,12 @@ export const useUIStore = create<UIState>()(
     setDetailsDialogOpen: (open: boolean) => {
       set((state) => {
         state.isDetailsDialogOpen = open;
+      });
+    },
+
+    setToolbarCollapsed: (collapsed: boolean) => {
+      set((state) => {
+        state.isToolbarCollapsed = collapsed;
       });
     },
 
