@@ -182,6 +182,67 @@ export function computeWaterfallData(
   return points;
 }
 
+export interface BubblePoint {
+  x: number;
+  y: number;
+  r: number;
+}
+
+/**
+ * Extract bubble data from datasets. Expects at least 2 datasets (x, y),
+ * with an optional 3rd dataset for radius.
+ */
+export function extractBubbleData(
+  _labels: string[],
+  datasets: { data: number[] }[],
+): BubblePoint[] {
+  if (datasets.length === 0) return [];
+
+  if (datasets.length >= 3) {
+    const [xDs, yDs, rDs] = datasets;
+    const len = Math.min(xDs.data.length, yDs.data.length, rDs.data.length);
+    return Array.from({ length: len }, (_, i) => ({
+      x: xDs.data[i],
+      y: yDs.data[i],
+      r: Math.max(1, Math.abs(rDs.data[i])),
+    }));
+  }
+
+  if (datasets.length === 2) {
+    const [xDs, yDs] = datasets;
+    const len = Math.min(xDs.data.length, yDs.data.length);
+    return Array.from({ length: len }, (_, i) => ({
+      x: xDs.data[i],
+      y: yDs.data[i],
+      r: 5,
+    }));
+  }
+
+  const ds = datasets[0];
+  return ds.data.map((val, i) => ({ x: i, y: val, r: 5 }));
+}
+
+export interface GaugeData {
+  value: number;
+  remaining: number;
+  max: number;
+}
+
+/**
+ * Build gauge data from datasets. Takes the first value from the first dataset
+ * as the gauge value. Max defaults to 100 or the second data value.
+ */
+export function buildGaugeData(datasets: { data: number[] }[]): GaugeData {
+  const value = datasets[0]?.data[0] ?? 0;
+  const max = datasets[0]?.data[1] ?? Math.max(100, Math.ceil(value / 10) * 10);
+  const clamped = Math.max(0, Math.min(value, max));
+  return {
+    value: clamped,
+    remaining: max - clamped,
+    max,
+  };
+}
+
 export interface CandlestickPoint {
   label: string;
   open: number;

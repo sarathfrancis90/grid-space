@@ -17,9 +17,18 @@ import {
   Legend,
   Filler,
 } from "chart.js";
-import { Bar, Line, Pie, Scatter, Radar } from "react-chartjs-2";
+import {
+  Bar,
+  Line,
+  Pie,
+  Scatter,
+  Radar,
+  Bubble,
+  Doughnut,
+} from "react-chartjs-2";
 import type { ChartConfig, ChartType } from "../../types/grid";
 import type { ChartDataset } from "../../utils/chartData";
+import { extractBubbleData, buildGaugeData } from "../../utils/chartHelpers";
 import {
   computeHistogramBins,
   computeWaterfallData,
@@ -48,7 +57,7 @@ interface ChartRendererProps {
   chartData: ChartDataset;
 }
 
-const NO_SCALE_TYPES: ChartType[] = ["pie", "radar"];
+const NO_SCALE_TYPES: ChartType[] = ["pie", "radar", "gauge"];
 
 function buildBaseOptions(chart: ChartConfig) {
   return {
@@ -238,6 +247,7 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
             typeof bgColor === "string" ? bgColor : ds.borderColor,
           borderColor: ds.borderColor,
           fill: false,
+          ...(chart.smoothLines ? { tension: 0.4 } : {}),
         };
       }
       if (chart.type === "area") {
@@ -247,6 +257,7 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
           backgroundColor: ds.borderColor ? ds.borderColor + "40" : undefined,
           borderColor: ds.borderColor,
           fill: true,
+          ...(chart.smoothLines ? { tension: 0.4 } : {}),
         };
       }
       if (chart.type === "radar") {
@@ -311,7 +322,53 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
     }
 
     return { labels: chartData.labels, datasets };
-  }, [chartData, chart.type, chart.colors, chart.stackMode, chart.trendline]);
+  }, [
+    chartData,
+    chart.type,
+    chart.colors,
+    chart.stackMode,
+    chart.trendline,
+    chart.smoothLines,
+  ]);
+
+  const bubbleDataConfig = useMemo(() => {
+    if (chart.type !== "bubble") return null;
+    const colors = chart.colors?.length ? chart.colors : undefined;
+    const bubblePoints = extractBubbleData(
+      chartData.labels,
+      chartData.datasets,
+    );
+    return {
+      labels: [] as string[],
+      datasets: [
+        {
+          label: chartData.datasets[0]?.label ?? "Bubble",
+          data: bubblePoints,
+          backgroundColor: (colors?.[0] ?? "#4285f4") + "80",
+          borderColor: colors?.[0] ?? "#4285f4",
+          borderWidth: 1,
+        },
+      ],
+    };
+  }, [chart.type, chart.colors, chartData]);
+
+  const gaugeDataConfig = useMemo(() => {
+    if (chart.type !== "gauge") return null;
+    const colors = chart.colors?.length ? chart.colors : undefined;
+    const gaugeData = buildGaugeData(chartData.datasets);
+    return {
+      labels: ["Value", "Remaining"],
+      datasets: [
+        {
+          data: [gaugeData.value, gaugeData.remaining],
+          backgroundColor: [colors?.[0] ?? "#4285f4", "#e0e0e0"],
+          borderWidth: 0,
+          circumference: 180,
+          rotation: 270,
+        },
+      ],
+    };
+  }, [chart.type, chart.colors, chartData]);
 
   const handleExport = useCallback(() => {
     const chartInstance = ChartJS.getChart(chartCanvasId);
@@ -406,6 +463,27 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
             options={candlestickOptions}
           />
         );
+      case "bubble":
+        return bubbleDataConfig ? (
+          <Bubble
+            id={chartCanvasId}
+            data={bubbleDataConfig}
+            options={options}
+          />
+        ) : null;
+      case "gauge": {
+        const { scales: _gaugeScales, ...gaugeOptions } = options;
+        return gaugeDataConfig ? (
+          <Doughnut
+            id={chartCanvasId}
+            data={gaugeDataConfig}
+            options={{
+              ...gaugeOptions,
+              cutout: "70%",
+            }}
+          />
+        ) : null;
+      }
       default:
         return <Bar id={chartCanvasId} data={dataConfig} options={options} />;
     }

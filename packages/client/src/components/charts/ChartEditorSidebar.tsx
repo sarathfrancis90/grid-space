@@ -20,6 +20,8 @@ const CHART_TYPES: { value: ChartType; label: string }[] = [
   { value: "radar", label: "Radar" },
   { value: "waterfall", label: "Waterfall" },
   { value: "candlestick", label: "Candlestick" },
+  { value: "bubble", label: "Bubble" },
+  { value: "gauge", label: "Gauge" },
 ];
 
 const STACK_MODES: { value: StackMode; label: string }[] = [
@@ -42,6 +44,8 @@ const TRENDLINE_TYPES_APPLICABLE: ChartType[] = [
   "column",
   "bar",
 ];
+
+const SMOOTH_LINE_TYPES: ChartType[] = ["line", "area", "scatter"];
 
 const LEGEND_POSITIONS = [
   { value: "top", label: "Top" },
@@ -180,6 +184,13 @@ export function ChartEditorSidebar() {
     },
     [chart, sheetId, updateChart],
   );
+
+  const handleSmoothLinesToggle = useCallback(() => {
+    if (!chart) return;
+    updateChart(sheetId, chart.id, {
+      smoothLines: !chart.smoothLines,
+    });
+  }, [chart, sheetId, updateChart]);
 
   if (!editorOpen || !chart) return null;
 
@@ -362,6 +373,21 @@ export function ChartEditorSidebar() {
                 </option>
               ))}
             </select>
+          </div>
+        )}
+
+        {/* Smooth lines */}
+        {SMOOTH_LINE_TYPES.includes(chart.type) && (
+          <div>
+            <label className="flex items-center gap-2 text-xs font-medium text-gray-600">
+              <input
+                data-testid="chart-smooth-lines-toggle"
+                type="checkbox"
+                checked={chart.smoothLines === true}
+                onChange={handleSmoothLinesToggle}
+              />
+              Smooth Lines
+            </label>
           </div>
         )}
 

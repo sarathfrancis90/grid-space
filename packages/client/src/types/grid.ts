@@ -277,7 +277,9 @@ export type ChartType =
   | "histogram"
   | "radar"
   | "waterfall"
-  | "candlestick";
+  | "candlestick"
+  | "bubble"
+  | "gauge";
 
 export type StackMode = "none" | "stacked" | "percent";
 
@@ -299,6 +301,7 @@ export interface ChartConfig {
   colors?: string[];
   stackMode?: StackMode;
   trendline?: TrendlineType;
+  smoothLines?: boolean;
 }
 
 // Comments
