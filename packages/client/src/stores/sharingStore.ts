@@ -19,6 +19,13 @@ interface Collaborator {
 interface ShareLinkInfo {
   shareLink: string | null;
   shareLinkRole: string | null;
+  expiresAt: string | null;
+}
+
+interface ViewerRestrictions {
+  disableDownload: boolean;
+  disablePrint: boolean;
+  disableCopy: boolean;
 }
 
 interface PublishInfo {
@@ -30,6 +37,7 @@ interface SharingState {
   collaborators: Collaborator[];
   shareLink: ShareLinkInfo;
   publishInfo: PublishInfo;
+  viewerRestrictions: ViewerRestrictions;
   isLoading: boolean;
   isDialogOpen: boolean;
   error: string | null;
@@ -43,6 +51,7 @@ interface SharingActions {
     spreadsheetId: string,
     email: string,
     role: "viewer" | "commenter" | "editor",
+    options?: { notify?: boolean; message?: string },
   ) => Promise<void>;
   changeRole: (
     spreadsheetId: string,
@@ -54,9 +63,15 @@ interface SharingActions {
   createShareLink: (
     spreadsheetId: string,
     role?: "viewer" | "commenter" | "editor",
+    expiresAt?: string | null,
   ) => Promise<void>;
   disableShareLink: (spreadsheetId: string) => Promise<void>;
-  transferOwnership: (spreadsheetId: string, email: string) => Promise<void>;
+  transferOwnership: (spreadsheetId: string, userId: string) => Promise<void>;
+  fetchViewerRestrictions: (spreadsheetId: string) => Promise<void>;
+  updateViewerRestrictions: (
+    spreadsheetId: string,
+    restrictions: ViewerRestrictions,
+  ) => Promise<void>;
   fetchPublishInfo: (spreadsheetId: string) => Promise<void>;
   publishToWeb: (spreadsheetId: string) => Promise<string>;
   unpublishFromWeb: (spreadsheetId: string) => Promise<void>;
@@ -71,8 +86,13 @@ export let currentSpreadsheetId = "";
 export const useSharingStore = create<SharingStore>()(
   immer((set) => ({
     collaborators: [],
-    shareLink: { shareLink: null, shareLinkRole: null },
+    shareLink: { shareLink: null, shareLinkRole: null, expiresAt: null },
     publishInfo: { isPublished: false, publishedUrl: null },
+    viewerRestrictions: {
+      disableDownload: false,
+      disablePrint: false,
+      disableCopy: false,
+    },
     isLoading: false,
     isDialogOpen: false,
     error: null,
@@ -117,11 +137,12 @@ export const useSharingStore = create<SharingStore>()(
       spreadsheetId: string,
       email: string,
       role: "viewer" | "commenter" | "editor",
+      options?: { notify?: boolean; message?: string },
     ) => {
       try {
         const collaborator = await api.post<Collaborator>(
           `/spreadsheets/${spreadsheetId}/access`,
-          { email, role },
+          { email, role, notify: options?.notify, message: options?.message },
         );
         set((state) => {
           state.collaborators.push(collaborator);
@@ -192,11 +213,12 @@ export const useSharingStore = create<SharingStore>()(
     createShareLink: async (
       spreadsheetId: string,
       role: "viewer" | "commenter" | "editor" = "viewer",
+      expiresAt?: string | null,
     ) => {
       try {
         const data = await api.post<ShareLinkInfo>(
           `/spreadsheets/${spreadsheetId}/share-link`,
-          { role },
+          { role, expiresAt: expiresAt || undefined },
         );
         set((state) => {
           state.shareLink = data;
@@ -213,7 +235,11 @@ export const useSharingStore = create<SharingStore>()(
       try {
         await api.delete(`/spreadsheets/${spreadsheetId}/share-link`);
         set((state) => {
-          state.shareLink = { shareLink: null, shareLinkRole: null };
+          state.shareLink = {
+            shareLink: null,
+            shareLinkRole: null,
+            expiresAt: null,
+          };
         });
       } catch (err) {
         set((state) => {
@@ -223,10 +249,61 @@ export const useSharingStore = create<SharingStore>()(
       }
     },
 
-    transferOwnership: async (spreadsheetId: string, email: string) => {
-      await api.post(`/spreadsheets/${spreadsheetId}/transfer-ownership`, {
-        email,
-      });
+    transferOwnership: async (spreadsheetId: string, userId: string) => {
+      try {
+        await api.post(`/spreadsheets/${spreadsheetId}/transfer-ownership`, {
+          userId,
+        });
+        // Refresh collaborators to reflect the ownership change
+        const data = await api.get<Collaborator[]>(
+          `/spreadsheets/${spreadsheetId}/access`,
+        );
+        set((state) => {
+          state.collaborators = data;
+        });
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to transfer ownership";
+        set((state) => {
+          state.error = message;
+        });
+        throw err;
+      }
+    },
+
+    fetchViewerRestrictions: async (spreadsheetId: string) => {
+      try {
+        const data = await api.get<ViewerRestrictions>(
+          `/spreadsheets/${spreadsheetId}/viewer-restrictions`,
+        );
+        set((state) => {
+          state.viewerRestrictions = data;
+        });
+      } catch {
+        // Ignore errors — defaults already set
+      }
+    },
+
+    updateViewerRestrictions: async (
+      spreadsheetId: string,
+      restrictions: ViewerRestrictions,
+    ) => {
+      try {
+        await api.put(
+          `/spreadsheets/${spreadsheetId}/viewer-restrictions`,
+          restrictions,
+        );
+        set((state) => {
+          state.viewerRestrictions = restrictions;
+        });
+      } catch (err) {
+        set((state) => {
+          state.error =
+            err instanceof Error
+              ? err.message
+              : "Failed to update viewer restrictions";
+        });
+      }
     },
 
     fetchPublishInfo: async (spreadsheetId: string) => {
