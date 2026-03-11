@@ -1195,6 +1195,36 @@ export function Grid() {
     ctx.lineTo(width, Math.round(chh) + 0.5);
     ctx.stroke();
 
+    // Draw hidden column indicators (double-line arrows between visible headers)
+    for (let c = 0; c < gs.totalCols; c++) {
+      if (!gs.hiddenCols.has(c)) continue;
+      // Find the visible column before this hidden range
+      let rangeStart = c;
+      while (rangeStart > 0 && gs.hiddenCols.has(rangeStart - 1)) rangeStart--;
+      if (c !== rangeStart) continue; // only draw once per hidden range
+      let rangeEnd = c;
+      while (rangeEnd < gs.totalCols - 1 && gs.hiddenCols.has(rangeEnd + 1))
+        rangeEnd++;
+      // Position: right edge of previous visible col (or left edge if col 0 is hidden)
+      const indicatorX =
+        rangeStart > 0 ? gs.getColumnX(rangeStart) - gs.scrollLeft + rhw : rhw;
+      // Draw double vertical lines
+      ctx.strokeStyle = "#1a73e8";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(Math.round(indicatorX) - 1.5, 2);
+      ctx.lineTo(Math.round(indicatorX) - 1.5, chh - 2);
+      ctx.moveTo(Math.round(indicatorX) + 0.5, 2);
+      ctx.lineTo(Math.round(indicatorX) + 0.5, chh - 2);
+      ctx.stroke();
+      // Draw small arrows pointing inward (◀▶)
+      ctx.fillStyle = "#1a73e8";
+      ctx.font = "8px Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("◂▸", Math.round(indicatorX), Math.round(chh / 2));
+    }
+
     // Draw row headers
     ctx.fillStyle = HEADER_BG;
     ctx.fillRect(0, chh, rhw, height - chh);
@@ -1232,6 +1262,34 @@ export function Grid() {
     ctx.moveTo(Math.round(rhw) + 0.5, chh);
     ctx.lineTo(Math.round(rhw) + 0.5, height);
     ctx.stroke();
+
+    // Draw hidden row indicators (double-line arrows between visible headers)
+    for (let r = 0; r < gs.totalRows; r++) {
+      if (!gs.hiddenRows.has(r)) continue;
+      let rangeStart = r;
+      while (rangeStart > 0 && gs.hiddenRows.has(rangeStart - 1)) rangeStart--;
+      if (r !== rangeStart) continue; // only draw once per hidden range
+      let rangeEnd = r;
+      while (rangeEnd < gs.totalRows - 1 && gs.hiddenRows.has(rangeEnd + 1))
+        rangeEnd++;
+      const indicatorY =
+        rangeStart > 0 ? gs.getRowY(rangeStart) - gs.scrollTop + chh : chh;
+      // Draw double horizontal lines
+      ctx.strokeStyle = "#1a73e8";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(2, Math.round(indicatorY) - 1.5);
+      ctx.lineTo(rhw - 2, Math.round(indicatorY) - 1.5);
+      ctx.moveTo(2, Math.round(indicatorY) + 0.5);
+      ctx.lineTo(rhw - 2, Math.round(indicatorY) + 0.5);
+      ctx.stroke();
+      // Draw small arrows pointing inward
+      ctx.fillStyle = "#1a73e8";
+      ctx.font = "8px Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("\u25B4\u25BE", Math.round(rhw / 2), Math.round(indicatorY));
+    }
 
     // Top-left corner
     ctx.fillStyle = HEADER_BG;
@@ -1826,6 +1884,58 @@ export function Grid() {
         }
       }
 
+      // Click on hidden row indicator to unhide
+      if (x < gs.rowHeaderWidth && y > gs.colHeaderHeight) {
+        for (let r = 0; r < gs.totalRows; r++) {
+          if (!gs.hiddenRows.has(r)) continue;
+          let rangeStart = r;
+          while (rangeStart > 0 && gs.hiddenRows.has(rangeStart - 1))
+            rangeStart--;
+          if (r !== rangeStart) continue;
+          let rangeEnd = r;
+          while (rangeEnd < gs.totalRows - 1 && gs.hiddenRows.has(rangeEnd + 1))
+            rangeEnd++;
+          const indicatorY =
+            rangeStart > 0
+              ? gs.getRowY(rangeStart) - gs.scrollTop + gs.colHeaderHeight
+              : gs.colHeaderHeight;
+          if (Math.abs(y - indicatorY) < 6) {
+            const rowsToUnhide: number[] = [];
+            for (let ur = rangeStart; ur <= rangeEnd; ur++)
+              rowsToUnhide.push(ur);
+            gs.unhideRows(rowsToUnhide);
+            return;
+          }
+          r = rangeEnd; // skip to end of range
+        }
+      }
+
+      // Click on hidden column indicator to unhide
+      if (y < gs.colHeaderHeight && x > gs.rowHeaderWidth) {
+        for (let c = 0; c < gs.totalCols; c++) {
+          if (!gs.hiddenCols.has(c)) continue;
+          let rangeStart = c;
+          while (rangeStart > 0 && gs.hiddenCols.has(rangeStart - 1))
+            rangeStart--;
+          if (c !== rangeStart) continue;
+          let rangeEnd = c;
+          while (rangeEnd < gs.totalCols - 1 && gs.hiddenCols.has(rangeEnd + 1))
+            rangeEnd++;
+          const indicatorX =
+            rangeStart > 0
+              ? gs.getColumnX(rangeStart) - gs.scrollLeft + gs.rowHeaderWidth
+              : gs.rowHeaderWidth;
+          if (Math.abs(x - indicatorX) < 6) {
+            const colsToUnhide: number[] = [];
+            for (let uc = rangeStart; uc <= rangeEnd; uc++)
+              colsToUnhide.push(uc);
+            gs.unhideCols(colsToUnhide);
+            return;
+          }
+          c = rangeEnd; // skip to end of range
+        }
+      }
+
       // Row header click
       if (x < gs.rowHeaderWidth && y > gs.colHeaderHeight) {
         const gridY = y - gs.colHeaderHeight + gs.scrollTop;
@@ -2180,16 +2290,47 @@ export function Grid() {
 
       items.push({ label: "Delete row", action: () => deleteRowsAt([row]) });
       items.push({ label: "", action: () => {}, separator: true });
-      items.push({
-        label: isHidden ? "Unhide row" : "Hide row",
-        action: () => {
-          if (isHidden) {
-            useGridStore.getState().unhideRows([row]);
-          } else {
-            useGridStore.getState().hideRows([row]);
-          }
-        },
-      });
+      if (selectedRowCount > 1) {
+        const startRow = Math.min(lastSel!.start.row, lastSel!.end.row);
+        const endRow = Math.max(lastSel!.start.row, lastSel!.end.row);
+        const rowsToHide: number[] = [];
+        for (let r = startRow; r <= endRow; r++) rowsToHide.push(r);
+        items.push({
+          label: `Hide rows ${startRow + 1}–${endRow + 1}`,
+          action: () => {
+            useGridStore.getState().hideRows(rowsToHide);
+          },
+        });
+      } else {
+        items.push({
+          label: isHidden ? "Unhide row" : "Hide row",
+          action: () => {
+            if (isHidden) {
+              useGridStore.getState().unhideRows([row]);
+            } else {
+              useGridStore.getState().hideRows([row]);
+            }
+          },
+        });
+      }
+      // Check if adjacent rows are hidden and offer unhide
+      const adjacentHiddenRows: number[] = [];
+      for (let r = row - 1; r >= 0; r--) {
+        if (gs.hiddenRows.has(r)) adjacentHiddenRows.push(r);
+        else break;
+      }
+      for (let r = row + 1; r < gs.totalRows; r++) {
+        if (gs.hiddenRows.has(r)) adjacentHiddenRows.push(r);
+        else break;
+      }
+      if (adjacentHiddenRows.length > 0) {
+        items.push({
+          label: `Unhide ${adjacentHiddenRows.length} adjacent row${adjacentHiddenRows.length > 1 ? "s" : ""}`,
+          action: () => {
+            useGridStore.getState().unhideRows(adjacentHiddenRows);
+          },
+        });
+      }
       items.push({
         label: "Resize row",
         action: () => {
@@ -2270,16 +2411,47 @@ export function Grid() {
         action: () => deleteColsAt([col]),
       });
       items.push({ label: "", action: () => {}, separator: true });
-      items.push({
-        label: isHidden ? "Unhide column" : "Hide column",
-        action: () => {
-          if (isHidden) {
-            useGridStore.getState().unhideCols([col]);
-          } else {
-            useGridStore.getState().hideCols([col]);
-          }
-        },
-      });
+      if (selectedColCount > 1) {
+        const startCol = Math.min(lastSel!.start.col, lastSel!.end.col);
+        const endCol = Math.max(lastSel!.start.col, lastSel!.end.col);
+        const colsToHide: number[] = [];
+        for (let c = startCol; c <= endCol; c++) colsToHide.push(c);
+        items.push({
+          label: `Hide columns ${colToLetter(startCol)}–${colToLetter(endCol)}`,
+          action: () => {
+            useGridStore.getState().hideCols(colsToHide);
+          },
+        });
+      } else {
+        items.push({
+          label: isHidden ? "Unhide column" : "Hide column",
+          action: () => {
+            if (isHidden) {
+              useGridStore.getState().unhideCols([col]);
+            } else {
+              useGridStore.getState().hideCols([col]);
+            }
+          },
+        });
+      }
+      // Check if adjacent cols are hidden and offer unhide
+      const adjacentHiddenCols: number[] = [];
+      for (let c = col - 1; c >= 0; c--) {
+        if (gs.hiddenCols.has(c)) adjacentHiddenCols.push(c);
+        else break;
+      }
+      for (let c = col + 1; c < gs.totalCols; c++) {
+        if (gs.hiddenCols.has(c)) adjacentHiddenCols.push(c);
+        else break;
+      }
+      if (adjacentHiddenCols.length > 0) {
+        items.push({
+          label: `Unhide ${adjacentHiddenCols.length} adjacent column${adjacentHiddenCols.length > 1 ? "s" : ""}`,
+          action: () => {
+            useGridStore.getState().unhideCols(adjacentHiddenCols);
+          },
+        });
+      }
       items.push({
         label: "Resize column",
         action: () => {

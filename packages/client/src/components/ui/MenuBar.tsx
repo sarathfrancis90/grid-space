@@ -620,6 +620,70 @@ export function MenuBar() {
           label: "Zoom",
           testId: "menu-view-zoom",
           action: () => setOpenMenu(null),
+          separator: true,
+        },
+        {
+          label: "Hide selected rows",
+          testId: "menu-view-hide-rows",
+          action: () => {
+            const sel = useUIStore.getState().selectedCell;
+            const selections = useUIStore.getState().selections;
+            if (selections.length > 0) {
+              const lastSel = selections[selections.length - 1];
+              const startRow = Math.min(lastSel.start.row, lastSel.end.row);
+              const endRow = Math.max(lastSel.start.row, lastSel.end.row);
+              const rows: number[] = [];
+              for (let r = startRow; r <= endRow; r++) rows.push(r);
+              useGridStore.getState().hideRows(rows);
+            } else if (sel) {
+              useGridStore.getState().hideRows([sel.row]);
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Hide selected columns",
+          testId: "menu-view-hide-cols",
+          action: () => {
+            const sel = useUIStore.getState().selectedCell;
+            const selections = useUIStore.getState().selections;
+            if (selections.length > 0) {
+              const lastSel = selections[selections.length - 1];
+              const startCol = Math.min(lastSel.start.col, lastSel.end.col);
+              const endCol = Math.max(lastSel.start.col, lastSel.end.col);
+              const cols: number[] = [];
+              for (let c = startCol; c <= endCol; c++) cols.push(c);
+              useGridStore.getState().hideCols(cols);
+            } else if (sel) {
+              useGridStore.getState().hideCols([sel.col]);
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Unhide all rows",
+          testId: "menu-view-unhide-rows",
+          action: () => {
+            const gs = useGridStore.getState();
+            const hiddenRows = Array.from(gs.hiddenRows);
+            if (hiddenRows.length > 0) {
+              gs.unhideRows(hiddenRows);
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Unhide all columns",
+          testId: "menu-view-unhide-cols",
+          separator: true,
+          action: () => {
+            const gs = useGridStore.getState();
+            const hiddenCols = Array.from(gs.hiddenCols);
+            if (hiddenCols.length > 0) {
+              gs.unhideCols(hiddenCols);
+            }
+            setOpenMenu(null);
+          },
         },
         {
           label: "Full screen",
