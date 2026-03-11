@@ -17,13 +17,15 @@ import {
   Legend,
   Filler,
 } from "chart.js";
-import { Bar, Line, Pie, Scatter, Radar } from "react-chartjs-2";
+import { Bar, Line, Pie, Scatter, Radar, Doughnut } from "react-chartjs-2";
 import type { ChartConfig, ChartType } from "../../types/grid";
 import type { ChartDataset } from "../../utils/chartData";
 import {
   computeHistogramBins,
   computeWaterfallData,
   extractCandlestickData,
+  extractBubbleData,
+  buildGaugeData,
   computeLinearTrendline,
   computeExponentialTrendline,
   computePolynomialTrendline,
@@ -48,7 +50,7 @@ interface ChartRendererProps {
   chartData: ChartDataset;
 }
 
-const NO_SCALE_TYPES: ChartType[] = ["pie", "radar"];
+const NO_SCALE_TYPES: ChartType[] = ["pie", "radar", "gauge"];
 
 function buildBaseOptions(chart: ChartConfig) {
   return {
@@ -238,6 +240,7 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
             typeof bgColor === "string" ? bgColor : ds.borderColor,
           borderColor: ds.borderColor,
           fill: false,
+          tension: chart.smoothLine ? 0.4 : 0,
         };
       }
       if (chart.type === "area") {
@@ -247,6 +250,7 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
           backgroundColor: ds.borderColor ? ds.borderColor + "40" : undefined,
           borderColor: ds.borderColor,
           fill: true,
+          tension: chart.smoothLine ? 0.4 : 0,
         };
       }
       if (chart.type === "radar") {
@@ -311,7 +315,53 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
     }
 
     return { labels: chartData.labels, datasets };
-  }, [chartData, chart.type, chart.colors, chart.stackMode, chart.trendline]);
+  }, [
+    chartData,
+    chart.type,
+    chart.colors,
+    chart.stackMode,
+    chart.trendline,
+    chart.smoothLine,
+    chart.title,
+  ]);
+
+  const bubbleData = useMemo(() => {
+    if (chart.type !== "bubble") return null;
+    const colors = chart.colors?.length ? chart.colors : undefined;
+    const bubblePoints = extractBubbleData(chartData.datasets);
+    return {
+      labels: [] as string[],
+      datasets: [
+        {
+          label: chartData.datasets[0]?.label ?? "Bubble",
+          data: bubblePoints,
+          backgroundColor: (colors?.[0] ?? "#4285f4") + "80",
+          borderColor: colors?.[0] ?? "#4285f4",
+          borderWidth: 1,
+        },
+      ],
+    };
+  }, [chart.type, chart.colors, chartData.datasets]);
+
+  const gaugeData = useMemo(() => {
+    if (chart.type !== "gauge") return null;
+    const colors = chart.colors?.length ? chart.colors : undefined;
+    const firstValue = chartData.datasets[0]?.data[0] ?? 0;
+    const gauge = buildGaugeData(firstValue, 0, 100, colors);
+    return {
+      labels: [] as string[],
+      datasets: [
+        {
+          label: chart.title ?? "Value",
+          data: gauge.data,
+          backgroundColor: gauge.backgroundColor,
+          borderWidth: 0,
+          circumference: 180,
+          rotation: 270,
+        },
+      ],
+    };
+  }, [chart.type, chart.colors, chart.title, chartData.datasets]);
 
   const handleExport = useCallback(() => {
     const chartInstance = ChartJS.getChart(chartCanvasId);
@@ -406,6 +456,26 @@ export function ChartRenderer({ chart, chartData }: ChartRendererProps) {
             options={candlestickOptions}
           />
         );
+      case "bubble":
+        return bubbleData ? (
+          <Scatter id={chartCanvasId} data={bubbleData} options={options} />
+        ) : null;
+      case "gauge":
+        return gaugeData ? (
+          <Doughnut
+            id={chartCanvasId}
+            data={gaugeData}
+            options={{
+              ...options,
+              cutout: "70%",
+              plugins: {
+                ...options.plugins,
+                tooltip: { enabled: false },
+              },
+              scales: undefined,
+            }}
+          />
+        ) : null;
       default:
         return <Bar id={chartCanvasId} data={dataConfig} options={options} />;
     }

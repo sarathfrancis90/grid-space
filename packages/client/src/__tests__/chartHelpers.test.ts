@@ -10,6 +10,8 @@ import {
   computePolynomialTrendline,
   computeWaterfallData,
   extractCandlestickData,
+  extractBubbleData,
+  buildGaugeData,
 } from "../utils/chartHelpers";
 
 describe("computeHistogramBins", () => {
@@ -173,5 +175,82 @@ describe("extractCandlestickData", () => {
     ];
     const result = extractCandlestickData(labels, datasets);
     expect(result).toHaveLength(2);
+  });
+});
+
+describe("extractBubbleData", () => {
+  it("returns empty array with fewer than 2 datasets", () => {
+    expect(extractBubbleData([{ data: [1, 2] }])).toEqual([]);
+  });
+
+  it("extracts bubble data from 3 datasets (x, y, r)", () => {
+    const datasets = [
+      { data: [10, 20, 30] }, // x
+      { data: [5, 15, 25] }, // y
+      { data: [100, 50, 100] }, // r (size)
+    ];
+    const result = extractBubbleData(datasets);
+    expect(result).toHaveLength(3);
+    expect(result[0].x).toBe(10);
+    expect(result[0].y).toBe(5);
+    expect(result[0].r).toBeGreaterThan(0);
+  });
+
+  it("uses index as x when only 2 datasets provided", () => {
+    const datasets = [
+      { data: [5, 15, 25] }, // y
+      { data: [100, 50, 100] }, // r
+    ];
+    const result = extractBubbleData(datasets);
+    expect(result).toHaveLength(3);
+    expect(result[0].x).toBe(0);
+    expect(result[1].x).toBe(1);
+    expect(result[2].x).toBe(2);
+  });
+
+  it("scales bubble radius relative to max", () => {
+    const datasets = [
+      { data: [0, 1] }, // y
+      { data: [50, 100] }, // r
+    ];
+    const result = extractBubbleData(datasets);
+    // The one with max r (100) should get r=30, the smaller should be smaller
+    expect(result[1].r).toBe(30);
+    expect(result[0].r).toBeLessThan(result[1].r);
+  });
+});
+
+describe("buildGaugeData", () => {
+  it("builds gauge data for 50% value", () => {
+    const result = buildGaugeData(50, 0, 100);
+    expect(result.value).toBe(50);
+    expect(result.percentage).toBe(50);
+    // Data segments should sum to 100
+    const total = result.data.reduce((sum, v) => sum + v, 0);
+    expect(total).toBeCloseTo(100);
+  });
+
+  it("clamps value to min/max range", () => {
+    const result = buildGaugeData(150, 0, 100);
+    expect(result.value).toBe(100);
+    expect(result.percentage).toBe(100);
+  });
+
+  it("clamps value below min", () => {
+    const result = buildGaugeData(-10, 0, 100);
+    expect(result.value).toBe(0);
+    expect(result.percentage).toBe(0);
+  });
+
+  it("includes empty portion as gray for partial fill", () => {
+    const result = buildGaugeData(30, 0, 100);
+    // Last segment should be gray (#e0e0e0)
+    const lastColor = result.backgroundColor[result.backgroundColor.length - 1];
+    expect(lastColor).toBe("#e0e0e0");
+  });
+
+  it("uses custom colors when provided", () => {
+    const result = buildGaugeData(50, 0, 100, ["#ff0000", "#00ff00"]);
+    expect(result.backgroundColor).toContain("#ff0000");
   });
 });

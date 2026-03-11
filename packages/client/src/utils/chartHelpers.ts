@@ -190,6 +190,92 @@ export interface CandlestickPoint {
   close: number;
 }
 
+export interface BubblePoint {
+  x: number;
+  y: number;
+  r: number;
+}
+
+/**
+ * Extract bubble chart data from datasets.
+ * Expects at least 3 datasets: x values, y values, bubble size (r).
+ * If only 2 datasets, uses index as x.
+ */
+export function extractBubbleData(
+  datasets: { data: number[] }[],
+): BubblePoint[] {
+  if (datasets.length < 2) return [];
+
+  const hasX = datasets.length >= 3;
+  const xDs = hasX ? datasets[0] : undefined;
+  const yDs = hasX ? datasets[1] : datasets[0];
+  const rDs = hasX ? datasets[2] : datasets[1];
+
+  const len = Math.min(
+    yDs.data.length,
+    rDs.data.length,
+    xDs ? xDs.data.length : Infinity,
+  );
+  const maxR = Math.max(...rDs.data.slice(0, len), 1);
+
+  return Array.from({ length: len }, (_, i) => ({
+    x: xDs ? xDs.data[i] : i,
+    y: yDs.data[i],
+    r: Math.max(3, (rDs.data[i] / maxR) * 30),
+  }));
+}
+
+/**
+ * Build gauge chart data for Chart.js doughnut.
+ * Takes a single value and renders it as a partial doughnut with a needle.
+ */
+export function buildGaugeData(
+  value: number,
+  min: number = 0,
+  max: number = 100,
+  colors?: string[],
+): {
+  data: number[];
+  backgroundColor: string[];
+  value: number;
+  percentage: number;
+} {
+  const clamped = Math.max(min, Math.min(max, value));
+  const percentage = ((clamped - min) / (max - min)) * 100;
+  const gaugeColors = colors?.length
+    ? colors
+    : ["#34a853", "#fbbc04", "#ea4335"];
+
+  // Split the filled portion into color segments
+  const segmentSize = percentage / gaugeColors.length;
+  const data: number[] = [];
+  const backgroundColor: string[] = [];
+
+  for (let i = 0; i < gaugeColors.length; i++) {
+    const segmentEnd = segmentSize * (i + 1);
+    if (segmentEnd <= percentage) {
+      data.push(segmentSize);
+      backgroundColor.push(gaugeColors[i]);
+    } else {
+      const remaining = percentage - segmentSize * i;
+      if (remaining > 0) {
+        data.push(remaining);
+        backgroundColor.push(gaugeColors[i]);
+      }
+      break;
+    }
+  }
+
+  // Add empty portion
+  const emptyPortion = 100 - percentage;
+  if (emptyPortion > 0) {
+    data.push(emptyPortion);
+    backgroundColor.push("#e0e0e0");
+  }
+
+  return { data, backgroundColor, value: clamped, percentage };
+}
+
 export function extractCandlestickData(
   labels: string[],
   datasets: { data: number[] }[],
