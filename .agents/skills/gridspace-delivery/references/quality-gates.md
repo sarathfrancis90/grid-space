@@ -24,4 +24,3 @@ Run these checks before opening or updating a PR.
 - If typecheck fails: fix types first; do not defer with `any`.
 - If tests fail: isolate regressions and add/update tests for changed behavior.
 - If build fails: fix build pipeline before requesting review.
-

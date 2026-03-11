@@ -34,12 +34,14 @@ type AuthenticateFn = (
 ) => PassportMiddleware;
 
 function mockPassportOAuthSuccess(result: OAuthResult): void {
-  authenticateMock.mockImplementation(
-    ((_: string, __: { session: false }, done: OAuthDone) =>
-      (_req: Request, _res: Response, _next: NextFunction): void => {
-        done(null, result);
-      }) as AuthenticateFn,
-  );
+  authenticateMock.mockImplementation(((
+      _: string,
+      __: { session: false },
+      done: OAuthDone,
+    ) =>
+    (_req: Request, _res: Response, _next: NextFunction): void => {
+      done(null, result);
+    }) as AuthenticateFn);
 }
 
 function createMockResponse(): Response {

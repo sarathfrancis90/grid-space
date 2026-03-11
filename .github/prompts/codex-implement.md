@@ -56,4 +56,3 @@ When `PROJECT_TOKEN` is available:
 2. Move issue to `In review` after PR is created.
 
 Use `.github/scripts/update-kanban.sh`. If it fails, continue and report the failure.
-

@@ -105,9 +105,9 @@ describe("Avatar Upload Service", () => {
     });
 
     it("rejects invalid data URI format", async () => {
-      await expect(
-        uploadAvatar("user-1", "not-a-data-uri"),
-      ).rejects.toThrow("Invalid image data URI format");
+      await expect(uploadAvatar("user-1", "not-a-data-uri")).rejects.toThrow(
+        "Invalid image data URI format",
+      );
     });
 
     it("rejects unsupported image types", async () => {

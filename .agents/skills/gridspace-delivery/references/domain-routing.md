@@ -35,4 +35,3 @@ When touching:
 - Rule: keep trigger conditions explicit and loop-safe.
 - Rule: guard bot review loops (max iteration strategy).
 - Rule: avoid broad permissions unless required.
-

@@ -79,9 +79,7 @@ describe("filterStore — filter views", () => {
       const { api } = await import("../services/api");
       (api.get as ReturnType<typeof vi.fn>).mockResolvedValue([sampleView]);
 
-      await useFilterStore
-        .getState()
-        .loadFilterViews("ss-1", "sheet-1");
+      await useFilterStore.getState().loadFilterViews("ss-1", "sheet-1");
 
       const state = useFilterStore.getState();
       expect(state.filterViews).toHaveLength(1);
@@ -95,9 +93,7 @@ describe("filterStore — filter views", () => {
         new Error("Network error"),
       );
 
-      await useFilterStore
-        .getState()
-        .loadFilterViews("ss-1", "sheet-1");
+      await useFilterStore.getState().loadFilterViews("ss-1", "sheet-1");
 
       const state = useFilterStore.getState();
       expect(state.filterViews).toHaveLength(0);

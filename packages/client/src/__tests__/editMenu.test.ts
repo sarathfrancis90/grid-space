@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useCellStore } from "../stores/cellStore";
-import { useGridStore } from "../stores/gridStore";
 import { useClipboardStore } from "../stores/clipboardStore";
 import { performPasteSpecial } from "../hooks/useKeyboardShortcuts";
 import { useUIStore } from "../stores/uiStore";
 import { useSpreadsheetStore } from "../stores/spreadsheetStore";
+import type { CellData } from "../types/grid";
 
 describe("Edit Menu — Move Row/Column", () => {
   const sheetId = "sheet-1";
@@ -17,7 +17,7 @@ describe("Edit Menu — Move Row/Column", () => {
     });
     useSpreadsheetStore.setState((state) => {
       state.activeSheetId = sheetId;
-      state.sheets = [{ id: sheetId, name: "Sheet1", color: null }];
+      state.sheets = [{ id: sheetId, name: "Sheet1" }] as typeof state.sheets;
     });
   });
 
@@ -102,7 +102,7 @@ describe("Edit Menu — Paste Special modes", () => {
     });
     useSpreadsheetStore.setState((state) => {
       state.activeSheetId = sheetId;
-      state.sheets = [{ id: sheetId, name: "Sheet1", color: null }];
+      state.sheets = [{ id: sheetId, name: "Sheet1" }] as typeof state.sheets;
     });
     useUIStore.setState((state) => {
       state.selectedCell = { row: 2, col: 0 };
@@ -120,10 +120,7 @@ describe("Edit Menu — Paste Special modes", () => {
     });
 
     // Set up clipboard
-    const cells = new Map<
-      string,
-      { value: unknown; format?: Record<string, unknown> }
-    >();
+    const cells = new Map<string, CellData>();
     cells.set("0,0", {
       value: "Hello",
       format: {
@@ -131,12 +128,10 @@ describe("Edit Menu — Paste Special modes", () => {
         borders: { top: { style: "thin", color: "#000" } },
       },
     });
-    useClipboardStore
-      .getState()
-      .copy(cells as Map<string, { value: unknown }>, {
-        start: { row: 0, col: 0 },
-        end: { row: 0, col: 0 },
-      });
+    useClipboardStore.getState().copy(cells, {
+      start: { row: 0, col: 0 },
+      end: { row: 0, col: 0 },
+    });
 
     performPasteSpecial("allExceptBorders");
 
@@ -153,14 +148,12 @@ describe("Edit Menu — Paste Special modes", () => {
       format: { bold: true },
     });
 
-    const cells = new Map<string, { value: unknown; formula?: string }>();
+    const cells = new Map<string, CellData>();
     cells.set("0,0", { value: 42, formula: "=SUM(A1:A5)" });
-    useClipboardStore
-      .getState()
-      .copy(cells as Map<string, { value: unknown }>, {
-        start: { row: 0, col: 0 },
-        end: { row: 0, col: 0 },
-      });
+    useClipboardStore.getState().copy(cells, {
+      start: { row: 0, col: 0 },
+      end: { row: 0, col: 0 },
+    });
 
     performPasteSpecial("formula");
 
