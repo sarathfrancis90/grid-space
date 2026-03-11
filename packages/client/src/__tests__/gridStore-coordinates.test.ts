@@ -18,22 +18,22 @@ describe("gridStore coordinate functions with hidden rows/cols", () => {
   describe("getRowY", () => {
     it("returns correct Y for visible rows with no hidden rows", () => {
       const gs = useGridStore.getState();
-      // Default row height is 25
+      // Default row height is 21
       expect(gs.getRowY(0)).toBe(0);
-      expect(gs.getRowY(1)).toBe(25);
-      expect(gs.getRowY(5)).toBe(125);
+      expect(gs.getRowY(1)).toBe(21);
+      expect(gs.getRowY(5)).toBe(105);
     });
 
     it("skips hidden rows when calculating Y position", () => {
       useGridStore.setState({ hiddenRows: new Set([1, 2]) });
       const gs = useGridStore.getState();
-      // Row 0: 25px, rows 1-2 hidden
-      // getRowY(3) should be 25 (only row 0 counts)
+      // Row 0: 21px, rows 1-2 hidden
+      // getRowY(3) should be 21 (only row 0 counts)
       expect(gs.getRowY(0)).toBe(0);
-      expect(gs.getRowY(1)).toBe(25); // row 0 height
-      expect(gs.getRowY(2)).toBe(25); // row 0 height (row 1 skipped)
-      expect(gs.getRowY(3)).toBe(25); // rows 1,2 both hidden, only row 0 counted
-      expect(gs.getRowY(4)).toBe(50); // row 0 + row 3
+      expect(gs.getRowY(1)).toBe(21); // row 0 height
+      expect(gs.getRowY(2)).toBe(21); // row 0 height (row 1 skipped)
+      expect(gs.getRowY(3)).toBe(21); // rows 1,2 both hidden, only row 0 counted
+      expect(gs.getRowY(4)).toBe(42); // row 0 + row 3
     });
 
     it("handles custom row heights with hidden rows", () => {
@@ -76,21 +76,21 @@ describe("gridStore coordinate functions with hidden rows/cols", () => {
     it("returns correct row for Y position with no hidden rows", () => {
       const gs = useGridStore.getState();
       expect(gs.getRowAtY(0)).toBe(0);
-      expect(gs.getRowAtY(12)).toBe(0); // within first row (25px)
-      expect(gs.getRowAtY(25)).toBe(1); // start of second row
-      expect(gs.getRowAtY(49)).toBe(1);
-      expect(gs.getRowAtY(50)).toBe(2);
+      expect(gs.getRowAtY(10)).toBe(0); // within first row (21px)
+      expect(gs.getRowAtY(21)).toBe(1); // start of second row
+      expect(gs.getRowAtY(41)).toBe(1);
+      expect(gs.getRowAtY(42)).toBe(2);
     });
 
     it("skips hidden rows and maps to correct visible row", () => {
       useGridStore.setState({ hiddenRows: new Set([1, 2]) });
       const gs = useGridStore.getState();
-      // Row 0: 0-25px, rows 1-2 hidden, row 3: 25-50px
+      // Row 0: 0-21px, rows 1-2 hidden, row 3: 21-42px
       expect(gs.getRowAtY(0)).toBe(0);
-      expect(gs.getRowAtY(24)).toBe(0);
-      expect(gs.getRowAtY(25)).toBe(3); // skips rows 1 and 2
-      expect(gs.getRowAtY(49)).toBe(3);
-      expect(gs.getRowAtY(50)).toBe(4);
+      expect(gs.getRowAtY(20)).toBe(0);
+      expect(gs.getRowAtY(21)).toBe(3); // skips rows 1 and 2
+      expect(gs.getRowAtY(41)).toBe(3);
+      expect(gs.getRowAtY(42)).toBe(4);
     });
 
     it("handles click at boundary between visible rows after hidden rows", () => {
@@ -98,8 +98,8 @@ describe("gridStore coordinate functions with hidden rows/cols", () => {
       const gs = useGridStore.getState();
       // Row 0 hidden, row 1 starts at y=0
       expect(gs.getRowAtY(0)).toBe(1);
-      expect(gs.getRowAtY(24)).toBe(1);
-      expect(gs.getRowAtY(25)).toBe(2);
+      expect(gs.getRowAtY(20)).toBe(1);
+      expect(gs.getRowAtY(21)).toBe(2);
     });
   });
 

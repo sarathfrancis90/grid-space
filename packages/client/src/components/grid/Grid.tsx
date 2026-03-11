@@ -40,7 +40,9 @@ const SELECTION_BG = "rgba(26, 115, 232, 0.1)";
 const SELECTION_BORDER = "#1a73e8";
 const FROZEN_LINE_COLOR = "#999999";
 const CELL_FONT = "13px Arial, sans-serif";
-const HEADER_FONT = "12px Arial, sans-serif";
+const HEADER_FONT = "13px Arial, sans-serif";
+const HEADER_SELECTED_BG = "rgba(26, 115, 232, 0.15)";
+const HEADER_SELECTED_TEXT = "#1a73e8";
 const BUFFER_ROWS = 10;
 const BUFFER_COLS = 5;
 const FILL_HANDLE_SIZE = 6;
@@ -900,12 +902,19 @@ export function Grid() {
       ctx.restore();
     }
 
+    // Collect selected column/row indices for header highlighting
+    const selectedCols = new Set<number>();
+    const selectedRows = new Set<number>();
+
     // Draw selections
     for (const sel of ui.selections) {
       const minRow = Math.min(sel.start.row, sel.end.row);
       const maxRow = Math.max(sel.start.row, sel.end.row);
       const minCol = Math.min(sel.start.col, sel.end.col);
       const maxCol = Math.max(sel.start.col, sel.end.col);
+
+      for (let c = minCol; c <= maxCol; c++) selectedCols.add(c);
+      for (let r = minRow; r <= maxRow; r++) selectedRows.add(r);
 
       const selX = gs.getColumnX(minCol) - gs.scrollLeft + rhw;
       const selY = gs.getRowY(minRow) - gs.scrollTop + chh;
@@ -935,6 +944,30 @@ export function Grid() {
         Math.round(selW),
         Math.round(selH),
       );
+
+      // Active cell within selection gets white background
+      const isMultiCell = minRow !== maxRow || minCol !== maxCol;
+      if (isMultiCell && ui.selectedCell) {
+        const ac = ui.selectedCell;
+        if (
+          ac.row >= minRow &&
+          ac.row <= maxRow &&
+          ac.col >= minCol &&
+          ac.col <= maxCol
+        ) {
+          const acX = gs.getColumnX(ac.col) - gs.scrollLeft + rhw;
+          const acY = gs.getRowY(ac.row) - gs.scrollTop + chh;
+          const acW = gs.columnWidths.get(ac.col) ?? gs.defaultColWidth;
+          const acH = gs.rowHeights.get(ac.row) ?? gs.defaultRowHeight;
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(
+            Math.round(acX),
+            Math.round(acY),
+            Math.round(acW),
+            Math.round(acH),
+          );
+        }
+      }
 
       ctx.strokeStyle = SELECTION_BORDER;
       ctx.lineWidth = 2;
@@ -986,7 +1019,15 @@ export function Grid() {
       if (gs.hiddenCols.has(c)) continue;
       const colX = gs.getColumnX(c) - gs.scrollLeft + rhw;
       const colW = gs.columnWidths.get(c) ?? gs.defaultColWidth;
+      const isColSelected = selectedCols.has(c);
 
+      // Highlight selected column header with blue tint
+      if (isColSelected) {
+        ctx.fillStyle = HEADER_SELECTED_BG;
+        ctx.fillRect(Math.round(colX), 0, Math.round(colW), chh);
+      }
+
+      ctx.strokeStyle = HEADER_BORDER;
       ctx.beginPath();
       ctx.moveTo(Math.round(colX) + 0.5, 0);
       ctx.lineTo(Math.round(colX) + 0.5, chh);
@@ -1003,7 +1044,7 @@ export function Grid() {
         : Math.round(colX + colW / 2);
 
       ctx.font = HEADER_FONT;
-      ctx.fillStyle = HEADER_TEXT;
+      ctx.fillStyle = isColSelected ? HEADER_SELECTED_TEXT : HEADER_TEXT;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(colToLetter(c), letterX, Math.round(chh / 2));
@@ -1060,6 +1101,13 @@ export function Grid() {
       if (gs.hiddenRows.has(r)) continue;
       const rowY = gs.getRowY(r) - gs.scrollTop + chh;
       const rowH = gs.rowHeights.get(r) ?? gs.defaultRowHeight;
+      const isRowSelected = selectedRows.has(r);
+
+      // Highlight selected row header with blue tint
+      if (isRowSelected) {
+        ctx.fillStyle = HEADER_SELECTED_BG;
+        ctx.fillRect(0, Math.round(rowY), rhw, Math.round(rowH));
+      }
 
       ctx.strokeStyle = HEADER_BORDER;
       ctx.beginPath();
@@ -1068,7 +1116,7 @@ export function Grid() {
       ctx.stroke();
 
       ctx.font = HEADER_FONT;
-      ctx.fillStyle = HEADER_TEXT;
+      ctx.fillStyle = isRowSelected ? HEADER_SELECTED_TEXT : HEADER_TEXT;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(
