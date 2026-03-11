@@ -38,10 +38,21 @@ interface VersionItemProps {
   onRestore: (versionId: string) => Promise<void>;
   onName: (versionId: string, name: string) => Promise<void>;
   onCopy: (versionId: string) => Promise<{ id: string; title: string }>;
+  onDownload: (versionId: string) => Promise<void>;
+  onCompare?: (versionId: string) => void;
 }
 
 export const VersionItem: React.FC<VersionItemProps> = React.memo(
-  ({ version, isSelected, onSelect, onRestore, onName, onCopy }) => {
+  ({
+    version,
+    isSelected,
+    onSelect,
+    onRestore,
+    onName,
+    onCopy,
+    onDownload,
+    onCompare,
+  }) => {
     const [isNaming, setIsNaming] = useState(false);
     const [nameValue, setNameValue] = useState(version.name ?? "");
     const [showMenu, setShowMenu] = useState(false);
@@ -85,6 +96,24 @@ export const VersionItem: React.FC<VersionItemProps> = React.memo(
         await onCopy(version.id);
       },
       [version.id, onCopy],
+    );
+
+    const handleDownload = useCallback(
+      async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setShowMenu(false);
+        await onDownload(version.id);
+      },
+      [version.id, onDownload],
+    );
+
+    const handleCompare = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setShowMenu(false);
+        onCompare?.(version.id);
+      },
+      [version.id, onCompare],
     );
 
     const handleStartNaming = useCallback(
@@ -168,7 +197,16 @@ export const VersionItem: React.FC<VersionItemProps> = React.memo(
               </span>
             </div>
 
-            {version.hasChangeset && (
+            {version.changeSummary && (
+              <p
+                data-testid={`version-summary-${version.id}`}
+                className="text-xs text-gray-500 mt-1 truncate"
+                title={version.changeSummary}
+              >
+                {version.changeSummary}
+              </p>
+            )}
+            {version.hasChangeset && !version.changeSummary && (
               <span className="inline-block mt-1 text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
                 Has changes
               </span>
@@ -213,6 +251,22 @@ export const VersionItem: React.FC<VersionItemProps> = React.memo(
                 >
                   Copy as new spreadsheet
                 </button>
+                <button
+                  data-testid={`version-download-menu-${version.id}`}
+                  onClick={handleDownload}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Download version
+                </button>
+                {onCompare && (
+                  <button
+                    data-testid={`version-compare-menu-${version.id}`}
+                    onClick={handleCompare}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    Compare with selected
+                  </button>
+                )}
               </div>
             )}
           </div>

@@ -22,12 +22,19 @@ export const VersionHistorySidebar: React.FC<VersionHistorySidebarProps> =
     const isRestoring = useVersionStore((s) => s.isRestoring);
     const diffs = useVersionStore((s) => s.diffs);
 
+    const compareVersionId = useVersionStore((s) => s.compareVersionId);
+    const compareDiffs = useVersionStore((s) => s.compareDiffs);
+    const isComparing = useVersionStore((s) => s.isComparing);
+
     const close = useVersionStore((s) => s.close);
     const selectVersion = useVersionStore((s) => s.selectVersion);
     const restoreVersion = useVersionStore((s) => s.restoreVersion);
     const nameVersion = useVersionStore((s) => s.nameVersion);
     const copyAsSpreadsheet = useVersionStore((s) => s.copyAsSpreadsheet);
     const clearPreview = useVersionStore((s) => s.clearPreview);
+    const compareVersions = useVersionStore((s) => s.compareVersions);
+    const clearCompare = useVersionStore((s) => s.clearCompare);
+    const downloadVersion = useVersionStore((s) => s.downloadVersion);
 
     useEffect(() => {
       if (!isOpen) return;
@@ -66,6 +73,22 @@ export const VersionHistorySidebar: React.FC<VersionHistorySidebarProps> =
         return result;
       },
       [spreadsheetId, copyAsSpreadsheet],
+    );
+
+    const handleDownload = useCallback(
+      async (versionId: string) => {
+        await downloadVersion(spreadsheetId, versionId);
+      },
+      [spreadsheetId, downloadVersion],
+    );
+
+    const handleCompare = useCallback(
+      (versionId: string) => {
+        if (selectedVersionId && selectedVersionId !== versionId) {
+          compareVersions(spreadsheetId, selectedVersionId, versionId);
+        }
+      },
+      [spreadsheetId, selectedVersionId, compareVersions],
     );
 
     if (!isOpen) return null;
@@ -132,6 +155,23 @@ export const VersionHistorySidebar: React.FC<VersionHistorySidebarProps> =
           </div>
         )}
 
+        {compareVersionId && (
+          <div className="p-3 bg-purple-50 border-b border-purple-100">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-purple-700 font-medium">
+                Comparing versions
+              </span>
+              <button
+                data-testid="version-clear-compare-btn"
+                onClick={clearCompare}
+                className="text-xs px-3 py-1 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Close compare
+              </button>
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="p-3 bg-red-50 text-red-600 text-sm border-b border-red-100">
             {error}
@@ -157,9 +197,23 @@ export const VersionHistorySidebar: React.FC<VersionHistorySidebarProps> =
             </div>
           )}
 
-          {!isLoading && selectedVersionId && diffs.length > 0 && (
-            <VersionDiffView diffs={diffs} />
+          {!isLoading && compareVersionId && isComparing && (
+            <div className="flex items-center justify-center p-4">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600" />
+              <span className="ml-2 text-xs text-gray-500">
+                Comparing versions...
+              </span>
+            </div>
           )}
+
+          {!isLoading && compareVersionId && compareDiffs.length > 0 && (
+            <VersionDiffView diffs={compareDiffs} mode="compare" />
+          )}
+
+          {!isLoading &&
+            !compareVersionId &&
+            selectedVersionId &&
+            diffs.length > 0 && <VersionDiffView diffs={diffs} />}
 
           {!isLoading && isPreviewLoading && (
             <div className="flex items-center justify-center p-4">
@@ -185,6 +239,8 @@ export const VersionHistorySidebar: React.FC<VersionHistorySidebarProps> =
                       onRestore={handleRestore}
                       onName={handleName}
                       onCopy={handleCopy}
+                      onDownload={handleDownload}
+                      onCompare={selectedVersionId ? handleCompare : undefined}
                     />
                   ))}
                 </div>
@@ -199,6 +255,8 @@ export const VersionHistorySidebar: React.FC<VersionHistorySidebarProps> =
                   onRestore={handleRestore}
                   onName={handleName}
                   onCopy={handleCopy}
+                  onDownload={handleDownload}
+                  onCompare={selectedVersionId ? handleCompare : undefined}
                 />
               ))}
         </div>

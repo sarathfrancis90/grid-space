@@ -82,7 +82,7 @@ describe("Version History API", () => {
   });
 
   describe("GET /api/spreadsheets/:id/versions (S13-015)", () => {
-    it("should list versions with pagination", async () => {
+    it("should list versions with pagination and changeSummary", async () => {
       mockPrisma.spreadsheet.findUnique.mockResolvedValue({
         ownerId: "user-1",
         access: [],
@@ -93,7 +93,17 @@ describe("Version History API", () => {
           id: "v1",
           name: "Release 1",
           createdAt: new Date("2026-02-26T10:00:00Z"),
-          changeset: { sheetChanges: [] },
+          changeset: {
+            sheetChanges: [
+              {
+                sheetName: "Sheet1",
+                cellChanges: {
+                  A1: { old: "x", new: "y" },
+                  B2: { old: null, new: "z" },
+                },
+              },
+            ],
+          },
           createdBy: {
             id: "user-1",
             name: "Test User",
@@ -126,7 +136,9 @@ describe("Version History API", () => {
       expect(res.body.data[0].id).toBe("v1");
       expect(res.body.data[0].name).toBe("Release 1");
       expect(res.body.data[0].hasChangeset).toBe(true);
+      expect(res.body.data[0].changeSummary).toBe("2 cells changed");
       expect(res.body.data[1].hasChangeset).toBe(false);
+      expect(res.body.data[1].changeSummary).toBeNull();
       expect(res.body.pagination).toBeDefined();
       expect(res.body.pagination.total).toBe(2);
     });

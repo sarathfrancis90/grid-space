@@ -14,6 +14,7 @@ export interface VersionSummary {
   createdAt: string;
   createdBy: VersionUser;
   hasChangeset: boolean;
+  changeSummary: string | null;
 }
 
 interface VersionGroup {
@@ -88,6 +89,9 @@ interface VersionState {
   isDiffLoading: boolean;
   isRestoring: boolean;
   useGrouped: boolean;
+  compareVersionId: string | null;
+  compareDiffs: VersionDiff[];
+  isComparing: boolean;
 }
 
 interface VersionActions {
@@ -113,6 +117,13 @@ interface VersionActions {
     versionId: string,
   ) => Promise<{ id: string; title: string }>;
   setUseGrouped: (grouped: boolean) => void;
+  compareVersions: (
+    spreadsheetId: string,
+    versionIdA: string,
+    versionIdB: string,
+  ) => Promise<void>;
+  clearCompare: () => void;
+  downloadVersion: (spreadsheetId: string, versionId: string) => Promise<void>;
 }
 
 type VersionStore = VersionState & VersionActions;
@@ -134,6 +145,9 @@ export const useVersionStore = create<VersionStore>()(
     isDiffLoading: false,
     isRestoring: false,
     useGrouped: true,
+    compareVersionId: null,
+    compareDiffs: [],
+    isComparing: false,
 
     open: (spreadsheetId: string) => {
       set((state) => {
@@ -357,6 +371,69 @@ export const useVersionStore = create<VersionStore>()(
       set((state) => {
         state.useGrouped = grouped;
       });
+    },
+
+    compareVersions: async (
+      spreadsheetId: string,
+      versionIdA: string,
+      versionIdB: string,
+    ) => {
+      set((state) => {
+        state.compareVersionId = versionIdB;
+        state.isComparing = true;
+        state.compareDiffs = [];
+      });
+
+      try {
+        const diffs = await api.get<VersionDiff[]>(
+          `/spreadsheets/${spreadsheetId}/versions/${versionIdA}/diff?compareToId=${versionIdB}`,
+        );
+
+        set((state) => {
+          state.compareDiffs = diffs;
+          state.isComparing = false;
+        });
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to compare versions";
+        set((state) => {
+          state.isComparing = false;
+          state.error = message;
+        });
+      }
+    },
+
+    clearCompare: () => {
+      set((state) => {
+        state.compareVersionId = null;
+        state.compareDiffs = [];
+        state.isComparing = false;
+      });
+    },
+
+    downloadVersion: async (spreadsheetId: string, versionId: string) => {
+      try {
+        const version = await api.get<VersionDetail>(
+          `/spreadsheets/${spreadsheetId}/versions/${versionId}`,
+        );
+        const blob = new Blob([JSON.stringify(version.snapshot, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `version-${version.name ?? versionId}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to download version";
+        set((state) => {
+          state.error = message;
+        });
+      }
     },
   })),
 );
