@@ -10,11 +10,19 @@ import type { SocketData } from "./types";
 let io: Server | null = null;
 
 export function createSocketServer(httpServer: HttpServer): Server {
+  // In production the frontend is served from the same origin, so we allow
+  // both the explicit CLIENT_URL and same-origin connections.
+  const allowedOrigins =
+    env.NODE_ENV === "production" ? [env.CLIENT_URL].filter(Boolean) : true;
+
   io = new Server(httpServer, {
     cors: {
-      origin: env.NODE_ENV === "production" ? env.CLIENT_URL : true,
+      origin: allowedOrigins,
       credentials: true,
     },
+    // Allow both transports so Cloud Run / reverse proxies work correctly
+    transports: ["websocket", "polling"],
+    allowEIO3: true,
     pingInterval: 25000,
     pingTimeout: 20000,
     maxHttpBufferSize: 1e6, // 1MB max message

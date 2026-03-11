@@ -67,6 +67,8 @@ export function connectSocket(): Socket {
     reconnectionDelayMax: 10000,
     reconnectionAttempts: Infinity,
     transports: ["websocket", "polling"],
+    path: "/socket.io/",
+    withCredentials: true,
   });
 
   getStore().setConnectionStatus("connecting");
@@ -83,12 +85,32 @@ export function connectSocket(): Socket {
     }
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", (reason) => {
     getStore().setConnectionStatus("disconnected");
+    // If the server closed the connection, attempt to reconnect
+    if (reason === "io server disconnect") {
+      socket?.connect();
+    }
+  });
+
+  socket.on("connect_error", (err) => {
+    const store = getStore();
+    // If we were never connected, mark as disconnected (not just "connecting")
+    // so the UI shows actionable feedback instead of an indefinite spinner
+    if (store.connectionStatus !== "connected") {
+      store.setConnectionStatus("disconnected");
+    }
+    errorListeners.forEach((cb) =>
+      cb(`WebSocket connection error: ${err.message}`),
+    );
   });
 
   socket.on("reconnect_attempt", () => {
     getStore().setConnectionStatus("connecting");
+  });
+
+  socket.on("reconnect_failed", () => {
+    getStore().setConnectionStatus("disconnected");
   });
 
   // ─── PRESENCE ─────────────────────────────────────────
