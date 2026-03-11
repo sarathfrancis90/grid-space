@@ -617,8 +617,60 @@ export function MenuBar() {
           },
         },
         {
+          label: "Hide selected rows",
+          testId: "menu-view-hide-rows",
+          separator: true,
+          action: () => {
+            const sel = useUIStore.getState().selections;
+            if (sel.length > 0) {
+              const last = sel[sel.length - 1];
+              const minRow = Math.min(last.start.row, last.end.row);
+              const maxRow = Math.max(last.start.row, last.end.row);
+              const rows: number[] = [];
+              for (let r = minRow; r <= maxRow; r++) rows.push(r);
+              useGridStore.getState().hideRows(rows);
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Hide selected columns",
+          testId: "menu-view-hide-cols",
+          action: () => {
+            const sel = useUIStore.getState().selections;
+            if (sel.length > 0) {
+              const last = sel[sel.length - 1];
+              const minCol = Math.min(last.start.col, last.end.col);
+              const maxCol = Math.max(last.start.col, last.end.col);
+              const cols: number[] = [];
+              for (let c = minCol; c <= maxCol; c++) cols.push(c);
+              useGridStore.getState().hideCols(cols);
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Unhide all rows",
+          testId: "menu-view-unhide-rows",
+          action: () => {
+            const gs = useGridStore.getState();
+            gs.unhideRows(Array.from(gs.hiddenRows));
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Unhide all columns",
+          testId: "menu-view-unhide-cols",
+          action: () => {
+            const gs = useGridStore.getState();
+            gs.unhideCols(Array.from(gs.hiddenCols));
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Zoom",
           testId: "menu-view-zoom",
+          separator: true,
           action: () => setOpenMenu(null),
         },
         {

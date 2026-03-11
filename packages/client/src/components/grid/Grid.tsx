@@ -1239,6 +1239,81 @@ export function Grid() {
     ctx.strokeStyle = HEADER_BORDER;
     ctx.strokeRect(0, 0, rhw, chh);
 
+    // Draw hidden column indicators (double-line + arrows between headers)
+    if (gs.hiddenCols.size > 0) {
+      for (let c = visStartCol; c <= endCol; c++) {
+        if (!gs.hiddenCols.has(c)) continue;
+        // Find the position where the hidden column gap is
+        const indicatorX = gs.getColumnX(c) - gs.scrollLeft + rhw;
+        const arrowSize = 4;
+        const midY = Math.round(chh / 2);
+
+        // Draw double vertical lines
+        ctx.strokeStyle = "#1a73e8";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(Math.round(indicatorX) - 1.5, 2);
+        ctx.lineTo(Math.round(indicatorX) - 1.5, chh - 2);
+        ctx.moveTo(Math.round(indicatorX) + 1.5, 2);
+        ctx.lineTo(Math.round(indicatorX) + 1.5, chh - 2);
+        ctx.stroke();
+
+        // Draw inward-pointing arrows (◀ ▶)
+        ctx.fillStyle = "#1a73e8";
+        // Left arrow
+        ctx.beginPath();
+        ctx.moveTo(Math.round(indicatorX) - 3, midY);
+        ctx.lineTo(Math.round(indicatorX) - 3 - arrowSize, midY - arrowSize);
+        ctx.lineTo(Math.round(indicatorX) - 3 - arrowSize, midY + arrowSize);
+        ctx.closePath();
+        ctx.fill();
+        // Right arrow
+        ctx.beginPath();
+        ctx.moveTo(Math.round(indicatorX) + 3, midY);
+        ctx.lineTo(Math.round(indicatorX) + 3 + arrowSize, midY - arrowSize);
+        ctx.lineTo(Math.round(indicatorX) + 3 + arrowSize, midY + arrowSize);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    // Draw hidden row indicators (double-line + arrows between headers)
+    if (gs.hiddenRows.size > 0) {
+      for (let r = visStartRow; r <= endRow; r++) {
+        if (!gs.hiddenRows.has(r)) continue;
+        const indicatorY = gs.getRowY(r) - gs.scrollTop + chh;
+        const arrowSize = 4;
+        const midX = Math.round(rhw / 2);
+
+        // Draw double horizontal lines
+        ctx.strokeStyle = "#1a73e8";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(2, Math.round(indicatorY) - 1.5);
+        ctx.lineTo(rhw - 2, Math.round(indicatorY) - 1.5);
+        ctx.moveTo(2, Math.round(indicatorY) + 1.5);
+        ctx.lineTo(rhw - 2, Math.round(indicatorY) + 1.5);
+        ctx.stroke();
+
+        // Draw inward-pointing arrows (▲ ▼)
+        ctx.fillStyle = "#1a73e8";
+        // Up arrow
+        ctx.beginPath();
+        ctx.moveTo(midX, Math.round(indicatorY) - 3);
+        ctx.lineTo(midX - arrowSize, Math.round(indicatorY) - 3 - arrowSize);
+        ctx.lineTo(midX + arrowSize, Math.round(indicatorY) - 3 - arrowSize);
+        ctx.closePath();
+        ctx.fill();
+        // Down arrow
+        ctx.beginPath();
+        ctx.moveTo(midX, Math.round(indicatorY) + 3);
+        ctx.lineTo(midX - arrowSize, Math.round(indicatorY) + 3 + arrowSize);
+        ctx.lineTo(midX + arrowSize, Math.round(indicatorY) + 3 + arrowSize);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
     // Draw row grouping +/- buttons in row header area
     for (const group of rowGroups) {
       const groupStartY = gs.getRowY(group.start) - gs.scrollTop + chh;
@@ -1821,6 +1896,61 @@ export function Grid() {
             y <= btnY + GROUP_BTN_SIZE
           ) {
             useDataStore.getState().toggleColGroup(activeSheetId, group.start);
+            return;
+          }
+        }
+      }
+
+      // Click on hidden row indicator → unhide
+      if (
+        x < gs.rowHeaderWidth &&
+        y > gs.colHeaderHeight &&
+        gs.hiddenRows.size > 0
+      ) {
+        for (const r of gs.hiddenRows) {
+          const indicatorY = gs.getRowY(r) - gs.scrollTop + gs.colHeaderHeight;
+          if (Math.abs(y - indicatorY) <= 8) {
+            // Find contiguous hidden rows around this one
+            const toUnhide: number[] = [r];
+            let prev = r - 1;
+            while (prev >= 0 && gs.hiddenRows.has(prev)) {
+              toUnhide.push(prev);
+              prev--;
+            }
+            let next = r + 1;
+            while (next < gs.totalRows && gs.hiddenRows.has(next)) {
+              toUnhide.push(next);
+              next++;
+            }
+            gs.unhideRows(toUnhide);
+            return;
+          }
+        }
+      }
+
+      // Click on hidden column indicator → unhide
+      if (
+        y < gs.colHeaderHeight &&
+        x > gs.rowHeaderWidth &&
+        gs.hiddenCols.size > 0
+      ) {
+        for (const c of gs.hiddenCols) {
+          const indicatorX =
+            gs.getColumnX(c) - gs.scrollLeft + gs.rowHeaderWidth;
+          if (Math.abs(x - indicatorX) <= 8) {
+            // Find contiguous hidden cols around this one
+            const toUnhide: number[] = [c];
+            let prev = c - 1;
+            while (prev >= 0 && gs.hiddenCols.has(prev)) {
+              toUnhide.push(prev);
+              prev--;
+            }
+            let next = c + 1;
+            while (next < gs.totalCols && gs.hiddenCols.has(next)) {
+              toUnhide.push(next);
+              next++;
+            }
+            gs.unhideCols(toUnhide);
             return;
           }
         }
