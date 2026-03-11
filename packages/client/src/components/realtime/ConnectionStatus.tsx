@@ -12,7 +12,7 @@ const STATUS_CONFIG: Record<
     textClass: "text-green-600",
   },
   connecting: {
-    label: "Reconnecting…",
+    label: "Connecting…",
     dotClass: "bg-amber-500 animate-pulse",
     textClass: "text-amber-600",
   },
@@ -25,6 +25,23 @@ const STATUS_CONFIG: Record<
 
 export function ConnectionStatus(): React.ReactElement {
   const status = useRealtimeStore((state) => state.connectionStatus);
+  const spreadsheetId = useRealtimeStore(
+    (state) => state.currentSpreadsheetId,
+  );
+
+  // Don't show "Offline" when no spreadsheet is active (no connection expected)
+  if (!spreadsheetId && status === "disconnected") {
+    return (
+      <div
+        data-testid="connection-status"
+        data-status="idle"
+        className="flex items-center gap-1.5 text-xs text-transparent"
+      >
+        <span className="w-2 h-2 rounded-full" />
+      </div>
+    );
+  }
+
   const config = STATUS_CONFIG[status];
 
   return (

@@ -57,16 +57,21 @@ function getStore() {
 export function connectSocket(): Socket {
   if (socket?.connected) return socket;
 
+  // If socket exists but is disconnecting/reconnecting, return it
+  if (socket) return socket;
+
   const token = getAccessToken();
   const tabId = getStore().tabId;
 
-  socket = io(WS_URL, {
+  socket = io(WS_URL || window.location.origin, {
     auth: { token, tabId },
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 10000,
     reconnectionAttempts: Infinity,
     transports: ["websocket", "polling"],
+    // Allow Cloud Run and other proxy environments to upgrade connections
+    withCredentials: true,
   });
 
   getStore().setConnectionStatus("connecting");
@@ -83,8 +88,19 @@ export function connectSocket(): Socket {
     }
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", (reason) => {
     getStore().setConnectionStatus("disconnected");
+    // If the server forced the disconnect, reconnect manually
+    if (reason === "io server disconnect" && socket) {
+      socket.connect();
+    }
+  });
+
+  socket.on("connect_error", (err) => {
+    getStore().setConnectionStatus("disconnected");
+    errorListeners.forEach((cb) =>
+      cb(`WebSocket connection error: ${err.message}`),
+    );
   });
 
   socket.on("reconnect_attempt", () => {

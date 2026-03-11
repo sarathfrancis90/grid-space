@@ -10,11 +10,22 @@ import type { SocketData } from "./types";
 let io: Server | null = null;
 
 export function createSocketServer(httpServer: HttpServer): Server {
+  // In production, allow the configured CLIENT_URL and same-origin connections.
+  // Cloud Run and similar platforms proxy WebSocket upgrades on the same origin.
+  const corsOrigin =
+    env.NODE_ENV === "production"
+      ? [env.CLIENT_URL].filter(Boolean)
+      : true;
+
   io = new Server(httpServer, {
     cors: {
-      origin: env.NODE_ENV === "production" ? env.CLIENT_URL : true,
+      origin: corsOrigin,
       credentials: true,
     },
+    // Allow WebSocket transport first, fall back to polling
+    transports: ["websocket", "polling"],
+    // Allow upgrades from polling to websocket
+    allowUpgrades: true,
     pingInterval: 25000,
     pingTimeout: 20000,
     maxHttpBufferSize: 1e6, // 1MB max message

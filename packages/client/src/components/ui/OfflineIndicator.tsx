@@ -13,6 +13,7 @@ export function OfflineIndicator() {
   const syncStatus = useOfflineStore((s) => s.syncStatus);
   const setOnline = useOfflineStore((s) => s.setOnline);
   const connectionStatus = useRealtimeStore((s) => s.connectionStatus);
+  const spreadsheetId = useRealtimeStore((s) => s.currentSpreadsheetId);
 
   useEffect(() => {
     const handleOnline = () => setOnline(true);
@@ -27,7 +28,11 @@ export function OfflineIndicator() {
     };
   }, [setOnline]);
 
-  const isDisconnected = !isOnline || connectionStatus === "disconnected";
+  // Only consider WebSocket disconnected when a spreadsheet is active
+  // (connection is expected). Otherwise, "disconnected" is the idle state.
+  const wsDisconnected =
+    connectionStatus === "disconnected" && spreadsheetId !== null;
+  const isDisconnected = !isOnline || wsDisconnected;
   const isReconnecting = isOnline && connectionStatus === "connecting";
 
   if (!isDisconnected && !isReconnecting && syncStatus !== "syncing") {
