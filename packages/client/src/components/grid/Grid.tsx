@@ -550,17 +550,39 @@ export function Grid() {
             const sparkData = JSON.parse(json) as {
               data: number[];
               type?: string;
+              color?: string;
+              linewidth?: number;
+              min?: number;
+              max?: number;
+              rtl?: boolean;
+              highcolor?: string;
+              lowcolor?: string;
+              firstcolor?: string;
+              lastcolor?: string;
+              negcolor?: string;
             };
-            const data = sparkData.data;
-            if (data && data.length > 1) {
+            let data = sparkData.data;
+            if (data && data.length > 0) {
+              // Reverse data for right-to-left mode
+              if (sparkData.rtl) data = [...data].reverse();
+
               const pad = 3;
               const sparkX = Math.round(cellX) + pad;
               const sparkY = Math.round(cellY) + pad;
               const sparkW = Math.round(cellW) - pad * 2;
               const sparkH = Math.round(cellH) - pad * 2;
-              const minV = Math.min(...data);
-              const maxV = Math.max(...data);
+              const minV = sparkData.min ?? Math.min(...data);
+              const maxV = sparkData.max ?? Math.max(...data);
               const range = maxV - minV || 1;
+              const baseColor = sparkData.color || "#4285f4";
+
+              // Find min/max indices for special coloring
+              let minIdx = 0;
+              let maxIdx = 0;
+              for (let i = 1; i < data.length; i++) {
+                if (data[i] <= data[minIdx]) minIdx = i;
+                if (data[i] >= data[maxIdx]) maxIdx = i;
+              }
 
               ctx.save();
               ctx.beginPath();
@@ -572,31 +594,111 @@ export function Grid() {
               );
               ctx.clip();
 
-              if (sparkData.type === "bar") {
-                const barWidth = sparkW / data.length;
+              const sparkType = sparkData.type || "line";
+
+              if (sparkType === "bar") {
+                // Horizontal stacked bar — single data point as percentage
+                // Google Sheets "bar" shows a single horizontal fill bar
+                // For multiple data points, show proportional horizontal segments
+                const total = data.reduce((s, v) => s + Math.abs(v), 0) || 1;
+                let offsetX = sparkX;
                 for (let i = 0; i < data.length; i++) {
-                  const barH = ((data[i] - minV) / range) * sparkH;
-                  ctx.fillStyle = "#4285f4";
+                  const segW = (Math.abs(data[i]) / total) * sparkW;
+                  let fillColor = baseColor;
+                  if (i === 0 && sparkData.firstcolor)
+                    fillColor = sparkData.firstcolor;
+                  else if (i === data.length - 1 && sparkData.lastcolor)
+                    fillColor = sparkData.lastcolor;
+                  else if (data[i] < 0 && sparkData.negcolor)
+                    fillColor = sparkData.negcolor;
+                  ctx.fillStyle = fillColor;
+                  ctx.fillRect(offsetX, sparkY, Math.max(segW, 1), sparkH);
+                  offsetX += segW;
+                }
+              } else if (sparkType === "column") {
+                // Vertical bar chart — each value is a column
+                const barWidth = sparkW / data.length;
+                // Use zero as baseline if data spans negative & positive
+                const hasNeg = data.some((v) => v < 0);
+                const baseline = hasNeg ? Math.max(0, minV) : minV;
+                const baseY =
+                  sparkY + sparkH - ((baseline - minV) / range) * sparkH;
+
+                for (let i = 0; i < data.length; i++) {
+                  const valY =
+                    sparkY + sparkH - ((data[i] - minV) / range) * sparkH;
+                  const barH = Math.abs(baseY - valY);
+                  const barTop = Math.min(baseY, valY);
+
+                  // Determine bar color
+                  let fillColor = baseColor;
+                  if (data[i] < 0 && sparkData.negcolor)
+                    fillColor = sparkData.negcolor;
+                  if (i === 0 && sparkData.firstcolor)
+                    fillColor = sparkData.firstcolor;
+                  if (i === data.length - 1 && sparkData.lastcolor)
+                    fillColor = sparkData.lastcolor;
+                  if (i === minIdx && sparkData.lowcolor)
+                    fillColor = sparkData.lowcolor;
+                  if (i === maxIdx && sparkData.highcolor)
+                    fillColor = sparkData.highcolor;
+
+                  ctx.fillStyle = fillColor;
                   ctx.fillRect(
                     sparkX + i * barWidth + 1,
-                    sparkY + sparkH - barH,
+                    barTop,
                     Math.max(barWidth - 2, 1),
-                    barH,
+                    Math.max(barH, 1),
                   );
                 }
-              } else {
-                // line sparkline
-                ctx.strokeStyle = "#4285f4";
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
+              } else if (sparkType === "winloss") {
+                // Win/loss chart — equal-height bars, above for positive, below for negative
+                const barWidth = sparkW / data.length;
+                const midY = sparkY + sparkH / 2;
+                const halfH = sparkH / 2 - 1;
+
                 for (let i = 0; i < data.length; i++) {
-                  const px = sparkX + (i / (data.length - 1)) * sparkW;
-                  const py =
-                    sparkY + sparkH - ((data[i] - minV) / range) * sparkH;
-                  if (i === 0) ctx.moveTo(px, py);
-                  else ctx.lineTo(px, py);
+                  let fillColor = baseColor;
+                  if (data[i] < 0 && sparkData.negcolor)
+                    fillColor = sparkData.negcolor;
+                  else if (data[i] < 0) fillColor = "#dc3912";
+                  if (i === 0 && sparkData.firstcolor)
+                    fillColor = sparkData.firstcolor;
+                  if (i === data.length - 1 && sparkData.lastcolor)
+                    fillColor = sparkData.lastcolor;
+
+                  ctx.fillStyle = fillColor;
+                  if (data[i] >= 0) {
+                    ctx.fillRect(
+                      sparkX + i * barWidth + 1,
+                      midY - halfH,
+                      Math.max(barWidth - 2, 1),
+                      halfH,
+                    );
+                  } else {
+                    ctx.fillRect(
+                      sparkX + i * barWidth + 1,
+                      midY + 1,
+                      Math.max(barWidth - 2, 1),
+                      halfH,
+                    );
+                  }
                 }
-                ctx.stroke();
+              } else {
+                // Line sparkline (default)
+                if (data.length > 1) {
+                  ctx.strokeStyle = baseColor;
+                  ctx.lineWidth = sparkData.linewidth ?? 1.5;
+                  ctx.beginPath();
+                  for (let i = 0; i < data.length; i++) {
+                    const px = sparkX + (i / (data.length - 1)) * sparkW;
+                    const py =
+                      sparkY + sparkH - ((data[i] - minV) / range) * sparkH;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                  }
+                  ctx.stroke();
+                }
               }
               ctx.restore();
             }
