@@ -847,6 +847,14 @@ export function MenuBar() {
       testId: "menu-tools",
       items: [
         {
+          label: "Script editor",
+          testId: "menu-tools-script-editor",
+          action: () => {
+            useUIStore.getState().setScriptEditorOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
           label: "Spelling",
           testId: "menu-tools-spelling",
           action: () => setOpenMenu(null),
@@ -920,6 +928,24 @@ export function MenuBar() {
             store.setEditingMode(
               store.editingMode === "suggesting" ? "editing" : "suggesting",
             );
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Accessibility",
+          testId: "menu-tools-accessibility",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setAccessibilityDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Create a form",
+          testId: "menu-tools-create-form",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setCreateFormDialogOpen(true);
             setOpenMenu(null);
           },
         },
