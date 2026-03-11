@@ -75,6 +75,7 @@ interface UIState {
   isDetailsDialogOpen: boolean;
   isAccessibilityDialogOpen: boolean;
   isCreateFormDialogOpen: boolean;
+  isAddOnsDialogOpen: boolean;
   isFullscreen: boolean;
   isToolbarCollapsed: boolean;
   isFormulaBarExpanded: boolean;
@@ -119,6 +120,7 @@ interface UIState {
   setDetailsDialogOpen: (open: boolean) => void;
   setAccessibilityDialogOpen: (open: boolean) => void;
   setCreateFormDialogOpen: (open: boolean) => void;
+  setAddOnsDialogOpen: (open: boolean) => void;
   setFullscreen: (fullscreen: boolean) => void;
   setToolbarCollapsed: (collapsed: boolean) => void;
   toggleToolbarCollapsed: () => void;
@@ -167,6 +169,7 @@ export const useUIStore = create<UIState>()(
     isDetailsDialogOpen: false,
     isAccessibilityDialogOpen: false,
     isCreateFormDialogOpen: false,
+    isAddOnsDialogOpen: false,
     isFullscreen: false,
     isToolbarCollapsed: false,
     isFormulaBarExpanded: false,
@@ -415,6 +418,12 @@ export const useUIStore = create<UIState>()(
     setCreateFormDialogOpen: (open: boolean) => {
       set((state) => {
         state.isCreateFormDialogOpen = open;
+      });
+    },
+
+    setAddOnsDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isAddOnsDialogOpen = open;
       });
     },
 

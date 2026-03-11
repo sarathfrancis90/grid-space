@@ -55,6 +55,7 @@ import { ImportDialog } from "../file-ops/ImportDialog";
 import { DetailsDialog } from "../ui/DetailsDialog";
 import { AccessibilityDialog } from "../ui/AccessibilityDialog";
 import { CreateFormDialog } from "../ui/CreateFormDialog";
+import { AddOnsDialog } from "../ui/AddOnsDialog";
 import { SuggestionsSidebar } from "../suggestions/SuggestionsSidebar";
 import { useMacroRecorder } from "../../hooks/useMacroRecorder";
 import { useAutoSave } from "../../hooks/useAutoSave";
@@ -473,6 +474,7 @@ export default function SpreadsheetEditorPage() {
       <DetailsDialog />
       <AccessibilityDialog />
       <CreateFormDialog />
+      <AddOnsDialog />
       <OfflineIndicator />
       <Suspense fallback={null}>
         <ChartOverlay />
