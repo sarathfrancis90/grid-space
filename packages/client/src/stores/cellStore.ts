@@ -47,6 +47,18 @@ interface CellState {
     totalCols: number,
   ) => void;
   deleteCols: (sheetId: string, cols: number[], totalCols: number) => void;
+  moveRow: (
+    sheetId: string,
+    fromRow: number,
+    toRow: number,
+    totalCols: number,
+  ) => void;
+  moveCol: (
+    sheetId: string,
+    fromCol: number,
+    toCol: number,
+    totalRows: number,
+  ) => void;
   ensureSheet: (sheetId: string) => void;
   getLastDataPosition: (sheetId: string) => { row: number; col: number };
 }
@@ -255,6 +267,70 @@ export const useCellStore = create<CellState>()(
           );
         }
         state.cells.set(sheetId, newMap);
+      });
+    },
+
+    moveRow: (
+      sheetId: string,
+      fromRow: number,
+      toRow: number,
+      totalCols: number,
+    ) => {
+      if (fromRow === toRow) return;
+      set((state) => {
+        const sheetCells = state.cells.get(sheetId);
+        if (!sheetCells) return;
+        // Collect cells in the source row
+        const fromCells = new Map<number, CellData>();
+        const toCells = new Map<number, CellData>();
+        for (let c = 0; c < totalCols; c++) {
+          const fKey = getCellKey(fromRow, c);
+          const tKey = getCellKey(toRow, c);
+          const fCell = sheetCells.get(fKey);
+          const tCell = sheetCells.get(tKey);
+          if (fCell) fromCells.set(c, fCell);
+          if (tCell) toCells.set(c, tCell);
+          sheetCells.delete(fKey);
+          sheetCells.delete(tKey);
+        }
+        // Swap: put fromCells into toRow and toCells into fromRow
+        for (const [c, data] of fromCells) {
+          sheetCells.set(getCellKey(toRow, c), data);
+        }
+        for (const [c, data] of toCells) {
+          sheetCells.set(getCellKey(fromRow, c), data);
+        }
+      });
+    },
+
+    moveCol: (
+      sheetId: string,
+      fromCol: number,
+      toCol: number,
+      totalRows: number,
+    ) => {
+      if (fromCol === toCol) return;
+      set((state) => {
+        const sheetCells = state.cells.get(sheetId);
+        if (!sheetCells) return;
+        const fromCells = new Map<number, CellData>();
+        const toCells = new Map<number, CellData>();
+        for (let r = 0; r < totalRows; r++) {
+          const fKey = getCellKey(r, fromCol);
+          const tKey = getCellKey(r, toCol);
+          const fCell = sheetCells.get(fKey);
+          const tCell = sheetCells.get(tKey);
+          if (fCell) fromCells.set(r, fCell);
+          if (tCell) toCells.set(r, tCell);
+          sheetCells.delete(fKey);
+          sheetCells.delete(tKey);
+        }
+        for (const [r, data] of fromCells) {
+          sheetCells.set(getCellKey(r, toCol), data);
+        }
+        for (const [r, data] of toCells) {
+          sheetCells.set(getCellKey(r, fromCol), data);
+        }
       });
     },
 

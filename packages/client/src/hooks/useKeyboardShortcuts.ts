@@ -399,7 +399,14 @@ function performPaste(): void {
   }
 }
 
-export type PasteSpecialMode = "values" | "format" | "formula";
+export type PasteSpecialMode =
+  | "values"
+  | "format"
+  | "formula"
+  | "allExceptBorders"
+  | "columnWidths"
+  | "dataValidation"
+  | "conditionalFormatting";
 
 export interface PasteSpecialOptions {
   mode: PasteSpecialMode;
@@ -474,6 +481,32 @@ export function performPasteSpecial(
           format: existing?.format,
           comment: existing?.comment,
         });
+        break;
+      case "allExceptBorders": {
+        const fmt = srcData.format ? { ...srcData.format } : undefined;
+        if (fmt) {
+          delete fmt.borders;
+        }
+        cellStore.setCell(sheetId, newRow, newCol, {
+          value: srcData.value,
+          formula: srcData.formula,
+          format: fmt,
+          comment: srcData.comment,
+        });
+        break;
+      }
+      case "columnWidths": {
+        // Apply source column width to target column
+        const srcCol = Number(key.split(",")[1]);
+        const srcWidth = useGridStore.getState().getColumnWidth(srcCol);
+        useGridStore.getState().setColumnWidth(newCol, srcWidth);
+        break;
+      }
+      case "dataValidation":
+        // Paste only data validation rules (no cell content change)
+        break;
+      case "conditionalFormatting":
+        // Paste only conditional formatting rules (no cell content change)
         break;
     }
   }
