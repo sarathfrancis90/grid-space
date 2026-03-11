@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { useGridStore } from "../stores/gridStore";
 import { useCellStore } from "../stores/cellStore";
 import { useUIStore } from "../stores/uiStore";

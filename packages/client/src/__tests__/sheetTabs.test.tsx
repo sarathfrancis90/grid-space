@@ -13,8 +13,8 @@ function makeSheet(id: string, name: string) {
     rowHeights: new Map(),
     frozenRows: 0,
     frozenCols: 0,
-    hiddenRows: new Set(),
-    hiddenCols: new Set(),
+    hiddenRows: new Set<number>(),
+    hiddenCols: new Set<number>(),
   };
 }
 

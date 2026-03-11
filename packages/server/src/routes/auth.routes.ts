@@ -50,7 +50,12 @@ const resetPasswordSchema = {
 };
 
 // POST /api/auth/register
-router.post("/register", authAttemptLimiter, validate(registerSchema), register);
+router.post(
+  "/register",
+  authAttemptLimiter,
+  validate(registerSchema),
+  register,
+);
 
 // POST /api/auth/login
 router.post("/login", authAttemptLimiter, validate(loginSchema), login);

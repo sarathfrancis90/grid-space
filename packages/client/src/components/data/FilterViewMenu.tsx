@@ -99,12 +99,7 @@ export function FilterViewMenu({ onClose }: FilterViewMenuProps) {
                 title="Delete filter view"
                 type="button"
               >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <path
                     d="M3 3l6 6M9 3l-6 6"
                     stroke="currentColor"
