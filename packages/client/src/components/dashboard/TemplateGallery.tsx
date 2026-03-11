@@ -342,7 +342,7 @@ export function TemplateGallery() {
       <div data-testid="template-gallery-loading">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold text-gray-800">
-            Start with a template
+            Start a new spreadsheet
           </h2>
         </div>
         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -377,7 +377,7 @@ export function TemplateGallery() {
             className="text-sm font-medium text-[#1a73e8] transition-colors hover:text-[#1765cc]"
             type="button"
           >
-            View all
+            Template gallery
             <span className="ml-1">&rarr;</span>
           </button>
         )}
