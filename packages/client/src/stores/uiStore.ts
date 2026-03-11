@@ -76,6 +76,8 @@ interface UIState {
   isAccessibilityDialogOpen: boolean;
   isCreateFormDialogOpen: boolean;
   isDrawingDialogOpen: boolean;
+  isAboutDialogOpen: boolean;
+  isWhatsNewDialogOpen: boolean;
   isFullscreen: boolean;
   isToolbarCollapsed: boolean;
   isFormulaBarExpanded: boolean;
@@ -121,6 +123,8 @@ interface UIState {
   setAccessibilityDialogOpen: (open: boolean) => void;
   setCreateFormDialogOpen: (open: boolean) => void;
   setDrawingDialogOpen: (open: boolean) => void;
+  setAboutDialogOpen: (open: boolean) => void;
+  setWhatsNewDialogOpen: (open: boolean) => void;
   setFullscreen: (fullscreen: boolean) => void;
   setToolbarCollapsed: (collapsed: boolean) => void;
   toggleToolbarCollapsed: () => void;
@@ -170,6 +174,8 @@ export const useUIStore = create<UIState>()(
     isAccessibilityDialogOpen: false,
     isCreateFormDialogOpen: false,
     isDrawingDialogOpen: false,
+    isAboutDialogOpen: false,
+    isWhatsNewDialogOpen: false,
     isFullscreen: false,
     isToolbarCollapsed: false,
     isFormulaBarExpanded: false,
@@ -424,6 +430,18 @@ export const useUIStore = create<UIState>()(
     setDrawingDialogOpen: (open: boolean) => {
       set((state) => {
         state.isDrawingDialogOpen = open;
+      });
+    },
+
+    setAboutDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isAboutDialogOpen = open;
+      });
+    },
+
+    setWhatsNewDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isWhatsNewDialogOpen = open;
       });
     },
 

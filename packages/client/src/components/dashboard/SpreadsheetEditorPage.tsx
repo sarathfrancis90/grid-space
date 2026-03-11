@@ -50,6 +50,8 @@ import { ScriptEditor } from "../macros/ScriptEditor";
 import { NamedFunctionsDialog } from "../ui/NamedFunctionsDialog";
 import { AIAnalysisPanel } from "../data/AIAnalysisPanel";
 import { KeyboardShortcutsDialog } from "../ui/KeyboardShortcutsDialog";
+import { AboutDialog } from "../ui/AboutDialog";
+import { WhatsNewDialog } from "../ui/WhatsNewDialog";
 import { ThemeSidebar } from "../ui/ThemeSidebar";
 import { NotificationRulesDialog } from "../notifications/NotificationRulesDialog";
 import { ImportDialog } from "../file-ops/ImportDialog";
@@ -82,6 +84,18 @@ function KeyboardShortcutsWrapper() {
   return (
     <KeyboardShortcutsDialog isOpen={isOpen} onClose={() => close(false)} />
   );
+}
+
+function AboutDialogWrapper() {
+  const isOpen = useUIStore((s) => s.isAboutDialogOpen);
+  const close = useUIStore((s) => s.setAboutDialogOpen);
+  return <AboutDialog isOpen={isOpen} onClose={() => close(false)} />;
+}
+
+function WhatsNewDialogWrapper() {
+  const isOpen = useUIStore((s) => s.isWhatsNewDialogOpen);
+  const close = useUIStore((s) => s.setWhatsNewDialogOpen);
+  return <WhatsNewDialog isOpen={isOpen} onClose={() => close(false)} />;
 }
 
 /* ThemeDialogWrapper removed — ThemeSidebar is rendered in sidebar area */
@@ -469,6 +483,8 @@ export default function SpreadsheetEditorPage() {
       <ScriptEditor />
       <NamedFunctionsDialog />
       <KeyboardShortcutsWrapper />
+      <AboutDialogWrapper />
+      <WhatsNewDialogWrapper />
 
       <NotificationRulesDialog />
       <ImportDialog />

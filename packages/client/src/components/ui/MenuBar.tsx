@@ -1201,6 +1201,65 @@ export function MenuBar() {
           testId: "menu-help-functions",
           action: () => setOpenMenu(null),
         },
+        {
+          label: "",
+          separator: true,
+          testId: "menu-help-sep-1",
+        },
+        {
+          label: "About GridSpace",
+          testId: "menu-help-about",
+          action: () => {
+            useUIStore.getState().setAboutDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "What's new",
+          testId: "menu-help-whats-new",
+          action: () => {
+            useUIStore.getState().setWhatsNewDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "",
+          separator: true,
+          testId: "menu-help-sep-2",
+        },
+        {
+          label: "Report an issue",
+          testId: "menu-help-report-issue",
+          action: () => {
+            window.open(
+              "https://github.com/sarathfrancis90/grid-space/issues",
+              "_blank",
+              "noopener,noreferrer",
+            );
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "",
+          separator: true,
+          testId: "menu-help-sep-3",
+        },
+        {
+          label: "Terms of Service",
+          testId: "menu-help-terms",
+          action: () => {
+            window.open("/terms", "_blank", "noopener,noreferrer");
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Privacy Policy",
+          testId: "menu-help-privacy",
+          action: () => {
+            window.open("/privacy", "_blank", "noopener,noreferrer");
+            setOpenMenu(null);
+          },
+        },
       ],
     },
   ];
