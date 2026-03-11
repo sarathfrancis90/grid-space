@@ -65,6 +65,54 @@ describe("dataStore", () => {
     });
   });
 
+  // Nested grouping
+  describe("nested grouping", () => {
+    it("supports nested row groups (2 levels)", () => {
+      useDataStore.getState().addRowGroup(SHEET, 1, 10);
+      useDataStore.getState().addRowGroup(SHEET, 3, 6);
+      const groups = useDataStore.getState().getRowGroups(SHEET);
+      expect(groups).toHaveLength(2);
+      expect(groups[0]).toEqual({ start: 1, end: 10, collapsed: false });
+      expect(groups[1]).toEqual({ start: 3, end: 6, collapsed: false });
+    });
+
+    it("collapses inner group independently of outer group", () => {
+      useDataStore.getState().addRowGroup(SHEET, 0, 8);
+      useDataStore.getState().addRowGroup(SHEET, 2, 5);
+      useDataStore.getState().toggleRowGroup(SHEET, 2);
+      const groups = useDataStore.getState().getRowGroups(SHEET);
+      expect(groups[0].collapsed).toBe(false);
+      expect(groups[1].collapsed).toBe(true);
+    });
+
+    it("supports nested column groups (2 levels)", () => {
+      useDataStore.getState().addColGroup(SHEET, 0, 7);
+      useDataStore.getState().addColGroup(SHEET, 2, 4);
+      const groups = useDataStore.getState().getColGroups(SHEET);
+      expect(groups).toHaveLength(2);
+      expect(groups[0].start).toBe(0);
+      expect(groups[1].start).toBe(2);
+    });
+
+    it("removes inner group without affecting outer group", () => {
+      useDataStore.getState().addRowGroup(SHEET, 0, 10);
+      useDataStore.getState().addRowGroup(SHEET, 3, 6);
+      useDataStore.getState().removeRowGroup(SHEET, 3);
+      const groups = useDataStore.getState().getRowGroups(SHEET);
+      expect(groups).toHaveLength(1);
+      expect(groups[0]).toEqual({ start: 0, end: 10, collapsed: false });
+    });
+
+    it("groups from different sheets are independent", () => {
+      useDataStore.getState().addRowGroup(SHEET, 0, 3);
+      useDataStore.getState().addRowGroup("sheet-2", 5, 8);
+      expect(useDataStore.getState().getRowGroups(SHEET)).toHaveLength(1);
+      expect(useDataStore.getState().getRowGroups("sheet-2")).toHaveLength(1);
+      expect(useDataStore.getState().getRowGroups(SHEET)[0].start).toBe(0);
+      expect(useDataStore.getState().getRowGroups("sheet-2")[0].start).toBe(5);
+    });
+  });
+
   // Protected ranges
   describe("protected ranges", () => {
     it("adds a protected range", () => {

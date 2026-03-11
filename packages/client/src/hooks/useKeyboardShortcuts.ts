@@ -14,6 +14,7 @@ import { useFindReplaceStore } from "../stores/findReplaceStore";
 import { useVersionStore } from "../stores/versionStore";
 import { useMacroStore } from "../stores/macroStore";
 import { useGridStore } from "../stores/gridStore";
+import { useDataStore } from "../stores/dataStore";
 import { runFlashFill } from "../utils/flashFill";
 
 export interface ShortcutHandlers {
@@ -309,6 +310,31 @@ export function useKeyboardShortcuts(handlers?: ShortcutHandlers): void {
           macroState.runMacro(matchedMacro.id);
           return;
         }
+      }
+
+      // --- Alt+Shift+Right — group rows/columns ---
+      if (alt && shift && !ctrl && key === "ArrowRight") {
+        e.preventDefault();
+        const sel = useUIStore.getState().selections[0];
+        if (sel) {
+          const sid = useSpreadsheetStore.getState().activeSheetId;
+          const startRow = Math.min(sel.start.row, sel.end.row);
+          const endRow = Math.max(sel.start.row, sel.end.row);
+          useDataStore.getState().addRowGroup(sid, startRow, endRow);
+        }
+        return;
+      }
+
+      // --- Alt+Shift+Left — ungroup rows ---
+      if (alt && shift && !ctrl && key === "ArrowLeft") {
+        e.preventDefault();
+        const sel = useUIStore.getState().selections[0];
+        if (sel) {
+          const sid = useSpreadsheetStore.getState().activeSheetId;
+          const startRow = Math.min(sel.start.row, sel.end.row);
+          useDataStore.getState().removeRowGroup(sid, startRow);
+        }
+        return;
       }
 
       // --- Ctrl+Alt+Shift+H — open version history (S13-012) ---
