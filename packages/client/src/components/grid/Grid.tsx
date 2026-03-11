@@ -38,9 +38,11 @@ const HEADER_TEXT = "#666666";
 const HEADER_BORDER = "#c0c0c0";
 const SELECTION_BG = "rgba(26, 115, 232, 0.1)";
 const SELECTION_BORDER = "#1a73e8";
+const HEADER_HIGHLIGHT_BG = "rgba(26, 115, 232, 0.12)";
+const HEADER_HIGHLIGHT_TEXT = "#1a73e8";
 const FROZEN_LINE_COLOR = "#999999";
 const CELL_FONT = "13px Arial, sans-serif";
-const HEADER_FONT = "12px Arial, sans-serif";
+const HEADER_FONT = "bold 13px Arial, sans-serif";
 const BUFFER_ROWS = 10;
 const BUFFER_COLS = 5;
 const FILL_HANDLE_SIZE = 6;
@@ -881,13 +883,51 @@ export function Grid() {
       ctx.rect(rhw, chh, width - rhw, height - chh);
       ctx.clip();
 
-      ctx.fillStyle = SELECTION_BG;
-      ctx.fillRect(
-        Math.round(selX),
-        Math.round(selY),
-        Math.round(selW),
-        Math.round(selH),
-      );
+      // Fill selection background, leaving active cell white
+      const isMultiCell = minRow !== maxRow || minCol !== maxCol;
+      if (isMultiCell && ui.selectedCell) {
+        // Draw light blue on all cells except the active cell
+        for (let r = minRow; r <= maxRow; r++) {
+          if (gs.hiddenRows.has(r)) continue;
+          for (let c = minCol; c <= maxCol; c++) {
+            if (gs.hiddenCols.has(c)) continue;
+            if (r === ui.selectedCell.row && c === ui.selectedCell.col) {
+              // Active cell: white background
+              const acX = gs.getColumnX(c) - gs.scrollLeft + rhw;
+              const acY = gs.getRowY(r) - gs.scrollTop + chh;
+              const acW = gs.columnWidths.get(c) ?? gs.defaultColWidth;
+              const acH = gs.rowHeights.get(r) ?? gs.defaultRowHeight;
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(
+                Math.round(acX),
+                Math.round(acY),
+                Math.round(acW),
+                Math.round(acH),
+              );
+            } else {
+              const cX = gs.getColumnX(c) - gs.scrollLeft + rhw;
+              const cY = gs.getRowY(r) - gs.scrollTop + chh;
+              const cW = gs.columnWidths.get(c) ?? gs.defaultColWidth;
+              const cH = gs.rowHeights.get(r) ?? gs.defaultRowHeight;
+              ctx.fillStyle = SELECTION_BG;
+              ctx.fillRect(
+                Math.round(cX),
+                Math.round(cY),
+                Math.round(cW),
+                Math.round(cH),
+              );
+            }
+          }
+        }
+      } else {
+        ctx.fillStyle = SELECTION_BG;
+        ctx.fillRect(
+          Math.round(selX),
+          Math.round(selY),
+          Math.round(selW),
+          Math.round(selH),
+        );
+      }
 
       ctx.strokeStyle = SELECTION_BORDER;
       ctx.lineWidth = 2;
@@ -929,6 +969,18 @@ export function Grid() {
       ctx.stroke();
     }
 
+    // Determine selected column/row ranges for header highlighting
+    const selectedColSet = new Set<number>();
+    const selectedRowSet = new Set<number>();
+    for (const sel of ui.selections) {
+      const sMinCol = Math.min(sel.start.col, sel.end.col);
+      const sMaxCol = Math.max(sel.start.col, sel.end.col);
+      const sMinRow = Math.min(sel.start.row, sel.end.row);
+      const sMaxRow = Math.max(sel.start.row, sel.end.row);
+      for (let c = sMinCol; c <= sMaxCol; c++) selectedColSet.add(c);
+      for (let r = sMinRow; r <= sMaxRow; r++) selectedRowSet.add(r);
+    }
+
     // Draw column headers
     ctx.fillStyle = HEADER_BG;
     ctx.fillRect(rhw, 0, width - rhw, chh);
@@ -939,7 +991,15 @@ export function Grid() {
       if (gs.hiddenCols.has(c)) continue;
       const colX = gs.getColumnX(c) - gs.scrollLeft + rhw;
       const colW = gs.columnWidths.get(c) ?? gs.defaultColWidth;
+      const isColSelected = selectedColSet.has(c);
 
+      // Highlight selected column header with blue tint
+      if (isColSelected) {
+        ctx.fillStyle = HEADER_HIGHLIGHT_BG;
+        ctx.fillRect(Math.round(colX), 0, Math.round(colW), chh);
+      }
+
+      ctx.strokeStyle = HEADER_BORDER;
       ctx.beginPath();
       ctx.moveTo(Math.round(colX) + 0.5, 0);
       ctx.lineTo(Math.round(colX) + 0.5, chh);
@@ -956,7 +1016,7 @@ export function Grid() {
         : Math.round(colX + colW / 2);
 
       ctx.font = HEADER_FONT;
-      ctx.fillStyle = HEADER_TEXT;
+      ctx.fillStyle = isColSelected ? HEADER_HIGHLIGHT_TEXT : HEADER_TEXT;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(colToLetter(c), letterX, Math.round(chh / 2));
@@ -1013,6 +1073,13 @@ export function Grid() {
       if (gs.hiddenRows.has(r)) continue;
       const rowY = gs.getRowY(r) - gs.scrollTop + chh;
       const rowH = gs.rowHeights.get(r) ?? gs.defaultRowHeight;
+      const isRowSelected = selectedRowSet.has(r);
+
+      // Highlight selected row header with blue tint
+      if (isRowSelected) {
+        ctx.fillStyle = HEADER_HIGHLIGHT_BG;
+        ctx.fillRect(0, Math.round(rowY), rhw, Math.round(rowH));
+      }
 
       ctx.strokeStyle = HEADER_BORDER;
       ctx.beginPath();
@@ -1021,7 +1088,7 @@ export function Grid() {
       ctx.stroke();
 
       ctx.font = HEADER_FONT;
-      ctx.fillStyle = HEADER_TEXT;
+      ctx.fillStyle = isRowSelected ? HEADER_HIGHLIGHT_TEXT : HEADER_TEXT;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(
