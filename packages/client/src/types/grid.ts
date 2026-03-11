@@ -312,6 +312,8 @@ export interface CellComment {
   text: string;
   author: string;
   authorId?: string;
+  assignee?: string;
+  assigneeName?: string;
   createdAt: number;
   updatedAt?: number;
   resolved?: boolean;
