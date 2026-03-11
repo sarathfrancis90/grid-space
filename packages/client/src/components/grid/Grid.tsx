@@ -50,6 +50,10 @@ const HYPERLINK_COLOR = "#1a73e8";
 const GROUP_BTN_SIZE = 12;
 const SUGGESTION_BG = "rgba(255, 200, 50, 0.15)";
 const SUGGESTION_BORDER_COLOR = "#f59e0b";
+const COMMENT_INDICATOR_SIZE = 6;
+const COMMENT_INDICATOR_COLOR = "#000000";
+const FILTER_ICON_COLOR = "#188038";
+const SORT_ICON_COLOR = "#188038";
 
 type DragMode = "none" | "select" | "resize-col" | "resize-row" | "fill-handle";
 
@@ -349,6 +353,14 @@ export function Grid() {
         if (min !== Infinity) condRangeStats.set(key, { min, max });
       }
     }
+
+    // Get comment and filter state for visual indicators
+    const commentState = useCommentStore.getState();
+    const filterState = useFilterStore.getState();
+    const sheetComments = commentState.comments.get(activeSheetId) ?? [];
+    const commentCellKeys = new Set(sheetComments.map((c) => c.cellKey));
+    const columnFilters = filterState.columnFilters.get(activeSheetId) ?? [];
+    const sortCriteria = filterState.sortCriteria.get(activeSheetId) ?? [];
 
     // Build a map of cells with pending suggestions for fast lookup
     const suggestionsMap = new Map<string, number>();
@@ -797,8 +809,12 @@ export function Grid() {
           ctx.restore();
 
           // Comment/note indicator — small triangle in top-right corner
-          if (cellData?.comment || cellData?.note) {
-            const triSize = 6;
+          if (
+            cellData?.comment ||
+            cellData?.note ||
+            commentCellKeys.has(cellKey)
+          ) {
+            const triSize = COMMENT_INDICATOR_SIZE;
             const triX = Math.round(cellX + cellW);
             const triY = Math.round(cellY);
             ctx.beginPath();
@@ -806,7 +822,7 @@ export function Grid() {
             ctx.lineTo(triX, triY);
             ctx.lineTo(triX, triY + triSize);
             ctx.closePath();
-            ctx.fillStyle = "#ff9800";
+            ctx.fillStyle = COMMENT_INDICATOR_COLOR;
             ctx.fill();
           }
         }
@@ -929,15 +945,59 @@ export function Grid() {
       ctx.lineTo(Math.round(colX) + 0.5, chh);
       ctx.stroke();
 
+      // Check for filter/sort indicators on this column
+      const hasFilter = columnFilters.some((f) => f.col === c);
+      const sortForCol = sortCriteria.find((s) => s.col === c);
+      const hasIndicator = hasFilter || sortForCol;
+
+      // Shift column letter left if there's an indicator to make room
+      const letterX = hasIndicator
+        ? Math.round(colX + colW / 2 - 6)
+        : Math.round(colX + colW / 2);
+
       ctx.font = HEADER_FONT;
       ctx.fillStyle = HEADER_TEXT;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(
-        colToLetter(c),
-        Math.round(colX + colW / 2),
-        Math.round(chh / 2),
-      );
+      ctx.fillText(colToLetter(c), letterX, Math.round(chh / 2));
+
+      // Draw filter funnel icon on column header
+      if (hasFilter) {
+        const iconX = Math.round(colX + colW - 16);
+        const iconY = Math.round(chh / 2 - 5);
+        ctx.fillStyle = FILTER_ICON_COLOR;
+        ctx.beginPath();
+        // Funnel shape: wide top, narrow bottom
+        ctx.moveTo(iconX, iconY);
+        ctx.lineTo(iconX + 10, iconY);
+        ctx.lineTo(iconX + 7, iconY + 5);
+        ctx.lineTo(iconX + 7, iconY + 10);
+        ctx.lineTo(iconX + 3, iconY + 10);
+        ctx.lineTo(iconX + 3, iconY + 5);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Draw sort direction arrow on column header
+      if (sortForCol) {
+        const arrowX = Math.round(colX + colW - (hasFilter ? 26 : 14));
+        const arrowY = Math.round(chh / 2);
+        ctx.fillStyle = SORT_ICON_COLOR;
+        ctx.beginPath();
+        if (sortForCol.direction === "asc") {
+          // Up arrow
+          ctx.moveTo(arrowX, arrowY + 4);
+          ctx.lineTo(arrowX + 4, arrowY - 4);
+          ctx.lineTo(arrowX + 8, arrowY + 4);
+        } else {
+          // Down arrow
+          ctx.moveTo(arrowX, arrowY - 4);
+          ctx.lineTo(arrowX + 4, arrowY + 4);
+          ctx.lineTo(arrowX + 8, arrowY - 4);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
     }
 
     ctx.beginPath();
@@ -1075,6 +1135,8 @@ export function Grid() {
       useDataStore.subscribe(scheduleRedraw),
       useFormatStore.subscribe(scheduleRedraw),
       useSuggestionsStore.subscribe(scheduleRedraw),
+      useCommentStore.subscribe(scheduleRedraw),
+      useFilterStore.subscribe(scheduleRedraw),
     ];
     scheduleRedraw();
     return () => {
