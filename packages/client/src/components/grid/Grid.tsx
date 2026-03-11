@@ -371,6 +371,20 @@ export function Grid() {
       suggestionsMap.set(mapKey, (suggestionsMap.get(mapKey) ?? 0) + 1);
     }
 
+    // Build find-replace match sets for highlighting
+    const frState = useFindReplaceStore.getState();
+    const findMatchSet = new Set<string>();
+    let findCurrentMatchKey = "";
+    if (frState.isOpen && frState.matches.length > 0) {
+      for (const m of frState.matches) {
+        findMatchSet.add(`${m.row},${m.col}`);
+      }
+      if (frState.currentMatchIndex >= 0) {
+        const cur = frState.matches[frState.currentMatchIndex];
+        findCurrentMatchKey = `${cur.row},${cur.col}`;
+      }
+    }
+
     // Draw cell backgrounds and content
     ctx.save();
     ctx.beginPath();
@@ -398,6 +412,28 @@ export function Grid() {
             Math.round(cellY),
             Math.round(cellW),
             Math.round(cellH),
+          );
+        }
+
+        // Find & Replace match highlight
+        if (findMatchSet.has(cellKey)) {
+          const isCurrent = cellKey === findCurrentMatchKey;
+          ctx.fillStyle = isCurrent
+            ? "rgba(255, 152, 0, 0.4)"
+            : "rgba(255, 235, 59, 0.4)";
+          ctx.fillRect(
+            Math.round(cellX),
+            Math.round(cellY),
+            Math.round(cellW),
+            Math.round(cellH),
+          );
+          ctx.strokeStyle = isCurrent ? "#e65100" : "#f9a825";
+          ctx.lineWidth = isCurrent ? 2 : 1;
+          ctx.strokeRect(
+            Math.round(cellX) + 0.5,
+            Math.round(cellY) + 0.5,
+            Math.round(cellW) - 1,
+            Math.round(cellH) - 1,
           );
         }
 
@@ -1137,6 +1173,7 @@ export function Grid() {
       useSuggestionsStore.subscribe(scheduleRedraw),
       useCommentStore.subscribe(scheduleRedraw),
       useFilterStore.subscribe(scheduleRedraw),
+      useFindReplaceStore.subscribe(scheduleRedraw),
     ];
     scheduleRedraw();
     return () => {

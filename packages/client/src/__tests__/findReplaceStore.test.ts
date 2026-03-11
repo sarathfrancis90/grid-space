@@ -13,6 +13,9 @@ describe("findReplaceStore", () => {
       useRegex: false,
       caseSensitive: false,
       matchEntireCell: false,
+      searchInFormulas: false,
+      searchInSelection: false,
+      selectionScope: null,
       matches: [],
       currentMatchIndex: -1,
     });
@@ -199,6 +202,77 @@ describe("findReplaceStore", () => {
     expect(replacedCells.get(getCellKey(0, 0))?.value).toBe("qux bar");
     expect(replacedCells.get(getCellKey(1, 0))?.value).toBe("qux baz");
     expect(replacedCells.get(getCellKey(2, 0))?.value).toBe("other");
+  });
+
+  it("searches in formulas when searchInFormulas is enabled", () => {
+    const cells = new Map<string, CellData>();
+    cells.set(getCellKey(0, 0), { value: 10, formula: "=SUM(A1:A5)" });
+    cells.set(getCellKey(0, 1), { value: "SUM", formula: undefined });
+    cells.set(getCellKey(1, 0), { value: 20, formula: "=AVERAGE(B1:B5)" });
+
+    const store = useFindReplaceStore.getState();
+    store.setSearchTerm("SUM");
+    store.setSearchInFormulas(true);
+    useFindReplaceStore.getState().findAll(SHEET, cells, 2, 2);
+
+    const state = useFindReplaceStore.getState();
+    // Should match formula =SUM(A1:A5) and value "SUM"
+    expect(state.matches).toHaveLength(2);
+    expect(state.matches[0]).toEqual({ row: 0, col: 0 });
+    expect(state.matches[1]).toEqual({ row: 0, col: 1 });
+  });
+
+  it("searches only in formulas text, not values when formula matches", () => {
+    const cells = new Map<string, CellData>();
+    cells.set(getCellKey(0, 0), { value: 100, formula: "=VLOOKUP(A1,B:B,2)" });
+    cells.set(getCellKey(1, 0), { value: "VLOOKUP" });
+
+    const store = useFindReplaceStore.getState();
+    store.setSearchTerm("VLOOKUP");
+    store.setSearchInFormulas(true);
+    useFindReplaceStore.getState().findAll(SHEET, cells, 2, 1);
+
+    const state = useFindReplaceStore.getState();
+    // Both should match: first via formula, second via value
+    expect(state.matches).toHaveLength(2);
+  });
+
+  it("limits search to selection scope", () => {
+    const cells = makeCells([
+      ["apple", "banana", "cherry"],
+      ["date", "apple", "fig"],
+      ["grape", "apple", "kiwi"],
+    ]);
+
+    const store = useFindReplaceStore.getState();
+    store.setSearchTerm("apple");
+    store.setSearchInSelection(true, {
+      start: { row: 0, col: 0 },
+      end: { row: 1, col: 1 },
+    });
+    useFindReplaceStore.getState().findAll(SHEET, cells, 3, 3);
+
+    const state = useFindReplaceStore.getState();
+    // Only matches within selection (rows 0-1, cols 0-1)
+    expect(state.matches).toHaveLength(2);
+    expect(state.matches[0]).toEqual({ row: 0, col: 0 });
+    expect(state.matches[1]).toEqual({ row: 1, col: 1 });
+  });
+
+  it("searches full sheet when searchInSelection is false", () => {
+    const cells = makeCells([
+      ["apple", "banana"],
+      ["date", "apple"],
+    ]);
+
+    const store = useFindReplaceStore.getState();
+    store.setSearchTerm("apple");
+    // Set a scope but disable searchInSelection
+    store.setSearchInSelection(false);
+    useFindReplaceStore.getState().findAll(SHEET, cells, 2, 2);
+
+    const state = useFindReplaceStore.getState();
+    expect(state.matches).toHaveLength(2);
   });
 
   it("replaces with regex", () => {

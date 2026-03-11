@@ -15,12 +15,18 @@ export function FindReplace() {
   const matchEntireCell = useFindReplaceStore((s) => s.matchEntireCell);
   const matches = useFindReplaceStore((s) => s.matches);
   const currentMatchIndex = useFindReplaceStore((s) => s.currentMatchIndex);
+  const searchInFormulas = useFindReplaceStore((s) => s.searchInFormulas);
+  const searchInSelection = useFindReplaceStore((s) => s.searchInSelection);
 
   const setSearchTerm = useFindReplaceStore((s) => s.setSearchTerm);
   const setReplaceTerm = useFindReplaceStore((s) => s.setReplaceTerm);
   const setUseRegex = useFindReplaceStore((s) => s.setUseRegex);
   const setCaseSensitive = useFindReplaceStore((s) => s.setCaseSensitive);
   const setMatchEntireCell = useFindReplaceStore((s) => s.setMatchEntireCell);
+  const setSearchInFormulas = useFindReplaceStore((s) => s.setSearchInFormulas);
+  const setSearchInSelection = useFindReplaceStore(
+    (s) => s.setSearchInSelection,
+  );
   const findAll = useFindReplaceStore((s) => s.findAll);
   const findNext = useFindReplaceStore((s) => s.findNext);
   const findPrev = useFindReplaceStore((s) => s.findPrev);
@@ -69,12 +75,25 @@ export function FindReplace() {
     goToMatch(pos);
   }, [matches.length, doFind, findPrev, goToMatch]);
 
+  const handleToggleSearchInSelection = useCallback(
+    (checked: boolean) => {
+      const uiState = useUIStore.getState();
+      const selections = uiState.selections;
+      const sel = selections.length > 0 ? selections[0] : null;
+      setSearchInSelection(checked, sel);
+    },
+    [setSearchInSelection],
+  );
+
   const handleReplaceCurrent = useCallback(() => {
     const activeSheetId = useSpreadsheetStore.getState().activeSheetId;
     const cs = useCellStore.getState();
     replaceCurrent(activeSheetId, cs.setCell, cs.getCell);
     doFind();
-  }, [replaceCurrent, doFind]);
+    // Auto-advance to next match after replace
+    const pos = findNext();
+    goToMatch(pos);
+  }, [replaceCurrent, doFind, findNext, goToMatch]);
 
   const handleReplaceAll = useCallback(() => {
     const activeSheetId = useSpreadsheetStore.getState().activeSheetId;
@@ -102,7 +121,15 @@ export function FindReplace() {
 
   useEffect(() => {
     doFind();
-  }, [searchTerm, useRegex, caseSensitive, matchEntireCell, doFind]);
+  }, [
+    searchTerm,
+    useRegex,
+    caseSensitive,
+    matchEntireCell,
+    searchInFormulas,
+    searchInSelection,
+    doFind,
+  ]);
 
   if (!isOpen) return null;
 
@@ -319,6 +346,30 @@ export function FindReplace() {
             onChange={(e) => setMatchEntireCell(e.target.checked)}
           />
           Entire cell
+        </label>
+        <label
+          className="flex items-center gap-1"
+          style={{ display: "flex", alignItems: "center", gap: "4px" }}
+        >
+          <input
+            data-testid="find-formulas-toggle"
+            type="checkbox"
+            checked={searchInFormulas}
+            onChange={(e) => setSearchInFormulas(e.target.checked)}
+          />
+          Formulas
+        </label>
+        <label
+          className="flex items-center gap-1"
+          style={{ display: "flex", alignItems: "center", gap: "4px" }}
+        >
+          <input
+            data-testid="find-in-selection-toggle"
+            type="checkbox"
+            checked={searchInSelection}
+            onChange={(e) => handleToggleSearchInSelection(e.target.checked)}
+          />
+          In selection
         </label>
         {!showReplace && (
           <button
