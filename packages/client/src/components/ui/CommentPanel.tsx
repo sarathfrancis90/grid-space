@@ -1,10 +1,11 @@
 /**
  * CommentPanel — add, view, edit, delete comments with threaded replies,
- * @mention autocomplete, and resolve/unresolve.
+ * @mention autocomplete, resolve/unresolve, assign to person, sort/filter.
  * S7-018 to S7-020, S15-001 to S15-005
  */
 import { useState, useCallback, useMemo } from "react";
 import { useCommentStore } from "../../stores/commentStore";
+import type { CommentSortBy } from "../../stores/commentStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useCellStore } from "../../stores/cellStore";
 import { getCellKey } from "../../utils/coordinates";
@@ -14,6 +15,19 @@ import type {
   CommentReaction,
 } from "../../types/grid";
 import { ReactionPicker } from "./ReactionPicker";
+
+const SORT_OPTIONS: { value: CommentSortBy; label: string }[] = [
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "unresolved-first", label: "Unresolved first" },
+];
+
+const MOCK_USERS = [
+  { id: "user-1", name: "Alice" },
+  { id: "user-2", name: "Bob" },
+  { id: "user-3", name: "Charlie" },
+  { id: "current-user", name: "You" },
+];
 
 export function CommentPanel() {
   const activeCell = useCommentStore((s) => s.activeCommentCell);
@@ -27,16 +41,20 @@ export function CommentPanel() {
   const [editText, setEditText] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [assignee, setAssignee] = useState("");
+  const sortBy = useCommentStore((s) => s.sortBy);
 
   const comments = useMemo(() => {
     if (!activeCell) return [];
-    return useCommentStore
+    const raw = useCommentStore
       .getState()
       .getCommentsForCell(effectiveSheet, activeCell);
-  }, [activeCell, effectiveSheet, commentsMap]);
+    return useCommentStore.getState().getSortedComments(raw);
+  }, [activeCell, effectiveSheet, commentsMap, sortBy]);
 
   const handleAddComment = useCallback(() => {
     if (!activeCell || !newText.trim()) return;
+    const selectedUser = MOCK_USERS.find((u) => u.id === assignee);
     const comment: CellComment = {
       id: `comment-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       cellKey: activeCell,
@@ -46,10 +64,27 @@ export function CommentPanel() {
       createdAt: Date.now(),
       replies: [],
       resolved: false,
+      assignee: selectedUser?.id,
+      assigneeName: selectedUser?.name,
     };
     useCommentStore.getState().addComment(effectiveSheet, comment);
     setNewText("");
-  }, [activeCell, effectiveSheet, newText]);
+    setAssignee("");
+  }, [activeCell, effectiveSheet, newText, assignee]);
+
+  const handleAssignComment = useCallback(
+    (commentId: string, userId: string) => {
+      const user = MOCK_USERS.find((u) => u.id === userId);
+      useCommentStore
+        .getState()
+        .assignComment(effectiveSheet, commentId, user?.id, user?.name);
+    },
+    [effectiveSheet],
+  );
+
+  const handleSortChange = useCallback((value: CommentSortBy) => {
+    useCommentStore.getState().setSortBy(value);
+  }, []);
 
   const handleEdit = useCallback(
     (commentId: string) => {
@@ -138,13 +173,34 @@ export function CommentPanel() {
         </button>
       </div>
 
+      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-100 bg-gray-50">
+        <label className="text-xs text-gray-500" htmlFor="comment-sort">
+          Sort:
+        </label>
+        <select
+          id="comment-sort"
+          data-testid="comment-sort-select"
+          className="text-xs border border-gray-300 rounded px-1 py-0.5 bg-white"
+          value={sortBy}
+          onChange={(e) => handleSortChange(e.target.value as CommentSortBy)}
+        >
+          {SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {comments.map((c) => (
           <div
             key={c.id}
             data-testid={`comment-item-${c.id}`}
             className={`rounded p-2 text-sm ${
-              c.resolved ? "bg-green-50 border border-green-200" : "bg-gray-50"
+              c.resolved
+                ? "bg-green-50 border border-green-200"
+                : "bg-yellow-50 border border-yellow-200"
             }`}
           >
             <div className="flex items-center justify-between mb-1">
@@ -159,6 +215,37 @@ export function CommentPanel() {
                   </span>
                 )}
               </div>
+            </div>
+
+            <div className="flex items-center gap-1 mb-1">
+              <label
+                className="text-xs text-gray-500"
+                htmlFor={`assign-${c.id}`}
+              >
+                Assign:
+              </label>
+              <select
+                id={`assign-${c.id}`}
+                data-testid={`comment-assign-${c.id}`}
+                className="text-xs border border-gray-300 rounded px-1 py-0.5 bg-white"
+                value={c.assignee ?? ""}
+                onChange={(e) => handleAssignComment(c.id, e.target.value)}
+              >
+                <option value="">Unassigned</option>
+                {MOCK_USERS.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+              {c.assigneeName && (
+                <span
+                  className="text-xs text-purple-600 font-medium"
+                  data-testid={`comment-assignee-name-${c.id}`}
+                >
+                  → {c.assigneeName}
+                </span>
+              )}
             </div>
 
             {editingId === c.id ? (
@@ -323,15 +410,30 @@ export function CommentPanel() {
           rows={2}
           spellCheck
         />
-        <button
-          data-testid="comment-add-btn"
-          className="mt-1 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50"
-          onClick={handleAddComment}
-          disabled={!newText.trim()}
-          type="button"
-        >
-          Comment
-        </button>
+        <div className="flex items-center gap-2 mt-1">
+          <select
+            data-testid="comment-new-assign"
+            className="text-xs border border-gray-300 rounded px-1 py-0.5 bg-white"
+            value={assignee}
+            onChange={(e) => setAssignee(e.target.value)}
+          >
+            <option value="">Assign to...</option>
+            {MOCK_USERS.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+          <button
+            data-testid="comment-add-btn"
+            className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50"
+            onClick={handleAddComment}
+            disabled={!newText.trim()}
+            type="button"
+          >
+            Comment
+          </button>
+        </div>
       </div>
     </div>
   );

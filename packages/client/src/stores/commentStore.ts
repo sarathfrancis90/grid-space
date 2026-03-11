@@ -12,6 +12,7 @@ import type {
 } from "../types/grid";
 
 export type CommentFilter = "all" | "for-you" | "open" | "resolved";
+export type CommentSortBy = "newest" | "oldest" | "unresolved-first";
 
 interface CommentState {
   comments: Map<string, CellComment[]>;
@@ -19,6 +20,7 @@ interface CommentState {
   activeSheetForComment: string | null;
   isPanelOpen: boolean;
   filter: CommentFilter;
+  sortBy: CommentSortBy;
 
   addComment: (sheetId: string, comment: CellComment) => void;
   editComment: (sheetId: string, commentId: string, text: string) => void;
@@ -50,10 +52,20 @@ interface CommentState {
     currentUserId: string,
   ) => ReactionSummary[];
 
+  // Assign
+  assignComment: (
+    sheetId: string,
+    commentId: string,
+    assignee: string | undefined,
+    assigneeName: string | undefined,
+  ) => void;
+
   // Panel
   openPanel: () => void;
   closePanel: () => void;
   setFilter: (filter: CommentFilter) => void;
+  setSortBy: (sortBy: CommentSortBy) => void;
+  getSortedComments: (comments: CellComment[]) => CellComment[];
   getFilteredComments: (
     sheetId: string,
     currentUserId?: string,
@@ -68,6 +80,7 @@ export const useCommentStore = create<CommentState>()(
     activeSheetForComment: null,
     isPanelOpen: false,
     filter: "all" as CommentFilter,
+    sortBy: "newest" as CommentSortBy,
 
     addComment: (sheetId: string, comment: CellComment) => {
       set((state) => {
@@ -244,6 +257,24 @@ export const useCommentStore = create<CommentState>()(
       return summaries;
     },
 
+    // Assign
+    assignComment: (
+      sheetId: string,
+      commentId: string,
+      assignee: string | undefined,
+      assigneeName: string | undefined,
+    ) => {
+      set((state) => {
+        const comments = state.comments.get(sheetId);
+        if (!comments) return;
+        const comment = comments.find((c) => c.id === commentId);
+        if (comment) {
+          comment.assignee = assignee;
+          comment.assigneeName = assigneeName;
+        }
+      });
+    },
+
     // Panel
     openPanel: () => {
       set((state) => {
@@ -261,6 +292,32 @@ export const useCommentStore = create<CommentState>()(
       set((state) => {
         state.filter = filter;
       });
+    },
+
+    setSortBy: (sortBy: CommentSortBy) => {
+      set((state) => {
+        state.sortBy = sortBy;
+      });
+    },
+
+    getSortedComments: (comments: CellComment[]) => {
+      const { sortBy } = get();
+      const sorted = [...comments];
+      switch (sortBy) {
+        case "newest":
+          sorted.sort((a, b) => b.createdAt - a.createdAt);
+          break;
+        case "oldest":
+          sorted.sort((a, b) => a.createdAt - b.createdAt);
+          break;
+        case "unresolved-first":
+          sorted.sort((a, b) => {
+            if (a.resolved === b.resolved) return b.createdAt - a.createdAt;
+            return a.resolved ? 1 : -1;
+          });
+          break;
+      }
+      return sorted;
     },
 
     getFilteredComments: (sheetId: string, currentUserId?: string) => {
