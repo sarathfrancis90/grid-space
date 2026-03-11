@@ -8,8 +8,10 @@ import { useUIStore } from "../../stores/uiStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useCellStore } from "../../stores/cellStore";
 import { useHistoryStore } from "../../stores/historyStore";
+import { useFilterStore } from "../../stores/filterStore";
 import { getCellKey } from "../../utils/coordinates";
 import { ColorPicker } from "./ColorPicker";
+import { ZoomControls } from "../ui/ZoomControls";
 import { NUMBER_FORMATS } from "../../utils/numberFormat";
 import type { NumberFormatKey } from "../../utils/numberFormat";
 import type { CellFormat, BorderSide } from "../../types/grid";
@@ -27,6 +29,14 @@ const FONT_FAMILIES = [
 ];
 
 const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36, 48, 72];
+
+const QUICK_FUNCTIONS = [
+  { label: "SUM", formula: "=SUM(" },
+  { label: "AVERAGE", formula: "=AVERAGE(" },
+  { label: "COUNT", formula: "=COUNT(" },
+  { label: "MAX", formula: "=MAX(" },
+  { label: "MIN", formula: "=MIN(" },
+] as const;
 
 /** Imperative read for event handlers (non-reactive) */
 function getSelectionFormat(): CellFormat | undefined {
@@ -85,8 +95,17 @@ export function Toolbar() {
   const undo = useHistoryStore((s) => s.undo);
   const redo = useHistoryStore((s) => s.redo);
 
+  const setPrintDialogOpen = useUIStore((s) => s.setPrintDialogOpen);
+  const setHyperlinkDialogOpen = useUIStore((s) => s.setHyperlinkDialogOpen);
+  const setCommandPaletteOpen = useUIStore((s) => s.setCommandPaletteOpen);
+  const activeSheetId = useSpreadsheetStore((s) => s.activeSheetId);
+  const toggleFilters = useFilterStore((s) => s.toggleFilters);
+  const isFilterEnabled = useFilterStore((s) => s.isFilterEnabled);
+
   const [bordersOpen, setBordersOpen] = useState(false);
   const bordersRef = useRef<HTMLDivElement>(null);
+  const [functionsOpen, setFunctionsOpen] = useState(false);
+  const functionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -96,14 +115,20 @@ export function Toolbar() {
       ) {
         setBordersOpen(false);
       }
+      if (
+        functionsRef.current &&
+        !functionsRef.current.contains(e.target as Node)
+      ) {
+        setFunctionsOpen(false);
+      }
     }
-    if (bordersOpen) {
+    if (bordersOpen || functionsOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [bordersOpen]);
+  }, [bordersOpen, functionsOpen]);
 
   const handleBold = useCallback(() => toggleFormat("bold"), [toggleFormat]);
   const handleItalic = useCallback(
@@ -212,6 +237,49 @@ export function Toolbar() {
     }
   }, [paintFormatMode, startPaintFormat, cancelPaintFormat]);
 
+  const handlePrint = useCallback(() => {
+    setPrintDialogOpen(true);
+  }, [setPrintDialogOpen]);
+
+  const handleInsertLink = useCallback(() => {
+    setHyperlinkDialogOpen(true);
+  }, [setHyperlinkDialogOpen]);
+
+  const handleInsertComment = useCallback(() => {
+    // Start editing the selected cell with a comment marker
+    // For now, this is a no-op placeholder — comment dialogs are handled elsewhere
+  }, []);
+
+  const handleInsertChart = useCallback(() => {
+    // Chart insertion is handled by the Insert menu; this is a quick-access button
+  }, []);
+
+  const handleToggleFilter = useCallback(() => {
+    if (activeSheetId) {
+      toggleFilters(activeSheetId);
+    }
+  }, [activeSheetId, toggleFilters]);
+
+  const handleInsertFunction = useCallback((formula: string) => {
+    const ui = useUIStore.getState();
+    const sheetId = useSpreadsheetStore.getState().activeSheetId;
+    if (!sheetId || !ui.selectedCell) return;
+    const { row, col } = ui.selectedCell;
+    const cellStore = useCellStore.getState();
+    const sheetCells = cellStore.cells.get(sheetId);
+    const existing = sheetCells?.get(getCellKey(row, col));
+    cellStore.setCell(sheetId, row, col, {
+      ...(existing ?? { value: "" }),
+      value: formula,
+      formula,
+    });
+    setFunctionsOpen(false);
+  }, []);
+
+  const handleMenusSearch = useCallback(() => {
+    setCommandPaletteOpen(true);
+  }, [setCommandPaletteOpen]);
+
   const handleBorderOption = useCallback(
     (option: string) => {
       const border: BorderSide = { color: "#000000", style: "thin" };
@@ -248,6 +316,32 @@ export function Toolbar() {
       className="flex items-center gap-0.5 px-2 py-1 bg-[#f3f3f3] border-b border-gray-200 flex-wrap"
       style={{ padding: "4px 8px" }}
     >
+      {/* Menus search */}
+      <button
+        data-testid="menus-search-button"
+        className="h-7 flex items-center gap-1 px-2 rounded-sm hover:bg-gray-100 text-gray-600"
+        onClick={handleMenusSearch}
+        title="Search menus (Alt+/)"
+        type="button"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span className="text-[11px]">Menus</span>
+      </button>
+
+      <Divider />
+
       {/* Undo / Redo */}
       <button
         data-testid="undo-button"
@@ -318,6 +412,35 @@ export function Toolbar() {
           <path d="M10 9v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-3" />
         </svg>
       </button>
+
+      <Divider />
+
+      {/* Print */}
+      <button
+        data-testid="print-button"
+        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        onClick={handlePrint}
+        title="Print (Ctrl+P)"
+        type="button"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="6 9 6 2 18 2 18 9" />
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+          <rect x="6" y="14" width="12" height="8" />
+        </svg>
+      </button>
+
+      {/* Zoom controls */}
+      <ZoomControls />
 
       <Divider />
 
@@ -804,6 +927,151 @@ export function Toolbar() {
           <line x1="4" y1="20" x2="20" y2="4" stroke="red" strokeWidth="2" />
         </svg>
       </button>
+
+      <Divider />
+
+      {/* Link */}
+      <button
+        data-testid="insert-link-button"
+        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        onClick={handleInsertLink}
+        title="Insert link (Ctrl+K)"
+        type="button"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+        </svg>
+      </button>
+
+      {/* Comment */}
+      <button
+        data-testid="insert-comment-button"
+        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        onClick={handleInsertComment}
+        title="Insert comment (Ctrl+Alt+M)"
+        type="button"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      </button>
+
+      {/* Insert Chart */}
+      <button
+        data-testid="insert-chart-button"
+        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        onClick={handleInsertChart}
+        title="Insert chart"
+        type="button"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="3" y="12" width="4" height="9" />
+          <rect x="10" y="6" width="4" height="15" />
+          <rect x="17" y="2" width="4" height="19" />
+        </svg>
+      </button>
+
+      {/* Filter */}
+      <button
+        data-testid="filter-button"
+        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
+          activeSheetId && isFilterEnabled(activeSheetId) ? "bg-blue-100" : ""
+        }`}
+        style={
+          activeSheetId && isFilterEnabled(activeSheetId)
+            ? { backgroundColor: "#dbeafe" }
+            : undefined
+        }
+        onClick={handleToggleFilter}
+        title="Create a filter"
+        type="button"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+        </svg>
+      </button>
+
+      {/* Functions (Sigma) dropdown */}
+      <div ref={functionsRef} className="relative inline-block">
+        <button
+          data-testid="functions-button"
+          className="h-7 flex items-center gap-0.5 px-1 rounded-sm hover:bg-gray-100"
+          onClick={() => setFunctionsOpen(!functionsOpen)}
+          title="Functions"
+          type="button"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 4H6l4 8-4 8h12" />
+          </svg>
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor">
+            <path d="M1 2.5l3 3 3-3" />
+          </svg>
+        </button>
+        {functionsOpen && (
+          <div
+            data-testid="functions-dropdown"
+            className="absolute z-50 top-full left-0 mt-1 bg-white border border-gray-300 rounded shadow-lg py-1 min-w-[140px]"
+          >
+            {QUICK_FUNCTIONS.map((fn) => (
+              <button
+                key={fn.label}
+                data-testid={`function-${fn.label.toLowerCase()}`}
+                className="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50"
+                onClick={() => handleInsertFunction(fn.formula)}
+                type="button"
+              >
+                {fn.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="flex-1" />
 
