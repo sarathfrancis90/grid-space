@@ -73,6 +73,8 @@ interface UIState {
   isConditionalFormatOpen: boolean;
   isEmailDialogOpen: boolean;
   isFullscreen: boolean;
+  isFormulaBarExpanded: boolean;
+  isFunctionPickerOpen: boolean;
   /** S2-001: whether user is in formula editing mode (started typing "=") */
   isFormulaMode: boolean;
   /** S2-004: colored references parsed from the current formula */
@@ -111,6 +113,8 @@ interface UIState {
   setConditionalFormatOpen: (open: boolean) => void;
   setEmailDialogOpen: (open: boolean) => void;
   setFullscreen: (fullscreen: boolean) => void;
+  setFormulaBarExpanded: (expanded: boolean) => void;
+  setFunctionPickerOpen: (open: boolean) => void;
   /** S2-001: enter/exit formula mode */
   setFormulaMode: (active: boolean) => void;
   /** S2-003: insert a cell reference at the cursor in the formula */
@@ -152,6 +156,8 @@ export const useUIStore = create<UIState>()(
     isConditionalFormatOpen: false,
     isEmailDialogOpen: false,
     isFullscreen: false,
+    isFormulaBarExpanded: false,
+    isFunctionPickerOpen: false,
     isFormulaMode: false,
     formulaReferences: [],
 
@@ -384,6 +390,18 @@ export const useUIStore = create<UIState>()(
     setFullscreen: (fullscreen: boolean) => {
       set((state) => {
         state.isFullscreen = fullscreen;
+      });
+    },
+
+    setFormulaBarExpanded: (expanded: boolean) => {
+      set((state) => {
+        state.isFormulaBarExpanded = expanded;
+      });
+    },
+
+    setFunctionPickerOpen: (open: boolean) => {
+      set((state) => {
+        state.isFunctionPickerOpen = open;
       });
     },
 
