@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatLastOpened } from "../../utils/dateGrouping";
 
 interface SpreadsheetSummary {
   id: string;
@@ -28,6 +29,7 @@ export function SpreadsheetListItem({
 }: SpreadsheetListItemProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [newTitle, setNewTitle] = useState(spreadsheet.title);
+  const [showMenu, setShowMenu] = useState(false);
 
   const handleRename = async () => {
     if (newTitle.trim() && newTitle !== spreadsheet.title) {
@@ -147,9 +149,12 @@ export function SpreadsheetListItem({
         {spreadsheet.owner.name ?? "Unknown"}
       </span>
 
-      {/* Date */}
-      <span className="flex-shrink-0 text-xs text-gray-500">
-        {new Date(spreadsheet.updatedAt).toLocaleDateString()}
+      {/* Last opened date */}
+      <span
+        className="w-36 flex-shrink-0 text-xs text-gray-500"
+        data-testid={`list-date-${spreadsheet.id}`}
+      >
+        {formatLastOpened(spreadsheet.updatedAt)}
       </span>
 
       {/* Role badge */}
@@ -159,78 +164,65 @@ export function SpreadsheetListItem({
         </span>
       )}
 
-      {/* Actions */}
-      <div className="flex flex-shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+      {/* Three-dot overflow menu */}
+      <div className="relative flex-shrink-0">
         <button
           onClick={(e) => {
             e.stopPropagation();
-            setIsRenaming(true);
+            setShowMenu(!showMenu);
           }}
-          className="rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-          title="Rename"
-          data-testid={`list-rename-btn-${spreadsheet.id}`}
+          className="rounded-full p-1.5 text-gray-400 opacity-0 transition-all hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100"
+          data-testid={`list-menu-btn-${spreadsheet.id}`}
         >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-            />
+          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
           </svg>
         </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDuplicate(spreadsheet.id);
-          }}
-          className="rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-          title="Duplicate"
-          data-testid={`list-duplicate-btn-${spreadsheet.id}`}
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+
+        {showMenu && (
+          <div
+            className="absolute right-0 top-8 z-10 w-44 rounded-xl border border-gray-200 bg-white py-1 shadow-xl"
+            data-testid={`list-menu-${spreadsheet.id}`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-            />
-          </svg>
-        </button>
-        {spreadsheet.role === "owner" && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(spreadsheet.id);
-            }}
-            className="rounded-full p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
-            title="Delete"
-            data-testid={`list-delete-btn-${spreadsheet.id}`}
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(false);
+                setIsRenaming(true);
+              }}
+              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+              data-testid={`list-rename-btn-${spreadsheet.id}`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-          </button>
+              Rename
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(false);
+                onDuplicate(spreadsheet.id);
+              }}
+              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+              data-testid={`list-duplicate-btn-${spreadsheet.id}`}
+            >
+              Make a copy
+            </button>
+            {spreadsheet.role === "owner" && (
+              <>
+                <div className="my-1 border-t border-gray-100" />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(false);
+                    onDelete(spreadsheet.id);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                  data-testid={`list-delete-btn-${spreadsheet.id}`}
+                >
+                  Delete
+                </button>
+              </>
+            )}
+          </div>
         )}
       </div>
     </div>

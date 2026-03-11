@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCloudStore } from "../../stores/cloudStore";
 import { useAuthStore } from "../../stores/authStore";
@@ -11,6 +11,7 @@ import { TrashView } from "./TrashView";
 import { GridSpaceLogo } from "../ui/GridSpaceLogo";
 import { FolderBreadcrumbs } from "./FolderBreadcrumbs";
 import { FolderCard } from "./FolderCard";
+import { groupByDate } from "../../utils/dateGrouping";
 
 type FilterType = "all" | "owned" | "shared" | "starred";
 type DashboardTab = "spreadsheets" | "trash";
@@ -177,6 +178,12 @@ export default function DashboardPage() {
   const filteredSpreadsheets = currentFolderId
     ? spreadsheets.filter((s) => s.folderId === currentFolderId)
     : spreadsheets.filter((s) => !s.folderId);
+
+  // Group spreadsheets by date for list view
+  const groupedSpreadsheets = useMemo(
+    () => groupByDate(filteredSpreadsheets, (s) => s.updatedAt),
+    [filteredSpreadsheets],
+  );
 
   const filters: { label: string; value: FilterType }[] = [
     { label: "All", value: "all" },
@@ -702,40 +709,51 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 ) : (
-                  <div
-                    className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
-                    data-testid="spreadsheet-list"
-                  >
-                    {/* Column header */}
-                    <div
-                      className="flex items-center gap-4 border-b border-gray-100 bg-gray-50/80 px-5 py-2"
-                      style={{ padding: "8px 20px" }}
-                    >
-                      <span className="w-4 flex-shrink-0" />
-                      <span className="w-4 flex-shrink-0" />
-                      <span className="min-w-0 flex-1 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                        Name
-                      </span>
-                      <span className="flex-shrink-0 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                        Owner
-                      </span>
-                      <span className="flex-shrink-0 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                        Modified
-                      </span>
-                    </div>
-                    <div className="divide-y divide-gray-100">
-                      {filteredSpreadsheets.map((s) => (
-                        <SpreadsheetListItem
-                          key={s.id}
-                          spreadsheet={s}
-                          onOpen={handleOpen}
-                          onDelete={handleDelete}
-                          onDuplicate={handleDuplicate}
-                          onToggleStar={handleToggleStar}
-                          onRename={handleRename}
-                        />
-                      ))}
-                    </div>
+                  <div data-testid="spreadsheet-list" className="space-y-6">
+                    {groupedSpreadsheets.map((group) => (
+                      <div key={group.label}>
+                        {/* Date group heading */}
+                        <h3
+                          className="mb-2 text-sm font-medium text-gray-700"
+                          data-testid={`date-group-${group.label}`}
+                        >
+                          {group.label}
+                        </h3>
+                        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                          {/* Column header */}
+                          <div
+                            className="flex items-center gap-4 border-b border-gray-100 bg-gray-50/80 px-5 py-2"
+                            style={{ padding: "8px 20px" }}
+                          >
+                            <span className="w-4 flex-shrink-0" />
+                            <span className="w-4 flex-shrink-0" />
+                            <span className="min-w-0 flex-1 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                              Name
+                            </span>
+                            <span className="flex-shrink-0 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                              Owner
+                            </span>
+                            <span className="w-36 flex-shrink-0 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                              Last opened by me
+                            </span>
+                            <span className="w-8 flex-shrink-0" />
+                          </div>
+                          <div className="divide-y divide-gray-100">
+                            {group.items.map((s) => (
+                              <SpreadsheetListItem
+                                key={s.id}
+                                spreadsheet={s}
+                                onOpen={handleOpen}
+                                onDelete={handleDelete}
+                                onDuplicate={handleDuplicate}
+                                onToggleStar={handleToggleStar}
+                                onRename={handleRename}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 
