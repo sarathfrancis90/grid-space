@@ -23,6 +23,7 @@ import { FilterViewMenu } from "../data/FilterViewMenu";
 import { exportXLSX, downloadFile, toCSV } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
 import { performPasteSpecial } from "../../hooks/useKeyboardShortcuts";
+import { performFill } from "../../utils/fillOperations";
 
 interface MenuItemDef {
   label: string;
@@ -556,6 +557,12 @@ export function MenuBar() {
             }
             setOpenMenu(null);
           },
+        },
+        {
+          label: "Fill",
+          testId: "menu-edit-fill",
+          separator: true,
+          submenuId: "fill",
         },
         {
           label: "Find and Replace",
@@ -1277,6 +1284,69 @@ export function MenuBar() {
                         ))}
                       </div>
                     )}
+                  {item.submenuId === "fill" && hoveredSubmenu === "fill" && (
+                    <div
+                      data-testid="menu-edit-fill-submenu"
+                      className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-56"
+                    >
+                      {[
+                        {
+                          label: "Fill down",
+                          testId: "menu-edit-fill-down",
+                          shortcut: "Ctrl+D",
+                          direction: "down" as const,
+                        },
+                        {
+                          label: "Fill right",
+                          testId: "menu-edit-fill-right",
+                          shortcut: "Ctrl+R",
+                          direction: "right" as const,
+                        },
+                        {
+                          label: "Fill up",
+                          testId: "menu-edit-fill-up",
+                          direction: "up" as const,
+                        },
+                        {
+                          label: "Fill left",
+                          testId: "menu-edit-fill-left",
+                          direction: "left" as const,
+                        },
+                      ].map((fillItem) => (
+                        <button
+                          key={fillItem.testId}
+                          data-testid={fillItem.testId}
+                          className="w-full flex items-center justify-between px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                          style={{ padding: "6px 16px" }}
+                          onClick={() => {
+                            performFill(fillItem.direction);
+                            setOpenMenu(null);
+                          }}
+                          type="button"
+                        >
+                          <span>{fillItem.label}</span>
+                          {fillItem.shortcut && (
+                            <span className="text-gray-400 text-[11px] ml-8 font-mono">
+                              {fillItem.shortcut}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                      <div className="h-px bg-gray-100 my-1 mx-3" />
+                      <button
+                        data-testid="menu-edit-fill-series"
+                        className="w-full flex items-center justify-between px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                        style={{ padding: "6px 16px" }}
+                        onClick={() => {
+                          useUIStore.getState().setFillSeriesDialogOpen(true);
+                          setOpenMenu(null);
+                        }}
+                        type="button"
+                      >
+                        <span>Fill series...</span>
+                      </button>
+                    </div>
+                  )}
                   {item.submenuId === "filter-views" &&
                     hoveredSubmenu === "filter-views" && (
                       <FilterViewMenu onClose={() => setOpenMenu(null)} />

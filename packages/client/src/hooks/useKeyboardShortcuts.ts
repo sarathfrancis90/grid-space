@@ -15,6 +15,7 @@ import { useVersionStore } from "../stores/versionStore";
 import { useMacroStore } from "../stores/macroStore";
 import { useGridStore } from "../stores/gridStore";
 import { runFlashFill } from "../utils/flashFill";
+import { fillDown, fillRight } from "../utils/fillOperations";
 
 export interface ShortcutHandlers {
   onPrint?: () => void;
@@ -168,6 +169,18 @@ export function useKeyboardShortcuts(handlers?: ShortcutHandlers): void {
             if (inInput && !isCellEditor) return;
             e.preventDefault();
             performPaste();
+            return;
+          }
+          case "d": {
+            if (inInput && !isCellEditor) return;
+            e.preventDefault();
+            fillDown();
+            return;
+          }
+          case "r": {
+            if (inInput && !isCellEditor) return;
+            e.preventDefault();
+            fillRight();
             return;
           }
           case "e": {
