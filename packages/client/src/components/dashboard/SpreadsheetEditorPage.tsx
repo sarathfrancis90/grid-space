@@ -59,6 +59,8 @@ import { useAutoSave } from "../../hooks/useAutoSave";
 import { useHydrateFromServer } from "../../hooks/useHydrateFromServer";
 import { useRealtimeConnection } from "../../hooks/useRealtimeConnection";
 import { useRealtimeSync } from "../../hooks/useRealtimeSync";
+import { useCommentStore } from "../../stores/commentStore";
+import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { SaveIndicator } from "./SaveIndicator";
 import { SpreadsheetLoader } from "./SpreadsheetLoader";
 
@@ -97,6 +99,107 @@ function ConditionalFormatWrapper() {
   return (
     <ConditionalFormatManager open={isOpen} onClose={() => close(false)} />
   );
+}
+
+function TitleBarCommentIcon() {
+  const activeSheetId = useSpreadsheetStore((s) => s.activeSheetId);
+  const commentCount = useCommentStore(
+    (s) => s.comments.get(activeSheetId)?.length ?? 0,
+  );
+  const openPanel = useCommentStore((s) => s.openPanel);
+
+  return (
+    <button
+      data-testid="titlebar-comment-icon"
+      className="relative rounded-full p-1.5 hover:bg-gray-100 transition-colors"
+      style={{ padding: "6px" }}
+      onClick={openPanel}
+      title="Open comments"
+      type="button"
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#5f6368"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+      {commentCount > 0 && (
+        <span
+          data-testid="comment-count-badge"
+          className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#1a73e8] px-1 text-[10px] font-medium text-white"
+        >
+          {commentCount}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function UserAvatar() {
+  const user = useAuthStore((s) => s.user);
+  const initials = user
+    ? (user.name ?? user.email ?? "U")
+        .split(/\s+/)
+        .map((w: string) => w[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "U";
+
+  return (
+    <div
+      data-testid="user-avatar"
+      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#1a73e8] text-white text-xs font-medium cursor-pointer"
+      style={{ width: "32px", height: "32px", fontSize: "13px" }}
+      title={user?.name ?? user?.email ?? "User"}
+    >
+      {initials}
+    </div>
+  );
+}
+
+function ToolbarWithCollapse() {
+  const isCollapsed = useUIStore((s) => s.isToolbarCollapsed);
+  const toggleCollapsed = useUIStore((s) => s.toggleToolbarCollapsed);
+
+  if (isCollapsed) {
+    return (
+      <div
+        className="flex items-center justify-end bg-[#f3f3f3] border-b border-gray-200 px-2"
+        style={{ padding: "2px 8px" }}
+        data-testid="toolbar-collapsed"
+      >
+        <button
+          data-testid="toolbar-expand-chevron"
+          className="h-5 w-7 flex items-center justify-center rounded-sm hover:bg-gray-200"
+          onClick={toggleCollapsed}
+          title="Show toolbar"
+          type="button"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
+
+  return <Toolbar />;
 }
 
 export default function SpreadsheetEditorPage() {
@@ -277,6 +380,7 @@ export default function SpreadsheetEditorPage() {
         >
           <ConnectionStatus />
           <CollaboratorAvatars />
+          <TitleBarCommentIcon />
           <button
             onClick={handleShare}
             className="rounded-full bg-[#1a73e8] px-5 py-1.5 text-sm font-medium text-white hover:bg-[#1765cc] transition-colors shadow-sm"
@@ -286,6 +390,7 @@ export default function SpreadsheetEditorPage() {
             Share
           </button>
           <NotificationCenter />
+          <UserAvatar />
         </div>
       </div>
 
@@ -295,8 +400,8 @@ export default function SpreadsheetEditorPage() {
       {/* Menu bar — hidden on mobile */}
       {!isMobile && <MenuBar />}
 
-      {/* Toolbar — collapses on mobile */}
-      {isMobile ? <MobileToolbar /> : <Toolbar />}
+      {/* Toolbar — collapses on mobile, collapsible via chevron */}
+      {isMobile ? <MobileToolbar /> : <ToolbarWithCollapse />}
 
       {/* Formula bar */}
       {showFormulaBar && <FormulaBar />}

@@ -76,6 +76,32 @@ function Divider() {
   );
 }
 
+function ToolbarCollapseChevron() {
+  const toggleToolbarCollapsed = useUIStore((s) => s.toggleToolbarCollapsed);
+  return (
+    <button
+      data-testid="toolbar-collapse-chevron"
+      className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ml-1"
+      onClick={toggleToolbarCollapsed}
+      title="Hide toolbar"
+      type="button"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <polyline points="18 15 12 9 6 15" />
+      </svg>
+    </button>
+  );
+}
+
 export function Toolbar() {
   const toggleFormat = useFormatStore((s) => s.toggleFormatOnSelection);
   const setFormat = useFormatStore((s) => s.setFormatOnSelection);
@@ -1135,6 +1161,9 @@ export function Toolbar() {
 
       {/* Editing mode selector (right-aligned) */}
       <EditingModeSelector />
+
+      {/* Toolbar collapse chevron */}
+      <ToolbarCollapseChevron />
     </div>
   );
 }
