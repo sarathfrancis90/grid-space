@@ -11,6 +11,7 @@ import { useClipboardStore } from "../../stores/clipboardStore";
 import { useHistoryStore } from "../../stores/historyStore";
 import { useCommentStore } from "../../stores/commentStore";
 import { useNamedRangeStore } from "../../stores/namedRangeStore";
+import { useFilterStore } from "../../stores/filterStore";
 import { getCellKey, colToLetter } from "../../utils/coordinates";
 
 interface ContextMenuUIProps {
@@ -264,15 +265,127 @@ export function ContextMenuUI({
       testId: "ctx-insert-link",
     },
     {
+      label: "Get link to this cell",
+      action: () => {
+        if (selectedCell) {
+          const cellRef = `${colToLetter(selectedCell.col)}${selectedCell.row + 1}`;
+          const url = `${window.location.origin}${window.location.pathname}#cell=${cellRef}`;
+          navigator.clipboard.writeText(url).catch(() => {
+            window.prompt("Copy link to this cell:", url);
+          });
+        }
+        onClose();
+      },
+      separator: true,
+      testId: "ctx-get-link-to-cell",
+    },
+    {
+      label: "Hide row",
+      action: () => {
+        if (selectedCell) {
+          useGridStore.getState().hideRows([selectedCell.row]);
+        }
+        onClose();
+      },
+      testId: "ctx-hide-row",
+    },
+    {
+      label: "Hide column",
+      action: () => {
+        if (selectedCell) {
+          useGridStore.getState().hideCols([selectedCell.col]);
+        }
+        onClose();
+      },
+      testId: "ctx-hide-col",
+    },
+    {
+      label: "Resize row",
+      action: () => {
+        if (selectedCell) {
+          const gs = useGridStore.getState();
+          const input = window.prompt(
+            "Enter row height (pixels):",
+            String(gs.getRowHeight(selectedCell.row)),
+          );
+          if (input !== null) {
+            const height = parseInt(input, 10);
+            if (!isNaN(height) && height > 0) {
+              gs.setRowHeight(selectedCell.row, height);
+            }
+          }
+        }
+        onClose();
+      },
+      testId: "ctx-resize-row",
+    },
+    {
+      label: "Resize column",
+      action: () => {
+        if (selectedCell) {
+          const gs = useGridStore.getState();
+          const input = window.prompt(
+            "Enter column width (pixels):",
+            String(gs.getColumnWidth(selectedCell.col)),
+          );
+          if (input !== null) {
+            const width = parseInt(input, 10);
+            if (!isNaN(width) && width > 0) {
+              gs.setColumnWidth(selectedCell.col, width);
+            }
+          }
+        }
+        onClose();
+      },
+      separator: true,
+      testId: "ctx-resize-col",
+    },
+    {
       label: "Define named range",
       action: handleDefineNamedRange,
-      separator: true,
       testId: "ctx-define-named-range",
     },
     {
       label: "Protect range",
       action: handleProtectRange,
+      separator: true,
       testId: "ctx-protect-range",
+    },
+    {
+      label: "Sort A → Z",
+      action: () => {
+        if (selectedCell) {
+          useFilterStore
+            .getState()
+            .setSortCriteria(sheetId, [
+              { col: selectedCell.col, direction: "asc" },
+            ]);
+        }
+        onClose();
+      },
+      testId: "ctx-sort-az",
+    },
+    {
+      label: "Sort Z → A",
+      action: () => {
+        if (selectedCell) {
+          useFilterStore
+            .getState()
+            .setSortCriteria(sheetId, [
+              { col: selectedCell.col, direction: "desc" },
+            ]);
+        }
+        onClose();
+      },
+      testId: "ctx-sort-za",
+    },
+    {
+      label: "Create filter",
+      action: () => {
+        useFilterStore.getState().toggleFilters(sheetId);
+        onClose();
+      },
+      testId: "ctx-create-filter",
     },
   ];
 

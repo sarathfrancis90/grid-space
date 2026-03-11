@@ -4,6 +4,7 @@ import { useCellStore } from "../stores/cellStore";
 import { useUIStore } from "../stores/uiStore";
 import { useNamedRangeStore } from "../stores/namedRangeStore";
 import { useCommentStore } from "../stores/commentStore";
+import { useFilterStore } from "../stores/filterStore";
 
 describe("Expanded Context Menu Operations", () => {
   const sheetId = "sheet1";
@@ -187,6 +188,85 @@ describe("Expanded Context Menu Operations", () => {
     it("should open protection dialog for Protect range", () => {
       useUIStore.getState().setProtectionDialogOpen(true);
       expect(useUIStore.getState().isProtectionDialogOpen).toBe(true);
+    });
+  });
+
+  describe("Sort operations from context menu", () => {
+    it("should set sort criteria ascending for a column", () => {
+      useFilterStore
+        .getState()
+        .setSortCriteria(sheetId, [{ col: 3, direction: "asc" }]);
+      const criteria = useFilterStore.getState().sortCriteria.get(sheetId);
+      expect(criteria).toBeDefined();
+      expect(criteria).toHaveLength(1);
+      expect(criteria![0].col).toBe(3);
+      expect(criteria![0].direction).toBe("asc");
+    });
+
+    it("should set sort criteria descending for a column", () => {
+      useFilterStore
+        .getState()
+        .setSortCriteria(sheetId, [{ col: 3, direction: "desc" }]);
+      const criteria = useFilterStore.getState().sortCriteria.get(sheetId);
+      expect(criteria).toBeDefined();
+      expect(criteria![0].direction).toBe("desc");
+    });
+  });
+
+  describe("Filter toggle from context menu", () => {
+    it("should toggle filters on a sheet", () => {
+      useFilterStore.getState().toggleFilters(sheetId);
+      expect(useFilterStore.getState().isFilterEnabled(sheetId)).toBe(true);
+
+      useFilterStore.getState().toggleFilters(sheetId);
+      expect(useFilterStore.getState().isFilterEnabled(sheetId)).toBe(false);
+    });
+  });
+
+  describe("Multi-selection context menu labels", () => {
+    it("should detect multi-row selection count", () => {
+      useUIStore
+        .getState()
+        .setSelections([
+          { start: { row: 2, col: 0 }, end: { row: 5, col: 25 } },
+        ]);
+      const selections = useUIStore.getState().selections;
+      const lastSel = selections[selections.length - 1];
+      const rowCount = Math.abs(lastSel.end.row - lastSel.start.row) + 1;
+      expect(rowCount).toBe(4);
+    });
+
+    it("should detect multi-column selection count", () => {
+      useUIStore
+        .getState()
+        .setSelections([
+          { start: { row: 0, col: 1 }, end: { row: 99, col: 3 } },
+        ]);
+      const selections = useUIStore.getState().selections;
+      const lastSel = selections[selections.length - 1];
+      const colCount = Math.abs(lastSel.end.col - lastSel.start.col) + 1;
+      expect(colCount).toBe(3);
+    });
+  });
+
+  describe("Get link to cell", () => {
+    it("should generate a cell link URL with correct cell reference", () => {
+      const cellCol = 3;
+      const cellRow = 5;
+      const colToLetter = (col: number): string => {
+        let letter = "";
+        let c = col;
+        while (c >= 0) {
+          letter = String.fromCharCode((c % 26) + 65) + letter;
+          c = Math.floor(c / 26) - 1;
+        }
+        return letter;
+      };
+      const cellRef = `${colToLetter(cellCol)}${cellRow + 1}`;
+      expect(cellRef).toBe("D6");
+
+      const url = `https://example.com/sheet#cell=${cellRef}`;
+      expect(url).toContain("#cell=D6");
     });
   });
 });

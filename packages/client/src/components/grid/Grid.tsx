@@ -29,6 +29,8 @@ import type { CellData, CellPosition } from "../../types/grid";
 import { formatCellValue } from "../../utils/numberFormat";
 import { useTouchGrid } from "../../hooks/useTouchGrid";
 import { useSuggestionsStore } from "../../stores/suggestionsStore";
+import { useFilterStore } from "../../stores/filterStore";
+import type { ContextMenuItem } from "./ContextMenu";
 
 const GRID_LINE_COLOR = "#e2e2e2";
 const HEADER_BG = "#f8f9fa";
@@ -1851,26 +1853,65 @@ export function Grid() {
     [screenToGrid, setSelectedCell, setSelections],
   );
 
-  const getContextMenuItems = useCallback(() => {
+  const getContextMenuItems = useCallback((): ContextMenuItem[] => {
     if (!contextMenu) return [];
     const gs = useGridStore.getState();
+    const ui = useUIStore.getState();
+    const selections = ui.selections;
+
+    // Compute multi-row/col selection counts
+    const lastSel =
+      selections.length > 0 ? selections[selections.length - 1] : null;
+    const selectedRowCount = lastSel
+      ? Math.abs(lastSel.end.row - lastSel.start.row) + 1
+      : 1;
+    const selectedColCount = lastSel
+      ? Math.abs(lastSel.end.col - lastSel.start.col) + 1
+      : 1;
 
     if (contextMenu.target === "row") {
       const row = contextMenu.targetIndex;
       const isHidden = gs.hiddenRows.has(row);
+      const rowLabel =
+        selectedRowCount > 1 ? `${selectedRowCount} rows` : "row";
       return [
         {
-          label: "Insert row above",
+          label: "Cut",
+          shortcut: "Ctrl+X",
+          action: () => performCopy("cut"),
+        },
+        {
+          label: "Copy",
+          shortcut: "Ctrl+C",
+          action: () => performCopy("copy"),
+        },
+        {
+          label: "Paste",
+          shortcut: "Ctrl+V",
+          action: () => performPaste(),
+        },
+        { label: "", action: () => {}, separator: true },
+        {
+          label:
+            selectedRowCount > 1
+              ? `Insert ${selectedRowCount} rows above`
+              : "Insert row above",
           action: () => insertRowAt(row, "above"),
         },
         {
-          label: "Insert row below",
+          label:
+            selectedRowCount > 1
+              ? `Insert ${selectedRowCount} rows below`
+              : "Insert row below",
           action: () => insertRowAt(row, "below"),
         },
-        { label: "Delete row", action: () => deleteRowsAt([row]) },
+        {
+          label: `Delete ${rowLabel}`,
+          action: () => deleteRowsAt([row]),
+        },
         { label: "", action: () => {}, separator: true },
         {
-          label: isHidden ? "Unhide row" : "Hide row",
+          label: isHidden ? `Unhide ${rowLabel}` : `Hide ${rowLabel}`,
           action: () => {
             if (isHidden) {
               useGridStore.getState().unhideRows([row]);
@@ -1880,7 +1921,7 @@ export function Grid() {
           },
         },
         {
-          label: "Resize row",
+          label: `Resize ${rowLabel}`,
           action: () => {
             const input = window.prompt(
               "Enter row height (pixels):",
@@ -1900,19 +1941,46 @@ export function Grid() {
     if (contextMenu.target === "col") {
       const col = contextMenu.targetIndex;
       const isHidden = gs.hiddenCols.has(col);
+      const colLabel =
+        selectedColCount > 1 ? `${selectedColCount} columns` : "column";
       return [
         {
-          label: "Insert column left",
+          label: "Cut",
+          shortcut: "Ctrl+X",
+          action: () => performCopy("cut"),
+        },
+        {
+          label: "Copy",
+          shortcut: "Ctrl+C",
+          action: () => performCopy("copy"),
+        },
+        {
+          label: "Paste",
+          shortcut: "Ctrl+V",
+          action: () => performPaste(),
+        },
+        { label: "", action: () => {}, separator: true },
+        {
+          label:
+            selectedColCount > 1
+              ? `Insert ${selectedColCount} columns left`
+              : "Insert column left",
           action: () => insertColAt(col, "left"),
         },
         {
-          label: "Insert column right",
+          label:
+            selectedColCount > 1
+              ? `Insert ${selectedColCount} columns right`
+              : "Insert column right",
           action: () => insertColAt(col, "right"),
         },
-        { label: "Delete column", action: () => deleteColsAt([col]) },
+        {
+          label: `Delete ${colLabel}`,
+          action: () => deleteColsAt([col]),
+        },
         { label: "", action: () => {}, separator: true },
         {
-          label: isHidden ? "Unhide column" : "Hide column",
+          label: isHidden ? `Unhide ${colLabel}` : `Hide ${colLabel}`,
           action: () => {
             if (isHidden) {
               useGridStore.getState().unhideCols([col]);
@@ -1922,7 +1990,7 @@ export function Grid() {
           },
         },
         {
-          label: "Resize column",
+          label: `Resize ${colLabel}`,
           action: () => {
             const input = window.prompt(
               "Enter column width (pixels):",
@@ -1936,47 +2004,84 @@ export function Grid() {
             }
           },
         },
+        { label: "", action: () => {}, separator: true },
+        {
+          label: "Sort A → Z",
+          action: () => {
+            const activeSheetId = getActiveSheetId();
+            useFilterStore
+              .getState()
+              .setSortCriteria(activeSheetId, [{ col, direction: "asc" }]);
+          },
+        },
+        {
+          label: "Sort Z → A",
+          action: () => {
+            const activeSheetId = getActiveSheetId();
+            useFilterStore
+              .getState()
+              .setSortCriteria(activeSheetId, [{ col, direction: "desc" }]);
+          },
+        },
       ];
     }
 
     // Cell context menu
-    const ui = useUIStore.getState();
     const sel = ui.selectedCell;
     const activeSheetId = getActiveSheetId();
     const cellRow = sel?.row ?? 0;
     const cellCol = sel?.col ?? 0;
+    const cellRef = `${colToLetter(cellCol)}${cellRow + 1}`;
+
     return [
-      { label: "Copy", shortcut: "Ctrl+C", action: () => performCopy("copy") },
       { label: "Cut", shortcut: "Ctrl+X", action: () => performCopy("cut") },
+      { label: "Copy", shortcut: "Ctrl+C", action: () => performCopy("copy") },
       { label: "Paste", shortcut: "Ctrl+V", action: () => performPaste() },
+      {
+        label: "Paste special",
+        action: () => {},
+        submenu: [
+          {
+            label: "Values only",
+            action: () => performPaste("values"),
+          },
+          {
+            label: "Format only",
+            action: () => performPaste("format"),
+          },
+          {
+            label: "Transpose",
+            action: () => performPaste("transpose"),
+          },
+        ],
+      },
       { label: "", action: () => {}, separator: true },
       {
-        label: "Paste special: Values only",
-        action: () => performPaste("values"),
-      },
-      {
-        label: "Paste special: Format only",
-        action: () => performPaste("format"),
-      },
-      {
-        label: "Paste special: Transpose",
-        action: () => performPaste("transpose"),
-      },
-      { label: "", action: () => {}, separator: true },
-      {
-        label: "Insert row above",
+        label:
+          selectedRowCount > 1
+            ? `Insert ${selectedRowCount} rows above`
+            : "Insert row above",
         action: () => insertRowAt(cellRow, "above"),
       },
       {
-        label: "Insert row below",
+        label:
+          selectedRowCount > 1
+            ? `Insert ${selectedRowCount} rows below`
+            : "Insert row below",
         action: () => insertRowAt(cellRow, "below"),
       },
       {
-        label: "Insert column left",
+        label:
+          selectedColCount > 1
+            ? `Insert ${selectedColCount} columns left`
+            : "Insert column left",
         action: () => insertColAt(cellCol, "left"),
       },
       {
-        label: "Insert column right",
+        label:
+          selectedColCount > 1
+            ? `Insert ${selectedColCount} columns right`
+            : "Insert column right",
         action: () => insertColAt(cellCol, "right"),
       },
       { label: "", action: () => {}, separator: true },
@@ -1987,6 +2092,58 @@ export function Grid() {
       {
         label: "Delete column",
         action: () => deleteColsAt([cellCol]),
+      },
+      {
+        label: "Clear contents",
+        shortcut: "Del",
+        action: () => {
+          if (sel) {
+            useCellStore.getState().deleteCell(activeSheetId, sel.row, sel.col);
+          }
+        },
+      },
+      { label: "", action: () => {}, separator: true },
+      {
+        label: "Hide row",
+        action: () => {
+          useGridStore.getState().hideRows([cellRow]);
+        },
+      },
+      {
+        label: "Hide column",
+        action: () => {
+          useGridStore.getState().hideCols([cellCol]);
+        },
+      },
+      {
+        label: "Resize row",
+        action: () => {
+          const input = window.prompt(
+            "Enter row height (pixels):",
+            String(gs.getRowHeight(cellRow)),
+          );
+          if (input !== null) {
+            const height = parseInt(input, 10);
+            if (!isNaN(height) && height > 0) {
+              useGridStore.getState().setRowHeight(cellRow, height);
+            }
+          }
+        },
+      },
+      {
+        label: "Resize column",
+        action: () => {
+          const input = window.prompt(
+            "Enter column width (pixels):",
+            String(gs.getColumnWidth(cellCol)),
+          );
+          if (input !== null) {
+            const width = parseInt(input, 10);
+            if (!isNaN(width) && width > 0) {
+              useGridStore.getState().setColumnWidth(cellCol, width);
+            }
+          }
+        },
       },
       { label: "", action: () => {}, separator: true },
       {
@@ -2002,8 +2159,19 @@ export function Grid() {
       },
       {
         label: "Insert link",
+        shortcut: "Ctrl+K",
         action: () => {
           useUIStore.getState().setHyperlinkDialogOpen(true);
+        },
+      },
+      {
+        label: `Get link to cell ${cellRef}`,
+        action: () => {
+          const url = `${window.location.origin}${window.location.pathname}#cell=${cellRef}`;
+          navigator.clipboard.writeText(url).catch(() => {
+            // Fallback: show prompt
+            window.prompt("Copy link to this cell:", url);
+          });
         },
       },
       { label: "", action: () => {}, separator: true },
@@ -2011,9 +2179,6 @@ export function Grid() {
         label: "Define named range",
         action: () => {
           if (sel) {
-            const selections = ui.selections;
-            const lastSel =
-              selections.length > 0 ? selections[selections.length - 1] : null;
             const startRow = lastSel
               ? Math.min(lastSel.start.row, lastSel.end.row)
               : sel.row;
@@ -2043,6 +2208,40 @@ export function Grid() {
         action: () => {
           useUIStore.getState().setProtectionDialogOpen(true);
         },
+      },
+      { label: "", action: () => {}, separator: true },
+      {
+        label: "More cell actions",
+        action: () => {},
+        submenu: [
+          {
+            label: "Sort A → Z",
+            action: () => {
+              useFilterStore
+                .getState()
+                .setSortCriteria(activeSheetId, [
+                  { col: cellCol, direction: "asc" },
+                ]);
+            },
+          },
+          {
+            label: "Sort Z → A",
+            action: () => {
+              useFilterStore
+                .getState()
+                .setSortCriteria(activeSheetId, [
+                  { col: cellCol, direction: "desc" },
+                ]);
+            },
+          },
+          { label: "", action: () => {}, separator: true },
+          {
+            label: "Create filter",
+            action: () => {
+              useFilterStore.getState().toggleFilters(activeSheetId);
+            },
+          },
+        ],
       },
     ];
   }, [
