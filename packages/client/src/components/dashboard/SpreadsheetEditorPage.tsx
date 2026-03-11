@@ -48,6 +48,7 @@ import { MacroManagerDialog } from "../macros/MacroManagerDialog";
 import { ScriptEditor } from "../macros/ScriptEditor";
 import { NamedFunctionsDialog } from "../ui/NamedFunctionsDialog";
 import { AIAnalysisPanel } from "../data/AIAnalysisPanel";
+import { NamedRangesPanel } from "../data/NamedRangesPanel";
 import { KeyboardShortcutsDialog } from "../ui/KeyboardShortcutsDialog";
 import { ThemeDialog } from "../ui/ThemeDialog";
 import { NotificationRulesDialog } from "../notifications/NotificationRulesDialog";
@@ -476,6 +477,7 @@ export default function SpreadsheetEditorPage() {
       <DetailsDialog />
       <AccessibilityDialog />
       <CreateFormDialog />
+      <NamedRangesPanel />
       <OfflineIndicator />
       <Suspense fallback={null}>
         <ChartOverlay />

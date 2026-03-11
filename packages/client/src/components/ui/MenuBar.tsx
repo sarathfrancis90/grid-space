@@ -788,7 +788,10 @@ export function MenuBar() {
         {
           label: "Named ranges",
           testId: "menu-data-named-ranges",
-          action: () => setOpenMenu(null),
+          action: () => {
+            useUIStore.getState().setNamedRangesPanelOpen(true);
+            setOpenMenu(null);
+          },
         },
         {
           label: "Named functions",
