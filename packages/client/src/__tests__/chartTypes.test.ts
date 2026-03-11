@@ -27,6 +27,8 @@ describe("New Chart Types", () => {
     "radar",
     "waterfall",
     "candlestick",
+    "bubble",
+    "gauge",
   ];
 
   for (const type of newTypes) {
@@ -110,5 +112,58 @@ describe("Trendline Support", () => {
     store.updateChart("sheet-1", chartId, { trendline: "linear" });
     store.updateChart("sheet-1", chartId, { trendline: "none" });
     expect(store.getChart("sheet-1", chartId)!.trendline).toBe("none");
+  });
+});
+
+describe("Smooth Line Support", () => {
+  beforeEach(resetStores);
+
+  it("sets smoothLine to true", () => {
+    const store = useChartStore.getState();
+    const chartId = store.createChartFromSelection("sheet-1", "line", sel);
+    store.updateChart("sheet-1", chartId, { smoothLine: true });
+    expect(store.getChart("sheet-1", chartId)!.smoothLine).toBe(true);
+  });
+
+  it("toggles smoothLine off", () => {
+    const store = useChartStore.getState();
+    const chartId = store.createChartFromSelection("sheet-1", "area", sel);
+    store.updateChart("sheet-1", chartId, { smoothLine: true });
+    store.updateChart("sheet-1", chartId, { smoothLine: false });
+    expect(store.getChart("sheet-1", chartId)!.smoothLine).toBe(false);
+  });
+});
+
+describe("Bubble and Gauge Chart Types", () => {
+  beforeEach(resetStores);
+
+  it("creates a bubble chart and stores it", () => {
+    const store = useChartStore.getState();
+    const chartId = store.createChartFromSelection("sheet-1", "bubble", sel);
+    const chart = store.getChart("sheet-1", chartId);
+    expect(chart).toBeDefined();
+    expect(chart!.type).toBe("bubble");
+  });
+
+  it("creates a gauge chart and stores it", () => {
+    const store = useChartStore.getState();
+    const chartId = store.createChartFromSelection("sheet-1", "gauge", sel);
+    const chart = store.getChart("sheet-1", chartId);
+    expect(chart).toBeDefined();
+    expect(chart!.type).toBe("gauge");
+  });
+
+  it("can switch from column to bubble", () => {
+    const store = useChartStore.getState();
+    const chartId = store.createChartFromSelection("sheet-1", "column", sel);
+    store.setChartType("sheet-1", chartId, "bubble");
+    expect(store.getChart("sheet-1", chartId)!.type).toBe("bubble");
+  });
+
+  it("can switch from pie to gauge", () => {
+    const store = useChartStore.getState();
+    const chartId = store.createChartFromSelection("sheet-1", "pie", sel);
+    store.setChartType("sheet-1", chartId, "gauge");
+    expect(store.getChart("sheet-1", chartId)!.type).toBe("gauge");
   });
 });
