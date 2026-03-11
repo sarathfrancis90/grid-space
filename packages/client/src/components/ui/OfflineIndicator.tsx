@@ -13,6 +13,7 @@ export function OfflineIndicator() {
   const syncStatus = useOfflineStore((s) => s.syncStatus);
   const setOnline = useOfflineStore((s) => s.setOnline);
   const connectionStatus = useRealtimeStore((s) => s.connectionStatus);
+  const currentSpreadsheetId = useRealtimeStore((s) => s.currentSpreadsheetId);
 
   useEffect(() => {
     const handleOnline = () => setOnline(true);
@@ -27,8 +28,16 @@ export function OfflineIndicator() {
     };
   }, [setOnline]);
 
-  const isDisconnected = !isOnline || connectionStatus === "disconnected";
-  const isReconnecting = isOnline && connectionStatus === "connecting";
+  // Only treat WebSocket disconnection as "offline" if we're in a realtime
+  // session. Otherwise the indicator shows "Offline" permanently on load
+  // before the socket has ever connected.
+  const wsDisconnected =
+    connectionStatus === "disconnected" && currentSpreadsheetId !== null;
+  const isDisconnected = !isOnline || wsDisconnected;
+  const isReconnecting =
+    isOnline &&
+    connectionStatus === "connecting" &&
+    currentSpreadsheetId !== null;
 
   if (!isDisconnected && !isReconnecting && syncStatus !== "syncing") {
     return null;
