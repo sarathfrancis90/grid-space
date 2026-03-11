@@ -1,10 +1,11 @@
 /**
  * CommentPanel — add, view, edit, delete comments with threaded replies,
- * @mention autocomplete, and resolve/unresolve.
+ * @mention autocomplete, resolve/unresolve, assign to person, sort/filter.
  * S7-018 to S7-020, S15-001 to S15-005
  */
 import { useState, useCallback, useMemo } from "react";
 import { useCommentStore } from "../../stores/commentStore";
+import type { CommentSortOrder } from "../../stores/commentStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useCellStore } from "../../stores/cellStore";
 import { getCellKey } from "../../utils/coordinates";
@@ -15,14 +16,30 @@ import type {
 } from "../../types/grid";
 import { ReactionPicker } from "./ReactionPicker";
 
+const ASSIGNEE_OPTIONS = [
+  { id: "", name: "Unassigned" },
+  { id: "current-user", name: "You" },
+  { id: "user-alice", name: "Alice" },
+  { id: "user-bob", name: "Bob" },
+  { id: "user-carol", name: "Carol" },
+];
+
+const SORT_OPTIONS: Array<{ value: CommentSortOrder; label: string }> = [
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "unresolved-first", label: "Unresolved first" },
+];
+
 export function CommentPanel() {
   const activeCell = useCommentStore((s) => s.activeCommentCell);
   const activeSheet = useCommentStore((s) => s.activeSheetForComment);
   const commentsMap = useCommentStore((s) => s.comments);
+  const sortOrder = useCommentStore((s) => s.sortOrder);
   const sheetId = useSpreadsheetStore((s) => s.activeSheetId);
   const effectiveSheet = activeSheet ?? sheetId;
 
   const [newText, setNewText] = useState("");
+  const [newAssignee, setNewAssignee] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -30,13 +47,15 @@ export function CommentPanel() {
 
   const comments = useMemo(() => {
     if (!activeCell) return [];
-    return useCommentStore
+    const raw = useCommentStore
       .getState()
       .getCommentsForCell(effectiveSheet, activeCell);
-  }, [activeCell, effectiveSheet, commentsMap]);
+    return useCommentStore.getState().getSortedComments(raw);
+  }, [activeCell, effectiveSheet, commentsMap, sortOrder]);
 
   const handleAddComment = useCallback(() => {
     if (!activeCell || !newText.trim()) return;
+    const assigneeOption = ASSIGNEE_OPTIONS.find((o) => o.id === newAssignee);
     const comment: CellComment = {
       id: `comment-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       cellKey: activeCell,
@@ -46,10 +65,16 @@ export function CommentPanel() {
       createdAt: Date.now(),
       replies: [],
       resolved: false,
+      assignee: newAssignee || undefined,
+      assigneeName:
+        assigneeOption?.name !== "Unassigned"
+          ? assigneeOption?.name
+          : undefined,
     };
     useCommentStore.getState().addComment(effectiveSheet, comment);
     setNewText("");
-  }, [activeCell, effectiveSheet, newText]);
+    setNewAssignee("");
+  }, [activeCell, effectiveSheet, newText, newAssignee]);
 
   const handleEdit = useCallback(
     (commentId: string) => {
@@ -79,6 +104,21 @@ export function CommentPanel() {
   const handleUnresolve = useCallback(
     (commentId: string) => {
       useCommentStore.getState().unresolveComment(effectiveSheet, commentId);
+    },
+    [effectiveSheet],
+  );
+
+  const handleAssign = useCallback(
+    (commentId: string, assigneeId: string) => {
+      const option = ASSIGNEE_OPTIONS.find((o) => o.id === assigneeId);
+      useCommentStore
+        .getState()
+        .assignComment(
+          effectiveSheet,
+          commentId,
+          assigneeId || undefined,
+          option?.name !== "Unassigned" ? option?.name : undefined,
+        );
     },
     [effectiveSheet],
   );
@@ -117,6 +157,10 @@ export function CommentPanel() {
     useCommentStore.getState().clearActiveComment();
   }, []);
 
+  const handleSortChange = useCallback((value: string) => {
+    useCommentStore.getState().setSortOrder(value as CommentSortOrder);
+  }, []);
+
   if (!activeCell) return null;
 
   return (
@@ -138,13 +182,35 @@ export function CommentPanel() {
         </button>
       </div>
 
+      {/* Sort controls */}
+      <div className="px-3 py-1.5 border-b border-gray-100 flex items-center gap-2">
+        <label htmlFor="comment-sort" className="text-xs text-gray-500">
+          Sort:
+        </label>
+        <select
+          id="comment-sort"
+          data-testid="comment-sort-select"
+          className="text-xs border border-gray-200 rounded px-1 py-0.5 bg-white"
+          value={sortOrder}
+          onChange={(e) => handleSortChange(e.target.value)}
+        >
+          {SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {comments.map((c) => (
           <div
             key={c.id}
             data-testid={`comment-item-${c.id}`}
             className={`rounded p-2 text-sm ${
-              c.resolved ? "bg-green-50 border border-green-200" : "bg-gray-50"
+              c.resolved
+                ? "bg-green-50 border border-green-200"
+                : "bg-amber-50 border border-amber-200"
             }`}
           >
             <div className="flex items-center justify-between mb-1">
@@ -153,12 +219,42 @@ export function CommentPanel() {
                 <span className="text-xs text-gray-400">
                   {new Date(c.createdAt).toLocaleDateString()}
                 </span>
-                {c.resolved && (
+                {c.resolved ? (
                   <span className="text-xs bg-green-100 text-green-700 px-1 rounded">
                     Resolved
                   </span>
+                ) : (
+                  <span
+                    className="text-xs bg-amber-100 text-amber-700 px-1 rounded"
+                    data-testid={`comment-unresolved-badge-${c.id}`}
+                  >
+                    Open
+                  </span>
                 )}
               </div>
+            </div>
+
+            {/* Assignee display & dropdown */}
+            <div className="flex items-center gap-1 mb-1">
+              <label
+                htmlFor={`assign-${c.id}`}
+                className="text-xs text-gray-500"
+              >
+                Assigned:
+              </label>
+              <select
+                id={`assign-${c.id}`}
+                data-testid={`comment-assign-${c.id}`}
+                className="text-xs border border-gray-200 rounded px-1 py-0.5 bg-white"
+                value={c.assignee ?? ""}
+                onChange={(e) => handleAssign(c.id, e.target.value)}
+              >
+                {ASSIGNEE_OPTIONS.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {editingId === c.id ? (
@@ -323,15 +419,29 @@ export function CommentPanel() {
           rows={2}
           spellCheck
         />
-        <button
-          data-testid="comment-add-btn"
-          className="mt-1 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50"
-          onClick={handleAddComment}
-          disabled={!newText.trim()}
-          type="button"
-        >
-          Comment
-        </button>
+        <div className="flex items-center gap-2 mt-1">
+          <select
+            data-testid="comment-new-assignee"
+            className="text-xs border border-gray-200 rounded px-1 py-1 bg-white"
+            value={newAssignee}
+            onChange={(e) => setNewAssignee(e.target.value)}
+          >
+            {ASSIGNEE_OPTIONS.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.name}
+              </option>
+            ))}
+          </select>
+          <button
+            data-testid="comment-add-btn"
+            className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50"
+            onClick={handleAddComment}
+            disabled={!newText.trim()}
+            type="button"
+          >
+            Comment
+          </button>
+        </div>
       </div>
     </div>
   );

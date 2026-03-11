@@ -12,6 +12,7 @@ import type {
 } from "../types/grid";
 
 export type CommentFilter = "all" | "for-you" | "open" | "resolved";
+export type CommentSortOrder = "newest" | "oldest" | "unresolved-first";
 
 interface CommentState {
   comments: Map<string, CellComment[]>;
@@ -19,10 +20,17 @@ interface CommentState {
   activeSheetForComment: string | null;
   isPanelOpen: boolean;
   filter: CommentFilter;
+  sortOrder: CommentSortOrder;
 
   addComment: (sheetId: string, comment: CellComment) => void;
   editComment: (sheetId: string, commentId: string, text: string) => void;
   deleteComment: (sheetId: string, commentId: string) => void;
+  assignComment: (
+    sheetId: string,
+    commentId: string,
+    assignee: string | undefined,
+    assigneeName: string | undefined,
+  ) => void;
   getCommentsForCell: (sheetId: string, cellKey: string) => CellComment[];
   getCommentCount: (sheetId: string) => number;
   getCellCommentCount: (sheetId: string, cellKey: string) => number;
@@ -54,10 +62,12 @@ interface CommentState {
   openPanel: () => void;
   closePanel: () => void;
   setFilter: (filter: CommentFilter) => void;
+  setSortOrder: (sortOrder: CommentSortOrder) => void;
   getFilteredComments: (
     sheetId: string,
     currentUserId?: string,
   ) => CellComment[];
+  getSortedComments: (comments: CellComment[]) => CellComment[];
   getAllComments: (sheetId: string) => CellComment[];
 }
 
@@ -68,6 +78,7 @@ export const useCommentStore = create<CommentState>()(
     activeSheetForComment: null,
     isPanelOpen: false,
     filter: "all" as CommentFilter,
+    sortOrder: "newest" as CommentSortOrder,
 
     addComment: (sheetId: string, comment: CellComment) => {
       set((state) => {
@@ -103,6 +114,23 @@ export const useCommentStore = create<CommentState>()(
           sheetId,
           comments.filter((c) => c.id !== commentId),
         );
+      });
+    },
+
+    assignComment: (
+      sheetId: string,
+      commentId: string,
+      assignee: string | undefined,
+      assigneeName: string | undefined,
+    ) => {
+      set((state) => {
+        const comments = state.comments.get(sheetId);
+        if (!comments) return;
+        const comment = comments.find((c) => c.id === commentId);
+        if (comment) {
+          comment.assignee = assignee;
+          comment.assigneeName = assigneeName;
+        }
       });
     },
 
@@ -261,6 +289,32 @@ export const useCommentStore = create<CommentState>()(
       set((state) => {
         state.filter = filter;
       });
+    },
+
+    setSortOrder: (sortOrder: CommentSortOrder) => {
+      set((state) => {
+        state.sortOrder = sortOrder;
+      });
+    },
+
+    getSortedComments: (comments: CellComment[]): CellComment[] => {
+      const { sortOrder } = get();
+      const sorted = [...comments];
+      switch (sortOrder) {
+        case "newest":
+          sorted.sort((a, b) => b.createdAt - a.createdAt);
+          break;
+        case "oldest":
+          sorted.sort((a, b) => a.createdAt - b.createdAt);
+          break;
+        case "unresolved-first":
+          sorted.sort((a, b) => {
+            if (a.resolved === b.resolved) return b.createdAt - a.createdAt;
+            return a.resolved ? 1 : -1;
+          });
+          break;
+      }
+      return sorted;
     },
 
     getFilteredComments: (sheetId: string, currentUserId?: string) => {
