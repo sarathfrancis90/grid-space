@@ -1,5 +1,5 @@
 /**
- * MenuBar — File/Edit/View/Insert/Format/Data/Tools dropdown menus.
+ * MenuBar — File/Edit/View/Insert/Format/Data/Tools/Extensions dropdown menus.
  * S7-009 to S7-015
  */
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -953,6 +953,26 @@ export function MenuBar() {
       ],
     },
     {
+      label: "Extensions",
+      testId: "menu-extensions",
+      items: [
+        {
+          label: "Add-ons",
+          testId: "menu-extensions-addons",
+          submenuId: "addons",
+        },
+        {
+          label: "Apps Script",
+          testId: "menu-extensions-apps-script",
+          separator: true,
+          action: () => {
+            useUIStore.getState().setScriptEditorOpen(true);
+            setOpenMenu(null);
+          },
+        },
+      ],
+    },
+    {
       label: "Help",
       testId: "menu-help",
       items: [
@@ -1038,6 +1058,38 @@ export function MenuBar() {
                   {item.submenuId === "filter-views" &&
                     hoveredSubmenu === "filter-views" && (
                       <FilterViewMenu onClose={() => setOpenMenu(null)} />
+                    )}
+                  {item.submenuId === "addons" &&
+                    hoveredSubmenu === "addons" && (
+                      <div
+                        data-testid="menu-extensions-addons-submenu"
+                        className="absolute left-full top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1.5 min-w-48"
+                      >
+                        <button
+                          data-testid="menu-extensions-get-addons"
+                          className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                          style={{ padding: "6px 16px" }}
+                          onClick={() => {
+                            alert("Add-ons marketplace coming soon.");
+                            setOpenMenu(null);
+                          }}
+                          type="button"
+                        >
+                          Get add-ons
+                        </button>
+                        <button
+                          data-testid="menu-extensions-manage-addons"
+                          className="w-full flex items-center px-4 py-1.5 text-[13px] text-gray-700 hover:bg-blue-50 hover:text-gray-900 transition-colors"
+                          style={{ padding: "6px 16px" }}
+                          onClick={() => {
+                            alert("No add-ons installed.");
+                            setOpenMenu(null);
+                          }}
+                          type="button"
+                        >
+                          Manage add-ons
+                        </button>
+                      </div>
                     )}
                 </div>
               ))}
