@@ -220,10 +220,83 @@ function fnIFNA(...args: FormulaValue[]): FormulaValue {
   return args[0] === "#N/A" ? args[1] : args[0];
 }
 
-/** SPARKLINE — returns a metadata marker; rendering is handled by the grid. */
+/** SPARKLINE — returns a metadata marker; rendering is handled by the grid.
+ *
+ * Usage: SPARKLINE(data, [options])
+ *   data   — range or array of numeric values
+ *   options — object with keys: charttype, color, linewidth, min, max, rtl, empty
+ *
+ * Chart types: "line" (default), "bar", "column", "winloss"
+ */
 function fnSPARKLINE(...args: FormulaValue[]): FormulaValue {
   if (args.length < 1) return "#VALUE!" as FormulaError;
-  return `__SPARKLINE__${JSON.stringify(args)}`;
+
+  // Extract numeric data from first argument (range/array)
+  const rawData = args[0];
+  const flat = flattenArgs([rawData]);
+  const data: number[] = [];
+  for (const v of flat) {
+    const n = toNumber(v, false);
+    if (n !== null) data.push(n);
+  }
+
+  if (data.length === 0) return "#VALUE!" as FormulaError;
+
+  // Parse options from second argument (flattened key-value pairs from Google Sheets
+  // array literal syntax: {"charttype","bar","color","red"} → ["charttype","bar","color","red"])
+  const opts: Record<string, string | number> = {};
+  if (args.length >= 2 && args[1] != null) {
+    const optValues = flattenArgs([args[1]]);
+    // Pairs: key, value, key, value, ...
+    for (let i = 0; i + 1 < optValues.length; i += 2) {
+      const key = String(optValues[i] ?? "").toLowerCase();
+      const val = optValues[i + 1];
+      if (key) {
+        opts[key] = typeof val === "number" ? val : String(val ?? "");
+      }
+    }
+  }
+
+  const charttype = String(opts.charttype ?? "line");
+  const validTypes = ["line", "bar", "column", "winloss"];
+  const type = validTypes.includes(charttype) ? charttype : "line";
+
+  const result: SparklineData = { data, type };
+  if (opts.color !== undefined) result.color = String(opts.color);
+  if (opts.linewidth !== undefined)
+    result.linewidth = Number(opts.linewidth) || 1.5;
+  if (opts.min !== undefined) result.min = Number(opts.min);
+  if (opts.max !== undefined) result.max = Number(opts.max);
+  if (opts.rtl !== undefined)
+    result.rtl = opts.rtl === "true" || opts.rtl === 1;
+  if (opts.empty !== undefined) result.empty = String(opts.empty);
+  if (opts.nan !== undefined) result.nan = String(opts.nan);
+  if (opts.highcolor !== undefined) result.highcolor = String(opts.highcolor);
+  if (opts.lowcolor !== undefined) result.lowcolor = String(opts.lowcolor);
+  if (opts.firstcolor !== undefined)
+    result.firstcolor = String(opts.firstcolor);
+  if (opts.lastcolor !== undefined) result.lastcolor = String(opts.lastcolor);
+  if (opts.negcolor !== undefined) result.negcolor = String(opts.negcolor);
+
+  return `__SPARKLINE__${JSON.stringify(result)}`;
+}
+
+/** Shape of serialized sparkline data passed to the renderer. */
+interface SparklineData {
+  data: number[];
+  type: string;
+  color?: string;
+  linewidth?: number;
+  min?: number;
+  max?: number;
+  rtl?: boolean;
+  empty?: string;
+  nan?: string;
+  highcolor?: string;
+  lowcolor?: string;
+  firstcolor?: string;
+  lastcolor?: string;
+  negcolor?: string;
 }
 
 /**
