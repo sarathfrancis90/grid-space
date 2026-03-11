@@ -853,6 +853,53 @@ export function Grid() {
 
     ctx.restore();
 
+    // Draw find/replace match highlights
+    const frState = useFindReplaceStore.getState();
+    if (frState.isOpen && frState.matches.length > 0) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(rhw, chh, width - rhw, height - chh);
+      ctx.clip();
+
+      for (let mi = 0; mi < frState.matches.length; mi++) {
+        const m = frState.matches[mi];
+        if (
+          m.row < visStartRow ||
+          m.row > endRow ||
+          m.col < visStartCol ||
+          m.col > endCol
+        )
+          continue;
+        if (gs.hiddenRows.has(m.row) || gs.hiddenCols.has(m.col)) continue;
+
+        const mx = gs.getColumnX(m.col) - gs.scrollLeft + rhw;
+        const my = gs.getRowY(m.row) - gs.scrollTop + chh;
+        const mw = gs.columnWidths.get(m.col) ?? gs.defaultColWidth;
+        const mh = gs.rowHeights.get(m.row) ?? gs.defaultRowHeight;
+
+        const isCurrent = mi === frState.currentMatchIndex;
+        ctx.fillStyle = isCurrent
+          ? "rgba(255, 152, 0, 0.4)"
+          : "rgba(255, 235, 59, 0.45)";
+        ctx.fillRect(
+          Math.round(mx),
+          Math.round(my),
+          Math.round(mw),
+          Math.round(mh),
+        );
+        ctx.strokeStyle = isCurrent ? "#e65100" : "#f9a825";
+        ctx.lineWidth = isCurrent ? 2 : 1;
+        ctx.strokeRect(
+          Math.round(mx) + 0.5,
+          Math.round(my) + 0.5,
+          Math.round(mw) - 1,
+          Math.round(mh) - 1,
+        );
+      }
+
+      ctx.restore();
+    }
+
     // Draw selections
     for (const sel of ui.selections) {
       const minRow = Math.min(sel.start.row, sel.end.row);
