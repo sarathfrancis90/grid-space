@@ -74,6 +74,7 @@ interface UIState {
   isEmailDialogOpen: boolean;
   isDetailsDialogOpen: boolean;
   isFullscreen: boolean;
+  isToolbarCollapsed: boolean;
   isFormulaBarExpanded: boolean;
   isFunctionPickerOpen: boolean;
   /** S2-001: whether user is in formula editing mode (started typing "=") */
@@ -115,6 +116,8 @@ interface UIState {
   setEmailDialogOpen: (open: boolean) => void;
   setDetailsDialogOpen: (open: boolean) => void;
   setFullscreen: (fullscreen: boolean) => void;
+  setToolbarCollapsed: (collapsed: boolean) => void;
+  toggleToolbarCollapsed: () => void;
   setFormulaBarExpanded: (expanded: boolean) => void;
   setFunctionPickerOpen: (open: boolean) => void;
   /** S2-001: enter/exit formula mode */
@@ -159,6 +162,7 @@ export const useUIStore = create<UIState>()(
     isEmailDialogOpen: false,
     isDetailsDialogOpen: false,
     isFullscreen: false,
+    isToolbarCollapsed: false,
     isFormulaBarExpanded: false,
     isFunctionPickerOpen: false,
     isFormulaMode: false,
@@ -399,6 +403,18 @@ export const useUIStore = create<UIState>()(
     setFullscreen: (fullscreen: boolean) => {
       set((state) => {
         state.isFullscreen = fullscreen;
+      });
+    },
+
+    setToolbarCollapsed: (collapsed: boolean) => {
+      set((state) => {
+        state.isToolbarCollapsed = collapsed;
+      });
+    },
+
+    toggleToolbarCollapsed: () => {
+      set((state) => {
+        state.isToolbarCollapsed = !state.isToolbarCollapsed;
       });
     },
 
