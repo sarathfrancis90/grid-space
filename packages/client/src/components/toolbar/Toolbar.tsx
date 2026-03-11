@@ -194,6 +194,22 @@ export function Toolbar() {
     [setFormat],
   );
 
+  const handleCurrency = useCallback(() => {
+    const current = getSelectionFormat();
+    const isCurrency = current?.numberFormat === NUMBER_FORMATS.Currency;
+    setFormat({
+      numberFormat: isCurrency ? "General" : NUMBER_FORMATS.Currency,
+    });
+  }, [setFormat]);
+
+  const handlePercent = useCallback(() => {
+    const current = getSelectionFormat();
+    const isPercent = current?.numberFormat === NUMBER_FORMATS.Percent;
+    setFormat({
+      numberFormat: isPercent ? "General" : NUMBER_FORMATS.Percent,
+    });
+  }, [setFormat]);
+
   const handleWrapText = useCallback(() => {
     const current = getSelectionFormat();
     const next = current?.wrapText === "wrap" ? "overflow" : "wrap";
@@ -441,6 +457,90 @@ export function Toolbar() {
 
       {/* Zoom controls */}
       <ZoomControls />
+
+      <Divider />
+
+      {/* Currency format */}
+      <button
+        data-testid="currency-format-button"
+        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
+          currentFormat?.numberFormat === NUMBER_FORMATS.Currency
+            ? "bg-blue-100"
+            : ""
+        }`}
+        style={
+          currentFormat?.numberFormat === NUMBER_FORMATS.Currency
+            ? { backgroundColor: "#dbeafe" }
+            : undefined
+        }
+        onClick={handleCurrency}
+        title="Format as currency"
+        type="button"
+      >
+        $
+      </button>
+
+      {/* Percent format */}
+      <button
+        data-testid="percent-format-button"
+        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
+          currentFormat?.numberFormat === NUMBER_FORMATS.Percent
+            ? "bg-blue-100"
+            : ""
+        }`}
+        style={
+          currentFormat?.numberFormat === NUMBER_FORMATS.Percent
+            ? { backgroundColor: "#dbeafe" }
+            : undefined
+        }
+        onClick={handlePercent}
+        title="Format as percent"
+        type="button"
+      >
+        %
+      </button>
+
+      {/* Decrease decimal places */}
+      <button
+        data-testid="decrease-decimal-button-quick"
+        className="h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100"
+        onClick={handleDecreaseDecimal}
+        title="Decrease decimal places"
+        type="button"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <text x="1" y="16" fontSize="11" fontFamily="Arial">
+            .0
+          </text>
+          <path
+            d="M18 8l4 4-4 4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+        </svg>
+      </button>
+
+      {/* Increase decimal places */}
+      <button
+        data-testid="increase-decimal-button-quick"
+        className="h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100"
+        onClick={handleIncreaseDecimal}
+        title="Increase decimal places"
+        type="button"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <text x="1" y="16" fontSize="11" fontFamily="Arial">
+            .00
+          </text>
+          <path
+            d="M22 8l-4 4 4 4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+        </svg>
+      </button>
 
       <Divider />
 
@@ -830,48 +930,6 @@ export function Toolbar() {
           <line x1="3" y1="6" x2="21" y2="6" />
           <path d="M3 12h15a3 3 0 0 1 0 6h-4" />
           <polyline points="14 15 11 18 14 21" />
-        </svg>
-      </button>
-
-      <Divider />
-
-      {/* Increase / Decrease decimal */}
-      <button
-        data-testid="decrease-decimal-button"
-        className="h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100"
-        onClick={handleDecreaseDecimal}
-        title="Decrease decimal places"
-        type="button"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <text x="1" y="16" fontSize="11" fontFamily="Arial">
-            .0
-          </text>
-          <path
-            d="M18 8l4 4-4 4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-      </button>
-      <button
-        data-testid="increase-decimal-button"
-        className="h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100"
-        onClick={handleIncreaseDecimal}
-        title="Increase decimal places"
-        type="button"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <text x="1" y="16" fontSize="11" fontFamily="Arial">
-            .00
-          </text>
-          <path
-            d="M22 8l-4 4 4 4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
         </svg>
       </button>
 

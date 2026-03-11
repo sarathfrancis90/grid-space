@@ -107,4 +107,54 @@ describe("Toolbar — missing buttons", () => {
     expect(screen.getByTestId("function-max")).toBeInTheDocument();
     expect(screen.getByTestId("function-min")).toBeInTheDocument();
   });
+
+  it("renders the Currency format button", () => {
+    renderToolbar();
+    const btn = screen.getByTestId("currency-format-button");
+    expect(btn).toBeInTheDocument();
+    expect(btn).toHaveAttribute("title", "Format as currency");
+    expect(btn.textContent?.trim()).toBe("$");
+  });
+
+  it("renders the Percent format button", () => {
+    renderToolbar();
+    const btn = screen.getByTestId("percent-format-button");
+    expect(btn).toBeInTheDocument();
+    expect(btn).toHaveAttribute("title", "Format as percent");
+    expect(btn.textContent?.trim()).toBe("%");
+  });
+
+  it("renders the Decrease decimal quick button", () => {
+    renderToolbar();
+    const btn = screen.getByTestId("decrease-decimal-button-quick");
+    expect(btn).toBeInTheDocument();
+    expect(btn).toHaveAttribute("title", "Decrease decimal places");
+  });
+
+  it("renders the Increase decimal quick button", () => {
+    renderToolbar();
+    const btn = screen.getByTestId("increase-decimal-button-quick");
+    expect(btn).toBeInTheDocument();
+    expect(btn).toHaveAttribute("title", "Increase decimal places");
+  });
+
+  it("positions number format buttons between Zoom and Font controls", () => {
+    renderToolbar();
+    const toolbar = screen.getByTestId("toolbar");
+    const children = Array.from(toolbar.children);
+
+    const zoomIdx = children.findIndex(
+      (el) => (el as HTMLElement).dataset?.testid === "zoom-controls",
+    );
+    const currencyIdx = children.findIndex(
+      (el) => (el as HTMLElement).dataset?.testid === "currency-format-button",
+    );
+    const fontIdx = children.findIndex(
+      (el) => (el as HTMLElement).dataset?.testid === "font-family-picker",
+    );
+
+    expect(zoomIdx).toBeGreaterThan(-1);
+    expect(currencyIdx).toBeGreaterThan(zoomIdx);
+    expect(fontIdx).toBeGreaterThan(currencyIdx);
+  });
 });
