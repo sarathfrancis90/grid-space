@@ -73,6 +73,8 @@ interface UIState {
   isConditionalFormatOpen: boolean;
   isEmailDialogOpen: boolean;
   isDetailsDialogOpen: boolean;
+  isAccessibilityDialogOpen: boolean;
+  isCreateFormDialogOpen: boolean;
   isFullscreen: boolean;
   isToolbarCollapsed: boolean;
   isFormulaBarExpanded: boolean;
@@ -115,6 +117,8 @@ interface UIState {
   setConditionalFormatOpen: (open: boolean) => void;
   setEmailDialogOpen: (open: boolean) => void;
   setDetailsDialogOpen: (open: boolean) => void;
+  setAccessibilityDialogOpen: (open: boolean) => void;
+  setCreateFormDialogOpen: (open: boolean) => void;
   setFullscreen: (fullscreen: boolean) => void;
   setToolbarCollapsed: (collapsed: boolean) => void;
   toggleToolbarCollapsed: () => void;
@@ -161,6 +165,8 @@ export const useUIStore = create<UIState>()(
     isConditionalFormatOpen: false,
     isEmailDialogOpen: false,
     isDetailsDialogOpen: false,
+    isAccessibilityDialogOpen: false,
+    isCreateFormDialogOpen: false,
     isFullscreen: false,
     isToolbarCollapsed: false,
     isFormulaBarExpanded: false,
@@ -397,6 +403,18 @@ export const useUIStore = create<UIState>()(
     setDetailsDialogOpen: (open: boolean) => {
       set((state) => {
         state.isDetailsDialogOpen = open;
+      });
+    },
+
+    setAccessibilityDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isAccessibilityDialogOpen = open;
+      });
+    },
+
+    setCreateFormDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isCreateFormDialogOpen = open;
       });
     },
 

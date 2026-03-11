@@ -53,6 +53,8 @@ import { ThemeDialog } from "../ui/ThemeDialog";
 import { NotificationRulesDialog } from "../notifications/NotificationRulesDialog";
 import { ImportDialog } from "../file-ops/ImportDialog";
 import { DetailsDialog } from "../ui/DetailsDialog";
+import { AccessibilityDialog } from "../ui/AccessibilityDialog";
+import { CreateFormDialog } from "../ui/CreateFormDialog";
 import { SuggestionsSidebar } from "../suggestions/SuggestionsSidebar";
 import { useMacroRecorder } from "../../hooks/useMacroRecorder";
 import { useAutoSave } from "../../hooks/useAutoSave";
@@ -472,6 +474,8 @@ export default function SpreadsheetEditorPage() {
       <NotificationRulesDialog />
       <ImportDialog />
       <DetailsDialog />
+      <AccessibilityDialog />
+      <CreateFormDialog />
       <OfflineIndicator />
       <Suspense fallback={null}>
         <ChartOverlay />
