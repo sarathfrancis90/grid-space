@@ -39,6 +39,28 @@ describe("dataStore", () => {
       useDataStore.getState().removeRowGroup(SHEET, 1);
       expect(useDataStore.getState().getRowGroups(SHEET)).toHaveLength(0);
     });
+
+    it("supports nested row groups (multiple levels)", () => {
+      useDataStore.getState().addRowGroup(SHEET, 1, 10);
+      useDataStore.getState().addRowGroup(SHEET, 3, 6);
+      const groups = useDataStore.getState().getRowGroups(SHEET);
+      expect(groups).toHaveLength(2);
+      expect(groups[0]).toEqual({ start: 1, end: 10, collapsed: false });
+      expect(groups[1]).toEqual({ start: 3, end: 6, collapsed: false });
+    });
+
+    it("returns empty array for unknown sheet", () => {
+      expect(useDataStore.getState().getRowGroups("unknown")).toEqual([]);
+    });
+
+    it("removes only the targeted row group by start index", () => {
+      useDataStore.getState().addRowGroup(SHEET, 1, 5);
+      useDataStore.getState().addRowGroup(SHEET, 8, 12);
+      useDataStore.getState().removeRowGroup(SHEET, 1);
+      const groups = useDataStore.getState().getRowGroups(SHEET);
+      expect(groups).toHaveLength(1);
+      expect(groups[0].start).toBe(8);
+    });
   });
 
   // Column grouping
@@ -62,6 +84,19 @@ describe("dataStore", () => {
       useDataStore.getState().addColGroup(SHEET, 0, 2);
       useDataStore.getState().removeColGroup(SHEET, 0);
       expect(useDataStore.getState().getColGroups(SHEET)).toHaveLength(0);
+    });
+
+    it("supports nested column groups (multiple levels)", () => {
+      useDataStore.getState().addColGroup(SHEET, 0, 8);
+      useDataStore.getState().addColGroup(SHEET, 2, 5);
+      const groups = useDataStore.getState().getColGroups(SHEET);
+      expect(groups).toHaveLength(2);
+      expect(groups[0]).toEqual({ start: 0, end: 8, collapsed: false });
+      expect(groups[1]).toEqual({ start: 2, end: 5, collapsed: false });
+    });
+
+    it("returns empty array for unknown sheet", () => {
+      expect(useDataStore.getState().getColGroups("unknown")).toEqual([]);
     });
   });
 

@@ -19,6 +19,7 @@ import { useCommentStore } from "../../stores/commentStore";
 import { useValidationStore } from "../../stores/validationStore";
 import { useSuggestionsStore } from "../../stores/suggestionsStore";
 import { useThemeStore } from "../../stores/themeStore";
+import { useDataStore } from "../../stores/dataStore";
 import { FilterViewMenu } from "../data/FilterViewMenu";
 import { exportXLSX, downloadFile, toCSV } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
@@ -1047,8 +1048,69 @@ export function MenuBar() {
         {
           label: "Goal seek",
           testId: "menu-data-goal-seek",
+          separator: true,
           action: () => {
             useUIStore.getState().setGoalSeekDialogOpen(true);
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Group rows",
+          testId: "menu-data-group-rows",
+          shortcut: "Alt+Shift+→",
+          action: () => {
+            const sid = useSpreadsheetStore.getState().activeSheetId;
+            const selections = useUIStore.getState().selections;
+            if (sid && selections.length > 0) {
+              const sel = selections[selections.length - 1];
+              const startRow = Math.min(sel.start.row, sel.end.row);
+              const endRow = Math.max(sel.start.row, sel.end.row);
+              useDataStore.getState().addRowGroup(sid, startRow, endRow);
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Group columns",
+          testId: "menu-data-group-cols",
+          action: () => {
+            const sid = useSpreadsheetStore.getState().activeSheetId;
+            const selections = useUIStore.getState().selections;
+            if (sid && selections.length > 0) {
+              const sel = selections[selections.length - 1];
+              const startCol = Math.min(sel.start.col, sel.end.col);
+              const endCol = Math.max(sel.start.col, sel.end.col);
+              useDataStore.getState().addColGroup(sid, startCol, endCol);
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Ungroup rows",
+          testId: "menu-data-ungroup-rows",
+          shortcut: "Alt+Shift+←",
+          action: () => {
+            const sid = useSpreadsheetStore.getState().activeSheetId;
+            const selections = useUIStore.getState().selections;
+            if (sid && selections.length > 0) {
+              const sel = selections[selections.length - 1];
+              const startRow = Math.min(sel.start.row, sel.end.row);
+              useDataStore.getState().removeRowGroup(sid, startRow);
+            }
+            setOpenMenu(null);
+          },
+        },
+        {
+          label: "Ungroup columns",
+          testId: "menu-data-ungroup-cols",
+          action: () => {
+            const sid = useSpreadsheetStore.getState().activeSheetId;
+            const selections = useUIStore.getState().selections;
+            if (sid && selections.length > 0) {
+              const sel = selections[selections.length - 1];
+              const startCol = Math.min(sel.start.col, sel.end.col);
+              useDataStore.getState().removeColGroup(sid, startCol);
+            }
             setOpenMenu(null);
           },
         },
