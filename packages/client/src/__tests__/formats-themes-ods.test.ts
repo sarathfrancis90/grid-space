@@ -83,8 +83,8 @@ describe("Theme store", () => {
     });
   });
 
-  it("has at least 5 predefined themes", () => {
-    expect(PREDEFINED_THEMES.length).toBeGreaterThanOrEqual(5);
+  it("has at least 8 predefined themes", () => {
+    expect(PREDEFINED_THEMES.length).toBeGreaterThanOrEqual(8);
   });
 
   it("defaults to the default theme", () => {

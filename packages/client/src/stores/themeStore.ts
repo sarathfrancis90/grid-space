@@ -139,25 +139,153 @@ export const PREDEFINED_THEMES: SpreadsheetTheme[] = [
     },
     fontFamily: "Helvetica, Arial, sans-serif",
   },
+  {
+    id: "simple-light",
+    name: "Simple Light",
+    colors: {
+      primary: "#4285f4",
+      primaryLight: "#e8f0fe",
+      headerBg: "#ffffff",
+      headerText: "#5f6368",
+      gridlineBorder: "#dadce0",
+      selectionBg: "rgba(66, 133, 244, 0.08)",
+      selectionBorder: "#4285f4",
+      tabActiveBg: "#ffffff",
+      toolbarBg: "#ffffff",
+      fontColor: "#202124",
+    },
+    fontFamily: "Roboto, Arial, sans-serif",
+  },
+  {
+    id: "streamline",
+    name: "Streamline",
+    colors: {
+      primary: "#00897b",
+      primaryLight: "#e0f2f1",
+      headerBg: "#f1f8f6",
+      headerText: "#00695c",
+      gridlineBorder: "#b2dfdb",
+      selectionBg: "rgba(0, 137, 123, 0.08)",
+      selectionBorder: "#00897b",
+      tabActiveBg: "#ffffff",
+      toolbarBg: "#f1f8f6",
+      fontColor: "#004d40",
+    },
+    fontFamily: "Open Sans, Arial, sans-serif",
+  },
+  {
+    id: "modern",
+    name: "Modern",
+    colors: {
+      primary: "#6200ea",
+      primaryLight: "#ede7f6",
+      headerBg: "#fafafa",
+      headerText: "#424242",
+      gridlineBorder: "#e0e0e0",
+      selectionBg: "rgba(98, 0, 234, 0.08)",
+      selectionBorder: "#6200ea",
+      tabActiveBg: "#ffffff",
+      toolbarBg: "#fafafa",
+      fontColor: "#212121",
+    },
+    fontFamily: "Inter, system-ui, sans-serif",
+  },
+  {
+    id: "coral",
+    name: "Coral",
+    colors: {
+      primary: "#ef5350",
+      primaryLight: "#ffebee",
+      headerBg: "#fff5f5",
+      headerText: "#c62828",
+      gridlineBorder: "#ef9a9a",
+      selectionBg: "rgba(239, 83, 80, 0.08)",
+      selectionBorder: "#ef5350",
+      tabActiveBg: "#ffffff",
+      toolbarBg: "#fff5f5",
+      fontColor: "#b71c1c",
+    },
+    fontFamily: "Lato, Arial, sans-serif",
+  },
 ];
+
+export interface ThemeCustomization {
+  fontFamily: string;
+  primaryColor: string;
+  headerBgColor: string;
+  fontColor: string;
+}
 
 interface ThemeState {
   activeThemeId: string;
   activeTheme: SpreadsheetTheme;
+  isCustomizing: boolean;
+  customization: ThemeCustomization;
   setTheme: (themeId: string) => void;
+  setCustomizing: (open: boolean) => void;
+  setCustomization: (updates: Partial<ThemeCustomization>) => void;
+  applyCustomization: () => void;
 }
 
 export const useThemeStore = create<ThemeState>()(
   immer((set) => ({
     activeThemeId: "default",
     activeTheme: PREDEFINED_THEMES[0],
+    isCustomizing: false,
+    customization: {
+      fontFamily: "Arial, sans-serif",
+      primaryColor: "#1a73e8",
+      headerBgColor: "#f8f9fa",
+      fontColor: "#000000",
+    },
     setTheme: (themeId: string) => {
       set((state) => {
         const theme = PREDEFINED_THEMES.find((t) => t.id === themeId);
         if (theme) {
           state.activeThemeId = themeId;
           state.activeTheme = theme;
+          state.isCustomizing = false;
+          state.customization = {
+            fontFamily: theme.fontFamily,
+            primaryColor: theme.colors.primary,
+            headerBgColor: theme.colors.headerBg,
+            fontColor: theme.colors.fontColor,
+          };
         }
+      });
+    },
+    setCustomizing: (open: boolean) => {
+      set((state) => {
+        state.isCustomizing = open;
+        if (open) {
+          state.customization = {
+            fontFamily: state.activeTheme.fontFamily,
+            primaryColor: state.activeTheme.colors.primary,
+            headerBgColor: state.activeTheme.colors.headerBg,
+            fontColor: state.activeTheme.colors.fontColor,
+          };
+        }
+      });
+    },
+    setCustomization: (updates: Partial<ThemeCustomization>) => {
+      set((state) => {
+        Object.assign(state.customization, updates);
+      });
+    },
+    applyCustomization: () => {
+      set((state) => {
+        const base = state.activeTheme;
+        state.activeTheme = {
+          ...base,
+          fontFamily: state.customization.fontFamily,
+          colors: {
+            ...base.colors,
+            primary: state.customization.primaryColor,
+            headerBg: state.customization.headerBgColor,
+            fontColor: state.customization.fontColor,
+          },
+        };
+        state.isCustomizing = false;
       });
     },
   })),
