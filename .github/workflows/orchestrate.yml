@@ -47,11 +47,30 @@ jobs:
           set -euo pipefail
 
           # ── Fetch issues ──
-          echo "::group::Fetching open parity issues"
+          echo "::group::Fetching open issues (parity + wave labels)"
+
+          # Fetch all open enhancement issues (parity or wave-tagged)
+          gh issue list --state open --label enhancement \
+            --json number,title,labels --limit 100 > /tmp/all_issues.json
+
+          # Also fetch parity issues that may not have enhancement label
           gh issue list --state open --label parity \
-            --json number,title,labels --limit 50 > /tmp/issues.json
+            --json number,title,labels --limit 50 > /tmp/parity_issues.json
+
+          # Merge and deduplicate by issue number
+          jq -s '[.[][]] | unique_by(.number) | sort_by(.number)' \
+            /tmp/all_issues.json /tmp/parity_issues.json > /tmp/issues.json
+
           ISSUE_COUNT=$(jq length /tmp/issues.json)
-          echo "Found $ISSUE_COUNT open parity issues"
+          echo "Found $ISSUE_COUNT open issues"
+
+          # Show wave breakdown
+          for W in 1 2 3 4 5; do
+            WC=$(jq "[.[] | select(.labels[]?.name == \"wave-$W\")] | length" /tmp/issues.json)
+            echo "  wave-$W: $WC issues"
+          done
+          PARITY_COUNT=$(jq '[.[] | select(.labels[]?.name == "parity")] | length' /tmp/issues.json)
+          echo "  parity (no wave): $PARITY_COUNT issues"
           echo "::endgroup::"
 
           if [ "$ISSUE_COUNT" = "0" ]; then
@@ -201,6 +220,170 @@ jobs:
                 AGENT_DOCS="agent_docs/backend-architecture.md,agent_docs/api-design.md"
                 HINT="NotificationRule model, CRUD API, config dialog from Tools > Notifications."
                 ;;
+              *[Tt]oolbar*button*|*[Tt]oolbar*[Zz]oom*|*[Tt]oolbar*[Pp]rint*|*[Tt]oolbar*[Ff]ilter*|*[Tt]oolbar*[Ff]unction*)
+                DOMAIN="frontend-toolbar"
+                KEY_FILES="packages/client/src/components/toolbar/Toolbar.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                STORES="uiStore,gridStore"
+                HINT="Add missing toolbar buttons. Integrate existing components (ZoomControls, etc). Match Google Sheets icon style."
+                ;;
+              *[Cc]ell*indicator*|*comment*triangle*|*validation*arrow*|*filter*icon*|*sort*arrow*)
+                DOMAIN="frontend-grid"
+                KEY_FILES="packages/client/src/components/grid/Grid.tsx"
+                AGENT_DOCS="agent_docs/grid-rendering.md"
+                STORES="gridStore,cellStore,commentStore,filterStore"
+                HINT="Canvas rendering indicators: comment triangle, validation arrow, filter/sort icons on headers."
+                ;;
+              *[Ss]heet*tab*|*[Aa]ll*[Ss]heet*|*tab*navigation*|*tab*dropdown*)
+                DOMAIN="frontend-sheets"
+                KEY_FILES="packages/client/src/components/sheets/SheetTabs.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                STORES="spreadsheetStore"
+                HINT="Add All Sheets hamburger menu, navigation arrows for tab overflow, dropdown on each tab."
+                ;;
+              *[Ss]tatus*[Bb]ar*|*[Ee]xplore*button*|*zoom*display*)
+                DOMAIN="frontend-ui"
+                KEY_FILES="packages/client/src/components/ui/StatusBar.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                STORES="uiStore,gridStore"
+                HINT="Enhance status bar: zoom %, Explore button, collaboration count, right-click customization."
+                ;;
+              *[Ff]ormula*[Bb]ar*|*fx*dropdown*|*expand*collapse*)
+                DOMAIN="frontend-formula"
+                KEY_FILES="packages/client/src/components/formula-bar/FormulaBar.tsx"
+                AGENT_DOCS="agent_docs/formula-engine.md,agent_docs/state-management.md"
+                STORES="formulaStore,uiStore"
+                HINT="Formula bar enhancements: expand/collapse, fx dropdown, error indicator, name box dropdown."
+                ;;
+              *[Ff]ill*submenu*|*[Ff]ill*[Dd]own*|*[Ff]ill*[Rr]ight*)
+                DOMAIN="frontend-menu"
+                KEY_FILES="packages/client/src/components/ui/MenuBar.tsx,packages/client/src/stores/gridStore.ts"
+                AGENT_DOCS="agent_docs/state-management.md"
+                STORES="gridStore,cellStore"
+                HINT="Add Fill submenu to Edit menu: Down, Right, Up, Left, Series. Ctrl+D/Ctrl+R shortcuts."
+                ;;
+              *[Ss]parkline*)
+                DOMAIN="frontend-grid"
+                KEY_FILES="packages/client/src/components/formula/evaluator.ts,packages/client/src/components/grid/Grid.tsx"
+                AGENT_DOCS="agent_docs/formula-engine.md,agent_docs/grid-rendering.md"
+                HINT="SPARKLINE function: parse formula, render mini SVG chart in cell (line/bar/column/winloss)."
+                ;;
+              *[Ii]nsert*[Ss]parkline*|*[Dd]rawing*|*[Ff]unction*helper*|*[Pp]ivot*[Tt]able*[Ii]nsert*)
+                DOMAIN="frontend-menu"
+                KEY_FILES="packages/client/src/components/ui/MenuBar.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Add Sparkline, Drawing (placeholder), Function helper, Pivot Table to Insert menu."
+                ;;
+              *[Tt]ext*[Rr]otation*|*[Ff]ont*submenu*|*[Ww]rapping*submenu*)
+                DOMAIN="frontend-menu"
+                KEY_FILES="packages/client/src/components/ui/MenuBar.tsx,packages/client/src/stores/cellStore.ts"
+                AGENT_DOCS="agent_docs/state-management.md,agent_docs/formatting-system.md"
+                STORES="cellStore"
+                HINT="Format menu: Text rotation submenu, Font/Size submenus, Text wrapping submenu."
+                ;;
+              *[Hh]ide*[Rr]ow*|*[Hh]ide*[Cc]olumn*|*[Ss]how*hidden*)
+                DOMAIN="frontend-grid"
+                KEY_FILES="packages/client/src/components/ui/MenuBar.tsx,packages/client/src/stores/gridStore.ts,packages/client/src/components/grid/Grid.tsx"
+                AGENT_DOCS="agent_docs/grid-rendering.md,agent_docs/state-management.md"
+                STORES="gridStore"
+                HINT="Hide/show rows/columns from View menu and context menu. Visual indicator between hidden headers."
+                ;;
+              *[Hh]elp*menu*|*[Aa]bout*|*[Ww]hat*[Nn]ew*)
+                DOMAIN="frontend-menu"
+                KEY_FILES="packages/client/src/components/ui/MenuBar.tsx"
+                HINT="Expand Help menu: About dialog, What's new, Report issue link, Terms/Privacy links."
+                ;;
+              *[Rr]ow*[Cc]olumn*[Gg]roup*|*[Gg]roup*row*|*collapse*expand*)
+                DOMAIN="frontend-grid"
+                KEY_FILES="packages/client/src/components/grid/Grid.tsx,packages/client/src/stores/gridStore.ts,packages/client/src/components/ui/MenuBar.tsx"
+                AGENT_DOCS="agent_docs/grid-rendering.md,agent_docs/state-management.md"
+                STORES="gridStore"
+                HINT="Row/column grouping: Data menu items, +/- buttons in header gutter, nested groups, keyboard shortcuts."
+                HAS_DEPS="true"
+                ;;
+              *[Dd]ashboard*layout*|*[Dd]ashboard*match*|*template*thumbnail*)
+                DOMAIN="frontend-dashboard"
+                KEY_FILES="packages/client/src/components/dashboard/DashboardPage.tsx,packages/client/src/components/dashboard/TemplateGallery.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Dashboard layout: date grouping, template thumbnails, search center, sheets icon, view toggles."
+                ;;
+              *[Tt]itle*[Bb]ar*|*[Ss]heets*icon*|*[Ss]tar*|*[Ss]hare*button*)
+                DOMAIN="frontend-ui"
+                KEY_FILES="packages/client/src/components/ui/MenuBar.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Editor title bar: green sheets icon, inline title edit, star toggle, save status, green Share button."
+                ;;
+              *[Pp]rint*dialog*|*[Pp]rint*preview*|*page*size*)
+                DOMAIN="frontend-ui"
+                KEY_FILES="packages/client/src/components/ui/PrintDialog.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Print dialog: preview, page size, scale, gridlines checkbox, headers checkbox, print range."
+                ;;
+              *[Tt]heme*sidebar*|*[Tt]heme*preview*|*[Cc]ustomize*theme*)
+                DOMAIN="frontend-ui"
+                KEY_FILES="packages/client/src/components/ui/ThemeDialog.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Themes as right sidebar (not modal): Customize button, chart preview cards, 8+ themes."
+                ;;
+              *[Dd]ata*[Vv]alidation*dialog*|*list*from*range*|*strict*warning*)
+                DOMAIN="frontend-data"
+                KEY_FILES="packages/client/src/components/data/DataValidationDialog.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Data validation: list from range, strict/warning modes, input message, cell range picker."
+                ;;
+              *[Nn]amed*[Rr]ange*dialog*|*[Nn]amed*[Rr]ange*manage*)
+                DOMAIN="frontend-data"
+                KEY_FILES="packages/client/src/stores/formulaStore.ts"
+                AGENT_DOCS="agent_docs/state-management.md,agent_docs/formula-engine.md"
+                HINT="Named Ranges management sidebar: list, create, edit, delete, jump to range."
+                ;;
+              *[Ff]ind*[Rr]eplace*|*match*highlight*|*search*formula*)
+                DOMAIN="frontend-data"
+                KEY_FILES="packages/client/src/components/data/FindReplace.tsx,packages/client/src/components/grid/Grid.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Find & Replace: match highlighting in grid, search in formulas/values toggle, selection scope."
+                ;;
+              *[Cc]hart*type*|*[Bb]ubble*chart*|*[Gg]auge*chart*|*series*format*)
+                DOMAIN="frontend-charts"
+                KEY_FILES="packages/client/src/components/charts/ChartEditorSidebar.tsx,packages/client/src/components/charts/ChartRenderer.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Charts: Bubble/Gauge types, smooth lines, dual axis, series formatting, download as image."
+                ;;
+              *[Cc]onditional*[Ff]ormat*manage*|*rule*reorder*|*quick*rule*)
+                DOMAIN="frontend-data"
+                KEY_FILES="packages/client/src/components/data/ConditionalFormatManager.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Conditional formatting: manage rules dialog, drag-reorder, stop-if-true, quick rules."
+                ;;
+              *[Tt]oolbar*icon*|*icon*style*|*toolbar*spacing*|*toolbar*divider*)
+                DOMAIN="frontend-toolbar"
+                KEY_FILES="packages/client/src/components/toolbar/Toolbar.tsx"
+                HINT="Toolbar styling: outlined icons, thin dividers between groups, hover/active states, dropdown arrows."
+                ;;
+              *[Gg]rid*styl*|*header*color*|*selection*blue*|*column*width*|*row*height*)
+                DOMAIN="frontend-grid"
+                KEY_FILES="packages/client/src/components/grid/Grid.tsx"
+                AGENT_DOCS="agent_docs/grid-rendering.md"
+                HINT="Grid styling: header colors #f8f9fa, selection blue #1a73e8, default col width 100px, row height 21px."
+                ;;
+              *[Cc]omment*assign*|*comment*count*|*comment*sort*)
+                DOMAIN="frontend-ui"
+                KEY_FILES="packages/client/src/components/ui/CommentPanel.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Comments: assign dropdown, cell count badge, sort by date/status."
+                ;;
+              *[Vv]ersion*[Hh]istory*author*|*version*compare*|*change*summary*)
+                DOMAIN="frontend-versions"
+                KEY_FILES="packages/client/src/components/versions/VersionHistorySidebar.tsx,packages/client/src/components/versions/VersionDiff.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Version history: author display, change summary, side-by-side diff, color-coded changes."
+                ;;
+              *[Ss]hare*dialog*|*transfer*owner*|*link*expir*|*notify*collabor*)
+                DOMAIN="frontend-sharing"
+                KEY_FILES="packages/client/src/components/sharing/ShareDialog.tsx"
+                AGENT_DOCS="agent_docs/state-management.md"
+                HINT="Share dialog: notify checkbox, transfer ownership, link expiration, viewer restrictions."
+                ;;
             esac
 
             # Add to plan
@@ -219,36 +402,49 @@ jobs:
           done
           echo "::endgroup::"
 
-          # ── Build waves ──
-          echo "::group::Building waves"
-          jq '[.[] | select(.has_deps == "false")]' /tmp/plan.json > /tmp/wave1.json
-          jq '[.[] | select(.has_deps == "true")]' /tmp/plan.json > /tmp/wave2.json
+          # ── Build dispatch queue (priority: wave-1 > wave-2 > ... > parity > untagged) ──
+          echo "::group::Building dispatch queue"
 
-          W1=$(jq length /tmp/wave1.json)
-          W2=$(jq length /tmp/wave2.json)
-          echo "Wave 1: $W1 issues | Wave 2: $W2 issues"
+          # Filter planned issues by wave priority
+          echo "[]" > /tmp/dispatch_queue.json
+          for W in 1 2 3 4 5; do
+            jq --arg w "wave-$W" '[.[] | select(.labels[]?.name == $w)]' /tmp/issues.json > "/tmp/wave${W}_issues.json"
+            # Match planned items against wave issues
+            WAVE_NUMS=$(jq -r '.[].number' "/tmp/wave${W}_issues.json" 2>/dev/null || echo "")
+            for N in $WAVE_NUMS; do
+              MATCH=$(jq --argjson n "$N" '[.[] | select(.number == $n)]' /tmp/plan.json)
+              if [ "$(echo "$MATCH" | jq length)" -gt 0 ]; then
+                jq --argjson items "$MATCH" '. + $items' /tmp/dispatch_queue.json > /tmp/dq_tmp.json
+                mv /tmp/dq_tmp.json /tmp/dispatch_queue.json
+              fi
+            done
+          done
+
+          # Add remaining planned items (parity or untagged)
+          QUEUED_NUMS=$(jq -r '.[].number' /tmp/dispatch_queue.json | tr '\n' '|' | sed 's/|$//')
+          if [ -n "$QUEUED_NUMS" ]; then
+            jq "[.[] | select(.number | tostring | test(\"^($QUEUED_NUMS)\$\") | not)]" /tmp/plan.json > /tmp/remaining.json
+          else
+            cp /tmp/plan.json /tmp/remaining.json
+          fi
+          jq -s '.[0] + .[1]' /tmp/dispatch_queue.json /tmp/remaining.json > /tmp/dq_final.json
+          mv /tmp/dq_final.json /tmp/dispatch_queue.json
+
+          TOTAL_QUEUED=$(jq length /tmp/dispatch_queue.json)
+          echo "Total dispatch queue: $TOTAL_QUEUED issues"
+          jq -r '.[] | "  #\(.number) \(.title)"' /tmp/dispatch_queue.json
           echo "::endgroup::"
 
-          # Determine wave
-          REQUESTED="${{ inputs.wave || '0' }}"
-          if [ "$REQUESTED" = "0" ]; then
-            if [ "$W1" -gt 0 ]; then REQUESTED="1"; elif [ "$W2" -gt 0 ]; then REQUESTED="2"; fi
-          fi
+          REQUESTED="${{ inputs.wave || '1' }}"
           echo "wave=$REQUESTED" >> "$GITHUB_OUTPUT"
 
-          # ── Conflict grouping ──
-          if [ "$REQUESTED" = "1" ]; then
-            ACTIVE="/tmp/wave1.json"
-          else
-            ACTIVE="/tmp/wave2.json"
-          fi
-
-          jq '[.[] | select(.key_files | contains("MenuBar"))]' "$ACTIVE" > /tmp/menubar_group.json
-          jq '[.[] | select(.key_files | contains("MenuBar") | not)]' "$ACTIVE" > /tmp/other_group.json
+          # ── Conflict grouping from dispatch queue ──
+          jq '[.[] | select(.key_files | contains("MenuBar"))]' /tmp/dispatch_queue.json > /tmp/menubar_group.json
+          jq '[.[] | select(.key_files | contains("MenuBar") | not)]' /tmp/dispatch_queue.json > /tmp/other_group.json
 
           MG=$(jq length /tmp/menubar_group.json)
           OG=$(jq length /tmp/other_group.json)
-          echo "Conflict groups: $MG MenuBar (sequential), $OG independent"
+          echo "Conflict groups: $MG MenuBar, $OG independent"
 
       - name: Dispatch wave
         id: dispatch
@@ -362,11 +558,11 @@ jobs:
         if: inputs.dry_run == 'true'
         run: |
           echo "═══════════════════════════════════════"
-          echo " DRY RUN — Wave ${{ steps.plan.outputs.wave }}"
+          echo " DRY RUN — Dispatch Queue"
           echo "═══════════════════════════════════════"
           echo ""
-          echo "Independent:"
-          jq -r '.[] | "  #\(.number) [\(.domain)] \(.title)"' /tmp/other_group.json
+          echo "Independent ($OG_COUNT):"
+          jq -r '.[] | "  #\(.number) [\(.domain)] \(.title)"' /tmp/other_group.json 2>/dev/null || true
           echo ""
-          echo "MenuBar (sequential):"
-          jq -r '.[] | "  #\(.number) [\(.domain)] \(.title)"' /tmp/menubar_group.json
+          echo "MenuBar group ($MG_COUNT):"
+          jq -r '.[] | "  #\(.number) [\(.domain)] \(.title)"' /tmp/menubar_group.json 2>/dev/null || true
