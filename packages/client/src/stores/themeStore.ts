@@ -22,7 +22,7 @@ export interface SpreadsheetTheme {
 export const PREDEFINED_THEMES: SpreadsheetTheme[] = [
   {
     id: "default",
-    name: "Default",
+    name: "Standard",
     colors: {
       primary: "#1a73e8",
       primaryLight: "#e8f0fe",
@@ -36,6 +36,57 @@ export const PREDEFINED_THEMES: SpreadsheetTheme[] = [
       fontColor: "#000000",
     },
     fontFamily: "Arial, sans-serif",
+  },
+  {
+    id: "simple-light",
+    name: "Simple Light",
+    colors: {
+      primary: "#4285f4",
+      primaryLight: "#e8f0fe",
+      headerBg: "#ffffff",
+      headerText: "#5f6368",
+      gridlineBorder: "#dadce0",
+      selectionBg: "rgba(66, 133, 244, 0.08)",
+      selectionBorder: "#4285f4",
+      tabActiveBg: "#ffffff",
+      toolbarBg: "#ffffff",
+      fontColor: "#202124",
+    },
+    fontFamily: "Roboto, sans-serif",
+  },
+  {
+    id: "streamline",
+    name: "Streamline",
+    colors: {
+      primary: "#1b9e77",
+      primaryLight: "#e0f5ee",
+      headerBg: "#f0faf6",
+      headerText: "#137a5b",
+      gridlineBorder: "#c8e6d9",
+      selectionBg: "rgba(27, 158, 119, 0.1)",
+      selectionBorder: "#1b9e77",
+      tabActiveBg: "#ffffff",
+      toolbarBg: "#f0faf6",
+      fontColor: "#1a1a1a",
+    },
+    fontFamily: "Lato, sans-serif",
+  },
+  {
+    id: "modern",
+    name: "Modern",
+    colors: {
+      primary: "#6200ee",
+      primaryLight: "#f3e8fd",
+      headerBg: "#fafafa",
+      headerText: "#49454f",
+      gridlineBorder: "#e0e0e0",
+      selectionBg: "rgba(98, 0, 238, 0.08)",
+      selectionBorder: "#6200ee",
+      tabActiveBg: "#ffffff",
+      toolbarBg: "#fafafa",
+      fontColor: "#1c1b1f",
+    },
+    fontFamily: "Inter, sans-serif",
   },
   {
     id: "dark",
@@ -144,20 +195,111 @@ export const PREDEFINED_THEMES: SpreadsheetTheme[] = [
 interface ThemeState {
   activeThemeId: string;
   activeTheme: SpreadsheetTheme;
+  isSidebarOpen: boolean;
+  isCustomizeOpen: boolean;
+  customColors: Record<string, string>;
+  customFontFamily: string;
   setTheme: (themeId: string) => void;
+  openSidebar: () => void;
+  closeSidebar: () => void;
+  openCustomize: () => void;
+  closeCustomize: () => void;
+  setCustomColor: (key: string, value: string) => void;
+  setCustomFontFamily: (fontFamily: string) => void;
+  applyCustomTheme: () => void;
 }
 
 export const useThemeStore = create<ThemeState>()(
   immer((set) => ({
     activeThemeId: "default",
     activeTheme: PREDEFINED_THEMES[0],
+    isSidebarOpen: false,
+    isCustomizeOpen: false,
+    customColors: {},
+    customFontFamily: "",
     setTheme: (themeId: string) => {
       set((state) => {
         const theme = PREDEFINED_THEMES.find((t) => t.id === themeId);
         if (theme) {
           state.activeThemeId = themeId;
           state.activeTheme = theme;
+          state.isCustomizeOpen = false;
         }
+      });
+    },
+    openSidebar: () => {
+      set((state) => {
+        state.isSidebarOpen = true;
+      });
+    },
+    closeSidebar: () => {
+      set((state) => {
+        state.isSidebarOpen = false;
+        state.isCustomizeOpen = false;
+      });
+    },
+    openCustomize: () => {
+      set((state) => {
+        state.isCustomizeOpen = true;
+        state.customColors = { ...state.activeTheme.colors };
+        state.customFontFamily = state.activeTheme.fontFamily;
+      });
+    },
+    closeCustomize: () => {
+      set((state) => {
+        state.isCustomizeOpen = false;
+      });
+    },
+    setCustomColor: (key: string, value: string) => {
+      set((state) => {
+        state.customColors[key] = value;
+      });
+    },
+    setCustomFontFamily: (fontFamily: string) => {
+      set((state) => {
+        state.customFontFamily = fontFamily;
+      });
+    },
+    applyCustomTheme: () => {
+      set((state) => {
+        const customTheme: SpreadsheetTheme = {
+          id: state.activeThemeId,
+          name: state.activeTheme.name,
+          colors: {
+            primary:
+              state.customColors["primary"] ?? state.activeTheme.colors.primary,
+            primaryLight:
+              state.customColors["primaryLight"] ??
+              state.activeTheme.colors.primaryLight,
+            headerBg:
+              state.customColors["headerBg"] ??
+              state.activeTheme.colors.headerBg,
+            headerText:
+              state.customColors["headerText"] ??
+              state.activeTheme.colors.headerText,
+            gridlineBorder:
+              state.customColors["gridlineBorder"] ??
+              state.activeTheme.colors.gridlineBorder,
+            selectionBg:
+              state.customColors["selectionBg"] ??
+              state.activeTheme.colors.selectionBg,
+            selectionBorder:
+              state.customColors["selectionBorder"] ??
+              state.activeTheme.colors.selectionBorder,
+            tabActiveBg:
+              state.customColors["tabActiveBg"] ??
+              state.activeTheme.colors.tabActiveBg,
+            toolbarBg:
+              state.customColors["toolbarBg"] ??
+              state.activeTheme.colors.toolbarBg,
+            fontColor:
+              state.customColors["fontColor"] ??
+              state.activeTheme.colors.fontColor,
+          },
+          fontFamily: state.customFontFamily || state.activeTheme.fontFamily,
+        };
+        state.activeTheme = customTheme;
+        state.isCustomizeOpen = false;
       });
     },
   })),

@@ -18,6 +18,7 @@ import { useVersionStore } from "../../stores/versionStore";
 import { useCommentStore } from "../../stores/commentStore";
 import { useValidationStore } from "../../stores/validationStore";
 import { useSuggestionsStore } from "../../stores/suggestionsStore";
+import { useThemeStore } from "../../stores/themeStore";
 import { FilterViewMenu } from "../data/FilterViewMenu";
 import { exportXLSX, downloadFile, toCSV } from "../../utils/fileOps";
 import { exportToPDF } from "../../utils/pdfExport";
@@ -750,7 +751,7 @@ export function MenuBar() {
           label: "Theme",
           testId: "menu-format-theme",
           action: () => {
-            useUIStore.getState().setThemeDialogOpen(true);
+            useThemeStore.getState().openSidebar();
             setOpenMenu(null);
           },
         },
