@@ -19,6 +19,13 @@ interface Collaborator {
 interface ShareLinkInfo {
   shareLink: string | null;
   shareLinkRole: string | null;
+  expiresAt: string | null;
+}
+
+interface ViewerRestrictions {
+  disableDownload: boolean;
+  disablePrint: boolean;
+  disableCopy: boolean;
 }
 
 interface PublishInfo {
@@ -30,6 +37,7 @@ interface SharingState {
   collaborators: Collaborator[];
   shareLink: ShareLinkInfo;
   publishInfo: PublishInfo;
+  viewerRestrictions: ViewerRestrictions;
   isLoading: boolean;
   isDialogOpen: boolean;
   error: string | null;
@@ -56,7 +64,16 @@ interface SharingActions {
     role?: "viewer" | "commenter" | "editor",
   ) => Promise<void>;
   disableShareLink: (spreadsheetId: string) => Promise<void>;
-  transferOwnership: (spreadsheetId: string, email: string) => Promise<void>;
+  transferOwnership: (spreadsheetId: string, userId: string) => Promise<void>;
+  updateLinkExpiration: (
+    spreadsheetId: string,
+    expiresAt: string | null,
+  ) => Promise<void>;
+  fetchViewerRestrictions: (spreadsheetId: string) => Promise<void>;
+  updateViewerRestrictions: (
+    spreadsheetId: string,
+    restrictions: Partial<ViewerRestrictions>,
+  ) => Promise<void>;
   fetchPublishInfo: (spreadsheetId: string) => Promise<void>;
   publishToWeb: (spreadsheetId: string) => Promise<string>;
   unpublishFromWeb: (spreadsheetId: string) => Promise<void>;
@@ -71,8 +88,13 @@ export let currentSpreadsheetId = "";
 export const useSharingStore = create<SharingStore>()(
   immer((set) => ({
     collaborators: [],
-    shareLink: { shareLink: null, shareLinkRole: null },
+    shareLink: { shareLink: null, shareLinkRole: null, expiresAt: null },
     publishInfo: { isPublished: false, publishedUrl: null },
+    viewerRestrictions: {
+      disableDownload: false,
+      disablePrint: false,
+      disableCopy: false,
+    },
     isLoading: false,
     isDialogOpen: false,
     error: null,
@@ -213,7 +235,11 @@ export const useSharingStore = create<SharingStore>()(
       try {
         await api.delete(`/spreadsheets/${spreadsheetId}/share-link`);
         set((state) => {
-          state.shareLink = { shareLink: null, shareLinkRole: null };
+          state.shareLink = {
+            shareLink: null,
+            shareLinkRole: null,
+            expiresAt: null,
+          };
         });
       } catch (err) {
         set((state) => {
@@ -223,10 +249,83 @@ export const useSharingStore = create<SharingStore>()(
       }
     },
 
-    transferOwnership: async (spreadsheetId: string, email: string) => {
-      await api.post(`/spreadsheets/${spreadsheetId}/transfer-ownership`, {
-        email,
-      });
+    transferOwnership: async (spreadsheetId: string, userId: string) => {
+      try {
+        await api.post(`/spreadsheets/${spreadsheetId}/transfer-ownership`, {
+          userId,
+        });
+        set((state) => {
+          const target = state.collaborators.find((c) => c.userId === userId);
+          if (target) {
+            const owner = state.collaborators.find((c) => c.role === "owner");
+            if (owner) owner.role = "editor";
+            target.role = "owner";
+          }
+        });
+      } catch (err) {
+        set((state) => {
+          state.error =
+            err instanceof Error ? err.message : "Failed to transfer ownership";
+        });
+        throw err;
+      }
+    },
+
+    updateLinkExpiration: async (
+      spreadsheetId: string,
+      expiresAt: string | null,
+    ) => {
+      try {
+        const data = await api.put<ShareLinkInfo>(
+          `/spreadsheets/${spreadsheetId}/share-link`,
+          { expiresAt },
+        );
+        set((state) => {
+          state.shareLink = data;
+        });
+      } catch (err) {
+        set((state) => {
+          state.error =
+            err instanceof Error
+              ? err.message
+              : "Failed to update link expiration";
+        });
+      }
+    },
+
+    fetchViewerRestrictions: async (spreadsheetId: string) => {
+      try {
+        const data = await api.get<ViewerRestrictions>(
+          `/spreadsheets/${spreadsheetId}/viewer-restrictions`,
+        );
+        set((state) => {
+          state.viewerRestrictions = data;
+        });
+      } catch {
+        // Ignore errors for viewer restrictions fetch
+      }
+    },
+
+    updateViewerRestrictions: async (
+      spreadsheetId: string,
+      restrictions: Partial<ViewerRestrictions>,
+    ) => {
+      try {
+        const data = await api.put<ViewerRestrictions>(
+          `/spreadsheets/${spreadsheetId}/viewer-restrictions`,
+          restrictions,
+        );
+        set((state) => {
+          state.viewerRestrictions = data;
+        });
+      } catch (err) {
+        set((state) => {
+          state.error =
+            err instanceof Error
+              ? err.message
+              : "Failed to update viewer restrictions";
+        });
+      }
     },
 
     fetchPublishInfo: async (spreadsheetId: string) => {
