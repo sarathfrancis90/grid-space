@@ -3,7 +3,7 @@
  * conditional formatting rules per sheet.
  * S6-023: Conditional format manager
  */
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useFormatStore } from "../../stores/formatStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
 import { useUIStore } from "../../stores/uiStore";
@@ -70,6 +70,40 @@ const DATE_CONDITIONS = [
   { value: "pastMonth", label: "Past month" },
 ];
 
+interface QuickRuleDef {
+  label: string;
+  type: ConditionalRule["type"];
+  condition: string;
+  format: Partial<CellFormat>;
+}
+
+const QUICK_RULES: QuickRuleDef[] = [
+  {
+    label: "Highlight duplicates",
+    type: "customFormula",
+    condition: "duplicates",
+    format: { backgroundColor: "#fce8e6", textColor: "#c5221f" },
+  },
+  {
+    label: "Highlight unique",
+    type: "customFormula",
+    condition: "unique",
+    format: { backgroundColor: "#e6f4ea", textColor: "#137333" },
+  },
+  {
+    label: "Highlight blanks",
+    type: "blank",
+    condition: "isBlank",
+    format: { backgroundColor: "#fef7e0", textColor: "#b05a00" },
+  },
+  {
+    label: "Highlight non-blanks",
+    type: "blank",
+    condition: "notBlank",
+    format: { backgroundColor: "#e8f0fe", textColor: "#1a73e8" },
+  },
+];
+
 interface ConditionalFormatManagerProps {
   open: boolean;
   onClose: () => void;
@@ -88,6 +122,7 @@ export function ConditionalFormatManager({
   );
   const addRule = useFormatStore((s) => s.addConditionalRule);
   const removeRule = useFormatStore((s) => s.removeConditionalRule);
+  const updateRule = useFormatStore((s) => s.updateConditionalRule);
   const reorderRules = useFormatStore((s) => s.reorderConditionalRules);
   const selections = useUIStore((s) => s.selections);
   const [newRuleType, setNewRuleType] = useState<string>("value");
@@ -101,6 +136,9 @@ export function ConditionalFormatManager({
   const [dataBarNegative, setDataBarNegative] = useState(false);
   const [dataBarNegColor, setDataBarNegColor] = useState("#ea4335");
   const [iconSetStyle, setIconSetStyle] = useState<IconSetStyle>("3-arrows");
+
+  const dragItemRef = useRef<number | null>(null);
+  const dragOverRef = useRef<number | null>(null);
 
   const getSelectionRange = useCallback(() => {
     if (selections.length === 0)
@@ -163,11 +201,35 @@ export function ConditionalFormatManager({
     getSelectionRange,
   ]);
 
+  const handleAddQuickRule = useCallback(
+    (quickRule: QuickRuleDef) => {
+      const range = getSelectionRange();
+      const rule: ConditionalRule = {
+        id: `cfrule-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        range,
+        type: quickRule.type,
+        condition: quickRule.condition,
+        values: [],
+        format: quickRule.format,
+        priority: rules.length,
+      };
+      addRule(sheetId, rule);
+    },
+    [sheetId, rules.length, addRule, getSelectionRange],
+  );
+
   const handleRemoveRule = useCallback(
     (ruleId: string) => {
       removeRule(sheetId, ruleId);
     },
     [sheetId, removeRule],
+  );
+
+  const handleToggleStopIfTrue = useCallback(
+    (ruleId: string, current: boolean) => {
+      updateRule(sheetId, ruleId, { stopIfTrue: !current });
+    },
+    [sheetId, updateRule],
   );
 
   const handleMoveUp = useCallback(
@@ -189,6 +251,34 @@ export function ConditionalFormatManager({
     },
     [sheetId, rules, reorderRules],
   );
+
+  const handleDragStart = useCallback((index: number) => {
+    dragItemRef.current = index;
+  }, []);
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent<HTMLDivElement>, index: number) => {
+      e.preventDefault();
+      dragOverRef.current = index;
+    },
+    [],
+  );
+
+  const handleDrop = useCallback(() => {
+    const dragIdx = dragItemRef.current;
+    const dropIdx = dragOverRef.current;
+    if (dragIdx === null || dropIdx === null || dragIdx === dropIdx) {
+      dragItemRef.current = null;
+      dragOverRef.current = null;
+      return;
+    }
+    const ids = rules.map((r) => r.id);
+    const [moved] = ids.splice(dragIdx, 1);
+    ids.splice(dropIdx, 0, moved);
+    reorderRules(sheetId, ids);
+    dragItemRef.current = null;
+    dragOverRef.current = null;
+  }, [sheetId, rules, reorderRules]);
 
   const getConditionsForType = (type: string) => {
     switch (type) {
@@ -225,11 +315,11 @@ export function ConditionalFormatManager({
       }}
     >
       <div
-        className="bg-white rounded-lg shadow-xl w-[500px] max-h-[80vh] flex flex-col"
+        className="bg-white rounded-lg shadow-xl w-[540px] max-h-[80vh] flex flex-col"
         style={{
           backgroundColor: "white",
           borderRadius: "8px",
-          width: "500px",
+          width: "540px",
           maxHeight: "80vh",
           display: "flex",
           flexDirection: "column",
@@ -261,6 +351,43 @@ export function ConditionalFormatManager({
           >
             &#10005;
           </button>
+        </div>
+
+        {/* Quick rules */}
+        <div
+          className="px-4 pt-3 pb-1"
+          style={{ padding: "12px 16px 4px 16px" }}
+        >
+          <div
+            className="flex items-center gap-2 flex-wrap"
+            style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}
+          >
+            <span
+              className="text-xs text-gray-500 font-medium"
+              style={{ fontSize: "12px", color: "#6b7280", fontWeight: 500 }}
+            >
+              Quick rules:
+            </span>
+            {QUICK_RULES.map((qr) => (
+              <button
+                key={qr.label}
+                data-testid={`cf-quick-${qr.condition}`}
+                onClick={() => handleAddQuickRule(qr)}
+                className="text-xs px-2 py-1 border border-gray-300 rounded hover:bg-gray-50"
+                style={{
+                  fontSize: "11px",
+                  padding: "3px 8px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "4px",
+                  backgroundColor: qr.format.backgroundColor,
+                  color: qr.format.textColor ?? "#333",
+                }}
+                type="button"
+              >
+                {qr.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Add new rule form */}
@@ -523,6 +650,10 @@ export function ConditionalFormatManager({
             <div
               key={rule.id}
               data-testid={`cf-rule-${rule.id}`}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={handleDrop}
               className="flex items-center gap-2 p-2 border-b border-gray-100 text-xs"
               style={{
                 display: "flex",
@@ -531,6 +662,7 @@ export function ConditionalFormatManager({
                 padding: "8px",
                 borderBottom: "1px solid #f3f4f6",
                 fontSize: "12px",
+                cursor: "grab",
               }}
             >
               <div
@@ -589,6 +721,28 @@ export function ConditionalFormatManager({
                   <span> [{rule.iconSetConfig.style}]</span>
                 )}
               </div>
+              <label
+                data-testid={`cf-stop-if-true-${rule.id}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "3px",
+                  fontSize: "10px",
+                  color: "#6b7280",
+                  whiteSpace: "nowrap",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={rule.stopIfTrue ?? false}
+                  onChange={() =>
+                    handleToggleStopIfTrue(rule.id, rule.stopIfTrue ?? false)
+                  }
+                  style={{ margin: 0 }}
+                />
+                Stop
+              </label>
               <button
                 data-testid={`cf-delete-${rule.id}`}
                 onClick={() => handleRemoveRule(rule.id)}
