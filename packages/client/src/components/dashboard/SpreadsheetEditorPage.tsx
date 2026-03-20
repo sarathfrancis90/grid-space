@@ -315,21 +315,41 @@ export default function SpreadsheetEditorPage() {
       >
         <button
           onClick={() => navigate("/dashboard")}
-          className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 flex-shrink-0"
+          className="rounded p-1 hover:bg-gray-100 flex-shrink-0"
           style={{ padding: "4px" }}
           data-testid="back-to-dashboard"
           title="Back to dashboard"
         >
-          <svg
-            className="h-6 w-6 text-[#0F9D58]"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            style={{ width: "24px", height: "24px" }}
-          >
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" opacity="0.5" />
+          <svg viewBox="0 0 24 24" style={{ width: "24px", height: "24px" }}>
+            <rect x="2" y="2" width="20" height="20" rx="2" fill="#0F9D58" />
+            <rect x="6" y="6" width="5" height="5" rx="0.5" fill="white" />
+            <rect
+              x="13"
+              y="6"
+              width="5"
+              height="5"
+              rx="0.5"
+              fill="white"
+              opacity="0.7"
+            />
+            <rect
+              x="6"
+              y="13"
+              width="5"
+              height="5"
+              rx="0.5"
+              fill="white"
+              opacity="0.7"
+            />
+            <rect
+              x="13"
+              y="13"
+              width="5"
+              height="5"
+              rx="0.5"
+              fill="white"
+              opacity="0.5"
+            />
           </svg>
         </button>
 
@@ -351,8 +371,8 @@ export default function SpreadsheetEditorPage() {
             />
           ) : (
             <h2
-              className="cursor-pointer truncate text-base font-medium text-gray-800 hover:text-gray-600"
-              style={{ fontSize: "16px", lineHeight: "24px" }}
+              className="truncate text-base font-medium text-gray-800 hover:text-gray-600"
+              style={{ fontSize: "16px", lineHeight: "24px", cursor: "text" }}
               onClick={() => {
                 setTitleInput(currentSpreadsheet.title);
                 setIsRenaming(true);
@@ -397,10 +417,23 @@ export default function SpreadsheetEditorPage() {
           <TitleBarCommentIcon />
           <button
             onClick={handleShare}
-            className="rounded-full bg-[#1a73e8] px-5 py-1.5 text-sm font-medium text-white hover:bg-[#1765cc] transition-colors shadow-sm"
+            className="flex items-center gap-1.5 rounded-full bg-[#c2e7ff] px-5 py-1.5 text-sm font-medium text-[#001d35] hover:bg-[#a8d8f8] transition-colors shadow-sm"
             style={{ padding: "6px 20px", fontSize: "14px" }}
             data-testid="share-button"
           >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
             Share
           </button>
           <NotificationCenter />
