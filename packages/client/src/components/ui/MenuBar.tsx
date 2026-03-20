@@ -424,7 +424,7 @@ export function MenuBar() {
               useHistoryStore.getState().pushUndo();
               useCellStore
                 .getState()
-                .clearRange(
+                .clearValues(
                   sid,
                   Math.min(sel.start.row, sel.end.row),
                   Math.min(sel.start.col, sel.end.col),
