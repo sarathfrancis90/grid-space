@@ -66,13 +66,32 @@ function useSelectionFormat(): CellFormat | undefined {
   }, [activeSheetId, selections, cells]);
 }
 
+/** Standard icon size for toolbar (20px icon, 36px touch target) */
+const ICON_SIZE = 20;
+const ICON_STROKE = 1.5;
+
 /** Thin vertical divider between toolbar groups */
 function Divider() {
   return (
     <div
-      className="mx-1.5 h-5 w-px bg-gray-300"
-      style={{ margin: "0 6px", height: "20px", minWidth: "1px" }}
+      className="mx-1 h-5 w-px bg-gray-300"
+      style={{ margin: "0 5px", height: "20px", minWidth: "1px" }}
     />
+  );
+}
+
+/** Small dropdown arrow indicator for dropdown buttons */
+function DropdownArrow() {
+  return (
+    <svg
+      width="8"
+      height="8"
+      viewBox="0 0 8 8"
+      fill="currentColor"
+      className="ml-0.5"
+    >
+      <path d="M1 2.5l3 3 3-3" />
+    </svg>
   );
 }
 
@@ -81,18 +100,18 @@ function ToolbarCollapseChevron() {
   return (
     <button
       data-testid="toolbar-collapse-chevron"
-      className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ml-1"
+      className="h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600 ml-1"
       onClick={toggleToolbarCollapsed}
       title="Hide toolbar"
       type="button"
     >
       <svg
-        width="14"
-        height="14"
+        width={ICON_SIZE}
+        height={ICON_SIZE}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth={ICON_STROKE}
         strokeLinecap="round"
         strokeLinejoin="round"
       >
@@ -355,24 +374,24 @@ export function Toolbar() {
   return (
     <div
       data-testid="toolbar"
-      className="flex items-center gap-0.5 px-2 py-1 bg-[#f3f3f3] border-b border-gray-200 flex-wrap"
-      style={{ padding: "4px 8px" }}
+      className="flex items-center gap-0.5 px-2 py-0.5 bg-[#f3f3f3] border-b border-gray-200 flex-wrap"
+      style={{ padding: "2px 8px" }}
     >
       {/* Menus search */}
       <button
         data-testid="menus-search-button"
-        className="h-7 flex items-center gap-1 px-2 rounded-sm hover:bg-gray-100 text-gray-600"
+        className="h-9 flex items-center gap-1 px-2 rounded-sm hover:bg-gray-100 text-gray-600"
         onClick={handleMenusSearch}
         title="Search menus (Alt+/)"
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -387,18 +406,18 @@ export function Toolbar() {
       {/* Undo / Redo */}
       <button
         data-testid="undo-button"
-        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600"
         onClick={undo}
         title="Undo (Ctrl+Z)"
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -409,18 +428,18 @@ export function Toolbar() {
       </button>
       <button
         data-testid="redo-button"
-        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600"
         onClick={redo}
         title="Redo (Ctrl+Y)"
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -433,20 +452,25 @@ export function Toolbar() {
       {/* Paint format */}
       <button
         data-testid="paint-format-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
-          paintFormatMode !== "off" ? "bg-blue-100" : ""
+        className={`h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600 ${
+          paintFormatMode !== "off" ? "bg-blue-100 text-blue-700" : ""
         }`}
+        style={
+          paintFormatMode !== "off"
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
+            : undefined
+        }
         onClick={handlePaintFormat}
         title="Paint format"
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -460,18 +484,18 @@ export function Toolbar() {
       {/* Print */}
       <button
         data-testid="print-button"
-        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600"
         onClick={handlePrint}
         title="Print (Ctrl+P)"
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -489,14 +513,14 @@ export function Toolbar() {
       {/* Currency format */}
       <button
         data-testid="currency-format-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
+        className={`h-9 w-9 flex items-center justify-center rounded-sm text-sm hover:bg-gray-100 text-gray-600 ${
           currentFormat?.numberFormat === NUMBER_FORMATS.Currency
-            ? "bg-blue-100"
+            ? "bg-blue-100 text-blue-700"
             : ""
         }`}
         style={
           currentFormat?.numberFormat === NUMBER_FORMATS.Currency
-            ? { backgroundColor: "#dbeafe" }
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
             : undefined
         }
         onClick={handleCurrency}
@@ -509,14 +533,14 @@ export function Toolbar() {
       {/* Percent format */}
       <button
         data-testid="percent-format-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
+        className={`h-9 w-9 flex items-center justify-center rounded-sm text-sm hover:bg-gray-100 text-gray-600 ${
           currentFormat?.numberFormat === NUMBER_FORMATS.Percent
-            ? "bg-blue-100"
+            ? "bg-blue-100 text-blue-700"
             : ""
         }`}
         style={
           currentFormat?.numberFormat === NUMBER_FORMATS.Percent
-            ? { backgroundColor: "#dbeafe" }
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
             : undefined
         }
         onClick={handlePercent}
@@ -529,12 +553,17 @@ export function Toolbar() {
       {/* Decrease decimal places */}
       <button
         data-testid="decrease-decimal-button-quick"
-        className="h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100"
+        className="h-9 w-9 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 text-gray-600"
         onClick={handleDecreaseDecimal}
         title="Decrease decimal places"
         type="button"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <svg
+          width={ICON_SIZE}
+          height={ICON_SIZE}
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
           <text x="1" y="16" fontSize="11" fontFamily="Arial">
             .0
           </text>
@@ -542,7 +571,7 @@ export function Toolbar() {
             d="M18 8l4 4-4 4"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth={ICON_STROKE}
           />
         </svg>
       </button>
@@ -550,12 +579,17 @@ export function Toolbar() {
       {/* Increase decimal places */}
       <button
         data-testid="increase-decimal-button-quick"
-        className="h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100"
+        className="h-9 w-9 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 text-gray-600"
         onClick={handleIncreaseDecimal}
         title="Increase decimal places"
         type="button"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <svg
+          width={ICON_SIZE}
+          height={ICON_SIZE}
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
           <text x="1" y="16" fontSize="11" fontFamily="Arial">
             .00
           </text>
@@ -563,7 +597,7 @@ export function Toolbar() {
             d="M22 8l-4 4 4 4"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth={ICON_STROKE}
           />
         </svg>
       </button>
@@ -603,7 +637,7 @@ export function Toolbar() {
       {/* Bold / Italic / Underline / Strikethrough */}
       <button
         data-testid="bold-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs font-bold hover:bg-gray-100 ${
+        className={`h-9 w-9 flex items-center justify-center rounded-sm text-sm font-bold hover:bg-gray-100 text-gray-600 ${
           currentFormat?.bold ? "bg-blue-100 text-blue-700" : ""
         }`}
         style={
@@ -619,7 +653,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="italic-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs italic hover:bg-gray-100 ${
+        className={`h-9 w-9 flex items-center justify-center rounded-sm text-sm italic hover:bg-gray-100 text-gray-600 ${
           currentFormat?.italic ? "bg-blue-100 text-blue-700" : ""
         }`}
         style={
@@ -635,7 +669,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="underline-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs underline hover:bg-gray-100 ${
+        className={`h-9 w-9 flex items-center justify-center rounded-sm text-sm underline hover:bg-gray-100 text-gray-600 ${
           currentFormat?.underline ? "bg-blue-100 text-blue-700" : ""
         }`}
         style={
@@ -651,7 +685,7 @@ export function Toolbar() {
       </button>
       <button
         data-testid="strikethrough-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs line-through hover:bg-gray-100 ${
+        className={`h-9 w-9 flex items-center justify-center rounded-sm text-sm line-through hover:bg-gray-100 text-gray-600 ${
           currentFormat?.strikethrough ? "bg-blue-100 text-blue-700" : ""
         }`}
         style={
@@ -688,23 +722,24 @@ export function Toolbar() {
       <div ref={bordersRef} className="relative inline-block">
         <button
           data-testid="borders-button"
-          className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+          className="h-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600 px-1"
           onClick={() => setBordersOpen(!bordersOpen)}
           title="Borders"
           type="button"
         >
           <svg
-            width="14"
-            height="14"
+            width={ICON_SIZE}
+            height={ICON_SIZE}
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth={ICON_STROKE}
           >
             <rect x="3" y="3" width="18" height="18" rx="1" />
             <line x1="3" y1="12" x2="21" y2="12" />
             <line x1="12" y1="3" x2="12" y2="21" />
           </svg>
+          <DropdownArrow />
         </button>
         {bordersOpen && (
           <div
@@ -736,18 +771,18 @@ export function Toolbar() {
       {/* Merge cells */}
       <button
         data-testid="merge-cells-button"
-        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600"
         onClick={mergeSelection}
         title="Merge cells"
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
         >
           <rect x="3" y="3" width="18" height="18" rx="1" />
           <path d="M9 12h6M9 12l2-2M9 12l2 2M15 12l-2-2M15 12l-2 2" />
@@ -759,12 +794,14 @@ export function Toolbar() {
       {/* Horizontal alignment — distinct SVG icons */}
       <button
         data-testid="align-left-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
-          currentFormat?.horizontalAlign === "left" ? "bg-blue-100" : ""
+        className={`h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600 ${
+          currentFormat?.horizontalAlign === "left"
+            ? "bg-blue-100 text-blue-700"
+            : ""
         }`}
         style={
           currentFormat?.horizontalAlign === "left"
-            ? { backgroundColor: "#dbeafe" }
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
             : undefined
         }
         onClick={() => handleHAlign("left")}
@@ -772,11 +809,11 @@ export function Toolbar() {
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
         >
           <line x1="3" y1="6" x2="21" y2="6" />
@@ -787,12 +824,14 @@ export function Toolbar() {
       </button>
       <button
         data-testid="align-center-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
-          currentFormat?.horizontalAlign === "center" ? "bg-blue-100" : ""
+        className={`h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600 ${
+          currentFormat?.horizontalAlign === "center"
+            ? "bg-blue-100 text-blue-700"
+            : ""
         }`}
         style={
           currentFormat?.horizontalAlign === "center"
-            ? { backgroundColor: "#dbeafe" }
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
             : undefined
         }
         onClick={() => handleHAlign("center")}
@@ -800,11 +839,11 @@ export function Toolbar() {
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
         >
           <line x1="3" y1="6" x2="21" y2="6" />
@@ -815,12 +854,14 @@ export function Toolbar() {
       </button>
       <button
         data-testid="align-right-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
-          currentFormat?.horizontalAlign === "right" ? "bg-blue-100" : ""
+        className={`h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600 ${
+          currentFormat?.horizontalAlign === "right"
+            ? "bg-blue-100 text-blue-700"
+            : ""
         }`}
         style={
           currentFormat?.horizontalAlign === "right"
-            ? { backgroundColor: "#dbeafe" }
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
             : undefined
         }
         onClick={() => handleHAlign("right")}
@@ -828,11 +869,11 @@ export function Toolbar() {
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
         >
           <line x1="3" y1="6" x2="21" y2="6" />
@@ -847,12 +888,14 @@ export function Toolbar() {
       {/* Vertical alignment */}
       <button
         data-testid="valign-top-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
-          currentFormat?.verticalAlign === "top" ? "bg-blue-100" : ""
+        className={`h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600 ${
+          currentFormat?.verticalAlign === "top"
+            ? "bg-blue-100 text-blue-700"
+            : ""
         }`}
         style={
           currentFormat?.verticalAlign === "top"
-            ? { backgroundColor: "#dbeafe" }
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
             : undefined
         }
         onClick={() => handleVAlign("top")}
@@ -860,11 +903,11 @@ export function Toolbar() {
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
         >
           <line x1="4" y1="4" x2="20" y2="4" />
@@ -874,12 +917,14 @@ export function Toolbar() {
       </button>
       <button
         data-testid="valign-middle-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
-          currentFormat?.verticalAlign === "middle" ? "bg-blue-100" : ""
+        className={`h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600 ${
+          currentFormat?.verticalAlign === "middle"
+            ? "bg-blue-100 text-blue-700"
+            : ""
         }`}
         style={
           currentFormat?.verticalAlign === "middle"
-            ? { backgroundColor: "#dbeafe" }
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
             : undefined
         }
         onClick={() => handleVAlign("middle")}
@@ -887,11 +932,11 @@ export function Toolbar() {
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
         >
           <line x1="4" y1="12" x2="20" y2="12" />
@@ -901,12 +946,14 @@ export function Toolbar() {
       </button>
       <button
         data-testid="valign-bottom-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm text-xs hover:bg-gray-100 ${
-          currentFormat?.verticalAlign === "bottom" ? "bg-blue-100" : ""
+        className={`h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600 ${
+          currentFormat?.verticalAlign === "bottom"
+            ? "bg-blue-100 text-blue-700"
+            : ""
         }`}
         style={
           currentFormat?.verticalAlign === "bottom"
-            ? { backgroundColor: "#dbeafe" }
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
             : undefined
         }
         onClick={() => handleVAlign("bottom")}
@@ -914,11 +961,11 @@ export function Toolbar() {
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
         >
           <line x1="4" y1="20" x2="20" y2="20" />
@@ -932,12 +979,12 @@ export function Toolbar() {
       {/* Word wrap */}
       <button
         data-testid="word-wrap-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
-          currentFormat?.wrapText === "wrap" ? "bg-blue-100" : ""
+        className={`h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600 ${
+          currentFormat?.wrapText === "wrap" ? "bg-blue-100 text-blue-700" : ""
         }`}
         style={
           currentFormat?.wrapText === "wrap"
-            ? { backgroundColor: "#dbeafe" }
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
             : undefined
         }
         onClick={handleWrapText}
@@ -945,12 +992,12 @@ export function Toolbar() {
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
         >
           <line x1="3" y1="6" x2="21" y2="6" />
@@ -990,25 +1037,32 @@ export function Toolbar() {
       {/* Clear formatting */}
       <button
         data-testid="clear-formatting-button"
-        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600"
         onClick={clearFormatting}
         title="Clear formatting"
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
           <path d="M4 7h16" />
           <path d="M10 4v3" />
           <path d="M12 20l4-13" />
-          <line x1="4" y1="20" x2="20" y2="4" stroke="red" strokeWidth="2" />
+          <line
+            x1="4"
+            y1="20"
+            x2="20"
+            y2="4"
+            stroke="red"
+            strokeWidth={ICON_STROKE}
+          />
         </svg>
       </button>
 
@@ -1017,18 +1071,18 @@ export function Toolbar() {
       {/* Link */}
       <button
         data-testid="insert-link-button"
-        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600"
         onClick={handleInsertLink}
         title="Insert link (Ctrl+K)"
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -1040,18 +1094,18 @@ export function Toolbar() {
       {/* Comment */}
       <button
         data-testid="insert-comment-button"
-        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600"
         onClick={handleInsertComment}
         title="Insert comment (Ctrl+Alt+M)"
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -1062,18 +1116,18 @@ export function Toolbar() {
       {/* Insert Chart */}
       <button
         data-testid="insert-chart-button"
-        className="h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100"
+        className="h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600"
         onClick={handleInsertChart}
         title="Insert chart"
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -1086,12 +1140,14 @@ export function Toolbar() {
       {/* Filter */}
       <button
         data-testid="filter-button"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm hover:bg-gray-100 ${
-          activeSheetId && isFilterEnabled(activeSheetId) ? "bg-blue-100" : ""
+        className={`h-9 w-9 flex items-center justify-center rounded-sm hover:bg-gray-100 text-gray-600 ${
+          activeSheetId && isFilterEnabled(activeSheetId)
+            ? "bg-blue-100 text-blue-700"
+            : ""
         }`}
         style={
           activeSheetId && isFilterEnabled(activeSheetId)
-            ? { backgroundColor: "#dbeafe" }
+            ? { backgroundColor: "#dbeafe", color: "#1d4ed8" }
             : undefined
         }
         onClick={handleToggleFilter}
@@ -1099,12 +1155,12 @@ export function Toolbar() {
         type="button"
       >
         <svg
-          width="14"
-          height="14"
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth={ICON_STROKE}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -1116,26 +1172,24 @@ export function Toolbar() {
       <div ref={functionsRef} className="relative inline-block">
         <button
           data-testid="functions-button"
-          className="h-7 flex items-center gap-0.5 px-1 rounded-sm hover:bg-gray-100"
+          className="h-9 flex items-center gap-0.5 px-1 rounded-sm hover:bg-gray-100 text-gray-600"
           onClick={() => setFunctionsOpen(!functionsOpen)}
           title="Functions"
           type="button"
         >
           <svg
-            width="14"
-            height="14"
+            width={ICON_SIZE}
+            height={ICON_SIZE}
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth={ICON_STROKE}
             strokeLinecap="round"
             strokeLinejoin="round"
           >
             <path d="M18 4H6l4 8-4 8h12" />
           </svg>
-          <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor">
-            <path d="M1 2.5l3 3 3-3" />
-          </svg>
+          <DropdownArrow />
         </button>
         {functionsOpen && (
           <div
