@@ -41,6 +41,7 @@ import { ProtectionDialog } from "../data/ProtectionDialog";
 import { RemoveDuplicatesDialog } from "../data/RemoveDuplicatesDialog";
 import { TextToColumnsDialog } from "../data/TextToColumnsDialog";
 import { GoalSeekDialog } from "../data/GoalSeekDialog";
+import { FillSeriesDialog } from "../data/FillSeriesDialog";
 import { SlicerControl } from "../data/SlicerControl";
 import { useViewStore } from "../../stores/viewStore";
 import { ViewSwitcher, KanbanView, TimelineView, CalendarView } from "../views";
@@ -478,6 +479,7 @@ export default function SpreadsheetEditorPage() {
       <RemoveDuplicatesDialog />
       <TextToColumnsDialog />
       <GoalSeekDialog />
+      <FillSeriesDialog />
       <SlicerControl />
       <MacroManagerDialog />
       <ScriptEditor />

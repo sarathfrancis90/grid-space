@@ -78,6 +78,7 @@ interface UIState {
   isDrawingDialogOpen: boolean;
   isAboutDialogOpen: boolean;
   isWhatsNewDialogOpen: boolean;
+  isFillSeriesDialogOpen: boolean;
   isFullscreen: boolean;
   isToolbarCollapsed: boolean;
   isFormulaBarExpanded: boolean;
@@ -125,6 +126,7 @@ interface UIState {
   setDrawingDialogOpen: (open: boolean) => void;
   setAboutDialogOpen: (open: boolean) => void;
   setWhatsNewDialogOpen: (open: boolean) => void;
+  setFillSeriesDialogOpen: (open: boolean) => void;
   setFullscreen: (fullscreen: boolean) => void;
   setToolbarCollapsed: (collapsed: boolean) => void;
   toggleToolbarCollapsed: () => void;
@@ -176,6 +178,7 @@ export const useUIStore = create<UIState>()(
     isDrawingDialogOpen: false,
     isAboutDialogOpen: false,
     isWhatsNewDialogOpen: false,
+    isFillSeriesDialogOpen: false,
     isFullscreen: false,
     isToolbarCollapsed: false,
     isFormulaBarExpanded: false,
@@ -442,6 +445,12 @@ export const useUIStore = create<UIState>()(
     setWhatsNewDialogOpen: (open: boolean) => {
       set((state) => {
         state.isWhatsNewDialogOpen = open;
+      });
+    },
+
+    setFillSeriesDialogOpen: (open: boolean) => {
+      set((state) => {
+        state.isFillSeriesDialogOpen = open;
       });
     },
 
