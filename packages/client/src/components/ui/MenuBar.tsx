@@ -1347,9 +1347,9 @@ export function MenuBar() {
             className={`text-[13px] px-3 py-1 rounded transition-colors ${
               openMenu === menu.label
                 ? "bg-gray-200 text-gray-900"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
             }`}
-            style={{ padding: "4px 12px" }}
+            style={{ padding: "4px 7px", lineHeight: "20px" }}
             onClick={() => handleMenuClick(menu.label)}
             onMouseEnter={() => {
               if (openMenu !== null) setOpenMenu(menu.label);
