@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Mock stores used by MenuBar
 const mockPushUndo = vi.fn();
 const mockClearRange = vi.fn();
+const mockClearValues = vi.fn();
 const mockDeleteRows = vi.fn();
 const mockDeleteCols = vi.fn();
 const mockSetSelectedCell = vi.fn();
@@ -69,6 +70,7 @@ vi.mock("../../../stores/cellStore", () => ({
     {
       getState: () => ({
         clearRange: mockClearRange,
+        clearValues: mockClearValues,
         deleteRows: mockDeleteRows,
         deleteCols: mockDeleteCols,
       }),
@@ -182,11 +184,11 @@ describe("Edit menu items", () => {
     const sid = useSpreadsheetStore.getState().activeSheetId;
     const sel = ui.selections[ui.selections.length - 1];
 
-    // Simulate the Delete values action from MenuBar
+    // Simulate the Delete values action from MenuBar (uses clearValues to preserve formatting)
     useHistoryStore.getState().pushUndo();
     useCellStore
       .getState()
-      .clearRange(
+      .clearValues(
         sid,
         Math.min(sel.start.row, sel.end.row),
         Math.min(sel.start.col, sel.end.col),
@@ -195,7 +197,7 @@ describe("Edit menu items", () => {
       );
 
     expect(mockPushUndo).toHaveBeenCalled();
-    expect(mockClearRange).toHaveBeenCalledWith("sheet-1", 1, 1, 3, 3);
+    expect(mockClearValues).toHaveBeenCalledWith("sheet-1", 1, 1, 3, 3);
   });
 
   it("Delete row removes the selected row", async () => {

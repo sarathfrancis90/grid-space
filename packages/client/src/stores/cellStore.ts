@@ -59,6 +59,13 @@ interface CellState {
     toCol: number,
     totalRows: number,
   ) => void;
+  clearValues: (
+    sheetId: string,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+  ) => void;
   ensureSheet: (sheetId: string) => void;
   getLastDataPosition: (sheetId: string) => { row: number; col: number };
 }
@@ -175,6 +182,36 @@ export const useCellStore = create<CellState>()(
         for (let r = minRow; r <= maxRow; r++) {
           for (let c = minCol; c <= maxCol; c++) {
             sheetCells.delete(getCellKey(r, c));
+          }
+        }
+      });
+    },
+
+    clearValues: (
+      sheetId: string,
+      startRow: number,
+      startCol: number,
+      endRow: number,
+      endCol: number,
+    ) => {
+      set((state) => {
+        const sheetCells = state.cells.get(sheetId);
+        if (!sheetCells) return;
+        const minRow = Math.min(startRow, endRow);
+        const maxRow = Math.max(startRow, endRow);
+        const minCol = Math.min(startCol, endCol);
+        const maxCol = Math.max(startCol, endCol);
+        for (let r = minRow; r <= maxRow; r++) {
+          for (let c = minCol; c <= maxCol; c++) {
+            const key = getCellKey(r, c);
+            const cell = sheetCells.get(key);
+            if (cell) {
+              if (cell.format && Object.keys(cell.format).length > 0) {
+                sheetCells.set(key, { value: null, format: cell.format });
+              } else {
+                sheetCells.delete(key);
+              }
+            }
           }
         }
       });
