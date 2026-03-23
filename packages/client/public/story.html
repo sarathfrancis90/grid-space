@@ -1062,7 +1062,189 @@
       }
 
       /* ============================================================
-   SECTION 6: FEATURE SHOWCASE
+   SECTION 6: PRODUCTION ARCHITECTURE (GCP)
+   ============================================================ */
+      .arch-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 48px;
+      }
+
+      .arch-tier {
+        border-radius: var(--radius);
+        padding: 24px 28px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .arch-tier::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+      }
+
+      .arch-tier.tier-client::before {
+        background: linear-gradient(to bottom, #3b82f6, #60a5fa);
+      }
+      .arch-tier.tier-api::before {
+        background: linear-gradient(to bottom, #8b5cf6, #a78bfa);
+      }
+      .arch-tier.tier-realtime::before {
+        background: linear-gradient(to bottom, #f59e0b, #fbbf24);
+      }
+      .arch-tier.tier-data::before {
+        background: linear-gradient(to bottom, #10b981, #34d399);
+      }
+      .arch-tier.tier-infra::before {
+        background: linear-gradient(to bottom, #ef4444, #f87171);
+      }
+
+      .arch-tier-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+
+      .arch-tier-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+
+      .tier-client .arch-tier-icon {
+        background: rgba(59, 130, 246, 0.15);
+      }
+      .tier-api .arch-tier-icon {
+        background: rgba(139, 92, 246, 0.15);
+      }
+      .tier-realtime .arch-tier-icon {
+        background: rgba(245, 158, 11, 0.15);
+      }
+      .tier-data .arch-tier-icon {
+        background: rgba(16, 185, 129, 0.15);
+      }
+      .tier-infra .arch-tier-icon {
+        background: rgba(239, 68, 68, 0.15);
+      }
+
+      .arch-tier-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 2px;
+      }
+
+      .tier-client .arch-tier-label {
+        color: #60a5fa;
+      }
+      .tier-api .arch-tier-label {
+        color: #a78bfa;
+      }
+      .tier-realtime .arch-tier-label {
+        color: #fbbf24;
+      }
+      .tier-data .arch-tier-label {
+        color: #34d399;
+      }
+      .tier-infra .arch-tier-label {
+        color: #f87171;
+      }
+
+      .arch-tier-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+      }
+
+      .arch-services {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .arch-service {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        background: var(--code-bg);
+        border: 1px solid var(--glass-border);
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        transition: all var(--transition);
+      }
+
+      .arch-service:hover {
+        border-color: var(--border-glow);
+        background: var(--bg-card-hover);
+      }
+
+      .arch-service strong {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      .arch-service .arch-sub {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+
+      .arch-connector {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 0;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-family: var(--font-mono);
+        gap: 8px;
+      }
+
+      .arch-connector::before,
+      .arch-connector::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--glass-border);
+      }
+
+      .arch-gcp-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        background: linear-gradient(
+          135deg,
+          rgba(26, 115, 232, 0.08),
+          rgba(52, 168, 83, 0.08)
+        );
+        border: 1px solid rgba(26, 115, 232, 0.2);
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-top: 32px;
+      }
+
+      .arch-gcp-badge span {
+        color: var(--accent-light);
+      }
+
+      /* ============================================================
+   SECTION 7: FEATURE SHOWCASE
    ============================================================ */
       .feature-grid {
         display: grid;
@@ -1123,7 +1305,7 @@
       }
 
       /* ============================================================
-   SECTION 7: GOOGLE SHEETS PARITY
+   SECTION 8: GOOGLE SHEETS PARITY
    ============================================================ */
       .parity-hero {
         text-align: center;
@@ -1188,7 +1370,7 @@
       }
 
       /* ============================================================
-   SECTION 8: COST & EFFICIENCY
+   SECTION 9: COST & EFFICIENCY
    ============================================================ */
       .efficiency-grid {
         display: grid;
@@ -1276,7 +1458,7 @@
       }
 
       /* ============================================================
-   SECTION 9: EXTENDING
+   SECTION 10: EXTENDING
    ============================================================ */
       .extend-items {
         display: grid;
@@ -2088,11 +2270,235 @@
     </section>
 
     <!-- ============================================================
-     SECTION 6: FEATURE SHOWCASE
+     SECTION 6: PRODUCTION ARCHITECTURE
+     ============================================================ -->
+    <section id="architecture">
+      <div class="section-inner">
+        <div class="section-label reveal">Section 06</div>
+        <h2 class="section-title reveal reveal-delay-1">
+          Production <span class="gradient-text">Architecture on GCP</span>
+        </h2>
+        <p class="section-subtitle reveal reveal-delay-2">
+          This is not just a frontend demo. GridSpace is a full-stack,
+          multi-tier application deployed on Google Cloud Platform with managed
+          databases, caching, real-time collaboration, and CI/CD.
+        </p>
+
+        <div class="arch-stack">
+          <!-- Client Tier -->
+          <div class="glass-card arch-tier tier-client reveal reveal-delay-2">
+            <div class="arch-tier-header">
+              <div class="arch-tier-icon">&#9638;</div>
+              <div>
+                <div class="arch-tier-label">Client Tier</div>
+                <div class="arch-tier-title">React Single-Page Application</div>
+              </div>
+            </div>
+            <div class="arch-services">
+              <div class="arch-service">
+                <strong>React 18</strong>
+                <span class="arch-sub">UI Framework</span>
+              </div>
+              <div class="arch-service">
+                <strong>TypeScript</strong>
+                <span class="arch-sub">Strict Mode</span>
+              </div>
+              <div class="arch-service">
+                <strong>HTML5 Canvas</strong>
+                <span class="arch-sub">Grid Engine</span>
+              </div>
+              <div class="arch-service">
+                <strong>Zustand + Immer</strong>
+                <span class="arch-sub">12 Stores</span>
+              </div>
+              <div class="arch-service">
+                <strong>Chart.js</strong>
+                <span class="arch-sub">7 Chart Types</span>
+              </div>
+              <div class="arch-service">
+                <strong>TailwindCSS</strong>
+                <span class="arch-sub">Styling</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="arch-connector reveal reveal-delay-3">
+            REST API + WebSocket
+          </div>
+
+          <!-- API Tier -->
+          <div class="glass-card arch-tier tier-api reveal reveal-delay-3">
+            <div class="arch-tier-header">
+              <div class="arch-tier-icon">&#128268;</div>
+              <div>
+                <div class="arch-tier-label">API Tier</div>
+                <div class="arch-tier-title">Express + TypeScript Backend</div>
+              </div>
+            </div>
+            <div class="arch-services">
+              <div class="arch-service">
+                <strong>Express.js</strong>
+                <span class="arch-sub">REST API</span>
+              </div>
+              <div class="arch-service">
+                <strong>Passport.js</strong>
+                <span class="arch-sub">Auth + OAuth</span>
+              </div>
+              <div class="arch-service">
+                <strong>JWT + bcrypt</strong>
+                <span class="arch-sub">Token Auth</span>
+              </div>
+              <div class="arch-service">
+                <strong>Zod</strong> <span class="arch-sub">Validation</span>
+              </div>
+              <div class="arch-service">
+                <strong>Prisma ORM</strong>
+                <span class="arch-sub">DB Client</span>
+              </div>
+              <div class="arch-service">
+                <strong>Pino</strong>
+                <span class="arch-sub">Structured Logs</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="arch-connector reveal reveal-delay-3">
+            Bidirectional Sync
+          </div>
+
+          <!-- Real-time Tier -->
+          <div class="glass-card arch-tier tier-realtime reveal reveal-delay-4">
+            <div class="arch-tier-header">
+              <div class="arch-tier-icon">&#9889;</div>
+              <div>
+                <div class="arch-tier-label">Real-Time Tier</div>
+                <div class="arch-tier-title">
+                  WebSocket + CRDT Collaboration
+                </div>
+              </div>
+            </div>
+            <div class="arch-services">
+              <div class="arch-service">
+                <strong>Socket.io</strong>
+                <span class="arch-sub">WebSocket Server</span>
+              </div>
+              <div class="arch-service">
+                <strong>Yjs CRDT</strong>
+                <span class="arch-sub">Conflict-Free Sync</span>
+              </div>
+              <div class="arch-service">
+                <strong>Live Presence</strong>
+                <span class="arch-sub">Multi-Cursor</span>
+              </div>
+              <div class="arch-service">
+                <strong>Redis Pub/Sub</strong>
+                <span class="arch-sub">Broadcast Adapter</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="arch-connector reveal reveal-delay-4">
+            Persistent Storage
+          </div>
+
+          <!-- Data Tier -->
+          <div class="glass-card arch-tier tier-data reveal reveal-delay-5">
+            <div class="arch-tier-header">
+              <div class="arch-tier-icon">&#128451;</div>
+              <div>
+                <div class="arch-tier-label">Data Tier</div>
+                <div class="arch-tier-title">Managed PostgreSQL + Redis</div>
+              </div>
+            </div>
+            <div class="arch-services">
+              <div class="arch-service">
+                <strong>Cloud SQL</strong>
+                <span class="arch-sub">PostgreSQL 16</span>
+              </div>
+              <div class="arch-service">
+                <strong>Prisma Migrations</strong>
+                <span class="arch-sub">Schema Management</span>
+              </div>
+              <div class="arch-service">
+                <strong>Memorystore</strong>
+                <span class="arch-sub">Redis 7</span>
+              </div>
+              <div class="arch-service">
+                <strong>Session Store</strong>
+                <span class="arch-sub">Auth Sessions</span>
+              </div>
+              <div class="arch-service">
+                <strong>Cache Layer</strong>
+                <span class="arch-sub">Query Caching</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="arch-connector reveal reveal-delay-5">Infrastructure</div>
+
+          <!-- Infrastructure Tier -->
+          <div class="glass-card arch-tier tier-infra reveal reveal-delay-6">
+            <div class="arch-tier-header">
+              <div class="arch-tier-icon">&#9729;&#65039;</div>
+              <div>
+                <div class="arch-tier-label">Infrastructure Tier</div>
+                <div class="arch-tier-title">Google Cloud Platform</div>
+              </div>
+            </div>
+            <div class="arch-services">
+              <div class="arch-service">
+                <strong>Cloud Run</strong>
+                <span class="arch-sub">Serverless Containers</span>
+              </div>
+              <div class="arch-service">
+                <strong>Artifact Registry</strong>
+                <span class="arch-sub">Docker Images</span>
+              </div>
+              <div class="arch-service">
+                <strong>Docker</strong>
+                <span class="arch-sub">Multi-Stage Build</span>
+              </div>
+              <div class="arch-service">
+                <strong>Workload Identity</strong>
+                <span class="arch-sub">Keyless Auth</span>
+              </div>
+              <div class="arch-service">
+                <strong>GitHub Actions</strong>
+                <span class="arch-sub">CI/CD Pipeline</span>
+              </div>
+              <div class="arch-service">
+                <strong>Cloud VPC</strong>
+                <span class="arch-sub">Network Security</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: center" class="reveal reveal-delay-6">
+          <div class="arch-gcp-badge">
+            <span>&#9729;&#65039;</span>
+            5 GCP services &middot; 2 managed databases &middot; Docker
+            containerized &middot; Keyless CI/CD
+          </div>
+        </div>
+
+        <div class="insight-box reveal reveal-delay-6" style="margin-top: 32px">
+          <p>
+            Every layer &mdash; from the Canvas grid engine to the PostgreSQL
+            database &mdash; was built by AI agents and
+            <strong>deployed as a production system on GCP</strong>, not a
+            localhost demo.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+     SECTION 7: FEATURE SHOWCASE
      ============================================================ -->
     <section id="features">
       <div class="section-inner">
-        <div class="section-label reveal">Section 06</div>
+        <div class="section-label reveal">Section 07</div>
         <h2 class="section-title reveal reveal-delay-1">
           What We <span class="gradient-text">Built</span>
         </h2>
@@ -2253,11 +2659,11 @@
     </section>
 
     <!-- ============================================================
-     SECTION 7: GOOGLE SHEETS PARITY
+     SECTION 8: GOOGLE SHEETS PARITY
      ============================================================ -->
     <section id="parity">
       <div class="section-inner">
-        <div class="section-label reveal">Section 07</div>
+        <div class="section-label reveal">Section 08</div>
         <h2 class="section-title reveal reveal-delay-1">
           Google Sheets <span class="gradient-text">Parity</span>
         </h2>
@@ -2350,11 +2756,11 @@
     </section>
 
     <!-- ============================================================
-     SECTION 8: COST & EFFICIENCY
+     SECTION 9: COST & EFFICIENCY
      ============================================================ -->
     <section id="efficiency">
       <div class="section-inner">
-        <div class="section-label reveal">Section 08</div>
+        <div class="section-label reveal">Section 09</div>
         <h2 class="section-title reveal reveal-delay-1">
           Cost &amp; <span class="gradient-text">Efficiency</span>
         </h2>
@@ -2539,11 +2945,11 @@
     </section>
 
     <!-- ============================================================
-     SECTION 9: EXTENDING TO REAL ENVIRONMENTS
+     SECTION 10: EXTENDING TO REAL ENVIRONMENTS
      ============================================================ -->
     <section id="extending">
       <div class="section-inner">
-        <div class="section-label reveal">Section 09</div>
+        <div class="section-label reveal">Section 10</div>
         <h2 class="section-title reveal reveal-delay-1">
           Extending to <span class="gradient-text">Real Environments</span>
         </h2>
@@ -3012,7 +3418,7 @@
                 d.app.testsCount ? d.app.testsCount.toLocaleString() : "1,219",
               );
 
-              // === SECTION 7: PARITY ===
+              // === SECTION 8: PARITY ===
               var parityPercent = document.querySelector(".parity-percent");
               if (parityPercent && d.parity.percentage) {
                 parityPercent.setAttribute(
@@ -3039,7 +3445,7 @@
                   " partial) \u2014 from zero in under 4 hours";
               }
 
-              // === SECTION 8: COST TABLE ===
+              // === SECTION 9: COST TABLE ===
               if (phases.length >= 3) {
                 // Phase 1
                 setText("cost-p1-hours", "~" + phases[0].hours + " hrs");
@@ -3066,7 +3472,7 @@
                 setText("cost-total-cost", d.development.totalCost);
               }
 
-              // === SECTION 8: EFFICIENCY COMPARISON CARD ===
+              // === SECTION 9: EFFICIENCY COMPARISON CARD ===
               var effStat = document.getElementById("eff-agentic-stat");
               if (effStat)
                 effStat.textContent = d.development.totalCost + " total";
@@ -3093,7 +3499,7 @@
                   " tests, 0 errors";
               }
 
-              // === SECTION 8: ROI BANNER ===
+              // === SECTION 9: ROI BANNER ===
               var roiNumber = document.getElementById("roi-number");
               if (roiNumber) {
                 var costNum = parseFloat(
@@ -3115,7 +3521,7 @@
                   "amplifying what one developer can do.\u201D";
               }
 
-              // === SECTION 6: FEATURE SHOWCASE COUNT ===
+              // === SECTION 7: FEATURE SHOWCASE COUNT ===
               setText("features-showcase-count", d.app.features);
 
               // === FOOTER ===
