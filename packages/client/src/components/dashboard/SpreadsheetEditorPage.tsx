@@ -50,6 +50,7 @@ import { MacroManagerDialog } from "../macros/MacroManagerDialog";
 import { ScriptEditor } from "../macros/ScriptEditor";
 import { NamedFunctionsDialog } from "../ui/NamedFunctionsDialog";
 import { AIAnalysisPanel } from "../data/AIAnalysisPanel";
+import { NamedRangesPanel } from "../data/NamedRangesPanel";
 import { KeyboardShortcutsDialog } from "../ui/KeyboardShortcutsDialog";
 import { AboutDialog } from "../ui/AboutDialog";
 import { WhatsNewDialog } from "../ui/WhatsNewDialog";
@@ -495,6 +496,7 @@ export default function SpreadsheetEditorPage() {
       <MacroManagerDialog />
       <ScriptEditor />
       <NamedFunctionsDialog />
+      <NamedRangesPanel />
       <KeyboardShortcutsWrapper />
       <AboutDialogWrapper />
       <WhatsNewDialogWrapper />

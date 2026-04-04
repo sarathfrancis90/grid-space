@@ -66,6 +66,7 @@ interface UIState {
   isScriptEditorOpen: boolean;
   isAIAnalysisOpen: boolean;
   isNamedFunctionsDialogOpen: boolean;
+  isNamedRangesPanelOpen: boolean;
   isKeyboardShortcutsOpen: boolean;
   isThemeDialogOpen: boolean;
   isNotificationRulesDialogOpen: boolean;
@@ -114,6 +115,7 @@ interface UIState {
   setScriptEditorOpen: (open: boolean) => void;
   setAIAnalysisOpen: (open: boolean) => void;
   setNamedFunctionsDialogOpen: (open: boolean) => void;
+  setNamedRangesPanelOpen: (open: boolean) => void;
   setKeyboardShortcutsOpen: (open: boolean) => void;
   setThemeDialogOpen: (open: boolean) => void;
   setNotificationRulesDialogOpen: (open: boolean) => void;
@@ -166,6 +168,7 @@ export const useUIStore = create<UIState>()(
     isScriptEditorOpen: false,
     isAIAnalysisOpen: false,
     isNamedFunctionsDialogOpen: false,
+    isNamedRangesPanelOpen: false,
     isKeyboardShortcutsOpen: false,
     isThemeDialogOpen: false,
     isNotificationRulesDialogOpen: false,
@@ -373,6 +376,12 @@ export const useUIStore = create<UIState>()(
     setNamedFunctionsDialogOpen: (open: boolean) => {
       set((state) => {
         state.isNamedFunctionsDialogOpen = open;
+      });
+    },
+
+    setNamedRangesPanelOpen: (open: boolean) => {
+      set((state) => {
+        state.isNamedRangesPanelOpen = open;
       });
     },
 
