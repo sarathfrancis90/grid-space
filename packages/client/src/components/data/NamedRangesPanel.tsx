@@ -2,7 +2,7 @@
  * NamedRangesPanel — right sidebar for managing named ranges.
  * Create, edit, delete, and jump to named ranges.
  */
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { useUIStore } from "../../stores/uiStore";
 import { useNamedRangeStore } from "../../stores/namedRangeStore";
 import { useSpreadsheetStore } from "../../stores/spreadsheetStore";
@@ -55,6 +55,98 @@ function parseRangeInput(input: string): {
 
 const NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_.]*$/;
 
+/** Inline edit form for a named range */
+const RangeEditForm = React.memo(function RangeEditForm({
+  editNameValue,
+  editRangeValue,
+  onRangeChange,
+  onSave,
+  onCancel,
+}: {
+  editNameValue: string;
+  editRangeValue: string;
+  onRangeChange: (value: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <input
+        type="text"
+        value={editNameValue}
+        disabled
+        className="w-full rounded border border-gray-300 bg-gray-100 px-2 py-1 text-[13px]"
+        data-testid="named-range-edit-name"
+      />
+      <input
+        type="text"
+        value={editRangeValue}
+        onChange={(e) => onRangeChange(e.target.value)}
+        className="w-full rounded border border-gray-300 px-2 py-1 text-[13px]"
+        data-testid="named-range-edit-range"
+      />
+      <div className="flex justify-end gap-1.5">
+        <button
+          onClick={onCancel}
+          className="cursor-pointer rounded border border-gray-300 bg-white px-2.5 py-1 text-xs"
+          data-testid="named-range-edit-cancel"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={onSave}
+          className="cursor-pointer rounded border-none bg-blue-600 px-2.5 py-1 text-xs text-white"
+          data-testid="named-range-edit-save"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  );
+});
+
+/** Single named range row */
+const RangeListItem = React.memo(function RangeListItem({
+  range,
+  onJump,
+  onEdit,
+  onDelete,
+}: {
+  range: NamedRange;
+  onJump: (range: NamedRange) => void;
+  onEdit: (range: NamedRange) => void;
+  onDelete: (name: string) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <button
+        onClick={() => onJump(range)}
+        className="flex-1 cursor-pointer border-none bg-transparent p-0 text-left"
+        data-testid={`named-range-jump-${range.name}`}
+      >
+        <div className="text-[13px] font-medium">{range.name}</div>
+        <div className="text-xs text-gray-500">{formatRange(range)}</div>
+      </button>
+      <div className="flex gap-1">
+        <button
+          onClick={() => onEdit(range)}
+          className="cursor-pointer border-none bg-transparent px-1.5 py-0.5 text-xs text-blue-600"
+          data-testid={`named-range-edit-${range.name}`}
+        >
+          Edit
+        </button>
+        <button
+          onClick={() => onDelete(range.name)}
+          className="cursor-pointer border-none bg-transparent px-1.5 py-0.5 text-xs text-red-500"
+          data-testid={`named-range-delete-${range.name}`}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+});
+
 export function NamedRangesPanel() {
   const isOpen = useUIStore((s) => s.isNamedRangesPanelOpen);
   const close = useUIStore((s) => s.setNamedRangesPanelOpen);
@@ -85,8 +177,7 @@ export function NamedRangesPanel() {
       );
       return;
     }
-    const existing = useNamedRangeStore.getState().getRange(name);
-    if (existing) {
+    if (useNamedRangeStore.getState().getRange(name)) {
       setError("A named range with this name already exists.");
       return;
     }
@@ -96,11 +187,7 @@ export function NamedRangesPanel() {
       return;
     }
     setError("");
-    addRange({
-      name,
-      sheetId: sheetId ?? "sheet1",
-      ...parsed,
-    });
+    addRange({ name, sheetId: sheetId ?? "sheet1", ...parsed });
     setNameInput("");
     setRangeInput("");
   }, [nameInput, rangeInput, sheetId, addRange]);
@@ -108,9 +195,7 @@ export function NamedRangesPanel() {
   const handleDelete = useCallback(
     (name: string) => {
       removeRange(name);
-      if (editingName === name) {
-        setEditingName(null);
-      }
+      if (editingName === name) setEditingName(null);
     },
     [removeRange, editingName],
   );
@@ -150,68 +235,27 @@ export function NamedRangesPanel() {
 
   return (
     <div
-      className="fixed top-0 right-0 h-full bg-white border-l border-gray-200 shadow-lg z-40"
-      style={{
-        position: "fixed",
-        top: 0,
-        right: 0,
-        height: "100%",
-        width: "320px",
-        backgroundColor: "white",
-        borderLeft: "1px solid #e5e7eb",
-        boxShadow: "-4px 0 12px rgba(0,0,0,0.08)",
-        zIndex: 40,
-        display: "flex",
-        flexDirection: "column",
-      }}
+      className="fixed right-0 top-0 z-40 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-lg"
       data-testid="named-ranges-panel"
     >
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "16px",
-          borderBottom: "1px solid #e5e7eb",
-        }}
-      >
-        <h2 style={{ fontSize: "16px", fontWeight: 600, margin: 0 }}>
-          Named ranges
-        </h2>
+      <div className="flex items-center justify-between border-b border-gray-200 p-4">
+        <h2 className="m-0 text-base font-semibold">Named ranges</h2>
         <button
           onClick={() => close(false)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "18px",
-            color: "#6b7280",
-            padding: "4px",
-          }}
+          className="cursor-pointer border-none bg-transparent p-1 text-lg text-gray-500"
           data-testid="named-ranges-close"
           aria-label="Close named ranges panel"
         >
-          ×
+          &times;
         </button>
       </div>
 
       {/* Range list */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "12px 16px",
-        }}
-      >
+      <div className="flex-1 overflow-y-auto px-4 py-3">
         {ranges.length === 0 ? (
           <p
-            style={{
-              fontSize: "13px",
-              color: "#6b7280",
-              textAlign: "center",
-              marginTop: "24px",
-            }}
+            className="mt-6 text-center text-[13px] text-gray-500"
             data-testid="named-ranges-empty"
           >
             No named ranges defined yet.
@@ -220,145 +264,24 @@ export function NamedRangesPanel() {
           ranges.map((range) => (
             <div
               key={range.name}
-              style={{
-                padding: "8px 0",
-                borderBottom: "1px solid #f3f4f6",
-              }}
+              className="border-b border-gray-100 py-2"
               data-testid={`named-range-item-${range.name}`}
             >
               {editingName === range.name ? (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
-                  }}
-                >
-                  <input
-                    type="text"
-                    value={editNameValue}
-                    disabled
-                    style={{
-                      padding: "4px 8px",
-                      fontSize: "13px",
-                      border: "1px solid #d1d5db",
-                      borderRadius: "4px",
-                      backgroundColor: "#f3f4f6",
-                      boxSizing: "border-box",
-                      width: "100%",
-                    }}
-                    data-testid="named-range-edit-name"
-                  />
-                  <input
-                    type="text"
-                    value={editRangeValue}
-                    onChange={(e) => setEditRangeValue(e.target.value)}
-                    style={{
-                      padding: "4px 8px",
-                      fontSize: "13px",
-                      border: "1px solid #d1d5db",
-                      borderRadius: "4px",
-                      boxSizing: "border-box",
-                      width: "100%",
-                    }}
-                    data-testid="named-range-edit-range"
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "6px",
-                      justifyContent: "flex-end",
-                    }}
-                  >
-                    <button
-                      onClick={handleCancelEdit}
-                      style={{
-                        padding: "4px 10px",
-                        fontSize: "12px",
-                        border: "1px solid #d1d5db",
-                        borderRadius: "4px",
-                        background: "white",
-                        cursor: "pointer",
-                      }}
-                      data-testid="named-range-edit-cancel"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleSaveEdit}
-                      style={{
-                        padding: "4px 10px",
-                        fontSize: "12px",
-                        backgroundColor: "#2563eb",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}
-                      data-testid="named-range-edit-save"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </div>
+                <RangeEditForm
+                  editNameValue={editNameValue}
+                  editRangeValue={editRangeValue}
+                  onRangeChange={setEditRangeValue}
+                  onSave={handleSaveEdit}
+                  onCancel={handleCancelEdit}
+                />
               ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <button
-                    onClick={() => handleJumpToRange(range)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      textAlign: "left",
-                      padding: 0,
-                      flex: 1,
-                    }}
-                    data-testid={`named-range-jump-${range.name}`}
-                  >
-                    <div style={{ fontSize: "13px", fontWeight: 500 }}>
-                      {range.name}
-                    </div>
-                    <div style={{ fontSize: "12px", color: "#6b7280" }}>
-                      {formatRange(range)}
-                    </div>
-                  </button>
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    <button
-                      onClick={() => handleStartEdit(range)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        color: "#2563eb",
-                        padding: "2px 6px",
-                      }}
-                      data-testid={`named-range-edit-${range.name}`}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(range.name)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        color: "#ef4444",
-                        padding: "2px 6px",
-                      }}
-                      data-testid={`named-range-delete-${range.name}`}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
+                <RangeListItem
+                  range={range}
+                  onJump={handleJumpToRange}
+                  onEdit={handleStartEdit}
+                  onDelete={handleDelete}
+                />
               )}
             </div>
           ))
@@ -366,29 +289,14 @@ export function NamedRangesPanel() {
       </div>
 
       {/* Add new range form */}
-      <div
-        style={{
-          padding: "16px",
-          borderTop: "1px solid #e5e7eb",
-        }}
-      >
-        <div style={{ fontSize: "13px", fontWeight: 500, marginBottom: "8px" }}>
-          Add a named range
-        </div>
+      <div className="border-t border-gray-200 p-4">
+        <div className="mb-2 text-[13px] font-medium">Add a named range</div>
         <input
           type="text"
           placeholder="Name (e.g. SalesData)"
           value={nameInput}
           onChange={(e) => setNameInput(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "6px 10px",
-            fontSize: "13px",
-            border: "1px solid #d1d5db",
-            borderRadius: "4px",
-            boxSizing: "border-box",
-            marginBottom: "6px",
-          }}
+          className="mb-1.5 w-full rounded border border-gray-300 px-2.5 py-1.5 text-[13px]"
           data-testid="named-range-name-input"
         />
         <input
@@ -396,20 +304,12 @@ export function NamedRangesPanel() {
           placeholder="Range (e.g. A1:C5)"
           value={rangeInput}
           onChange={(e) => setRangeInput(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "6px 10px",
-            fontSize: "13px",
-            border: "1px solid #d1d5db",
-            borderRadius: "4px",
-            boxSizing: "border-box",
-            marginBottom: "6px",
-          }}
+          className="mb-1.5 w-full rounded border border-gray-300 px-2.5 py-1.5 text-[13px]"
           data-testid="named-range-range-input"
         />
         {error && (
           <p
-            style={{ fontSize: "11px", color: "#ef4444", marginBottom: "6px" }}
+            className="mb-1.5 text-[11px] text-red-500"
             data-testid="named-range-error"
           >
             {error}
@@ -417,16 +317,7 @@ export function NamedRangesPanel() {
         )}
         <button
           onClick={handleAdd}
-          style={{
-            width: "100%",
-            padding: "8px",
-            fontSize: "13px",
-            backgroundColor: "#2563eb",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
+          className="w-full cursor-pointer rounded border-none bg-blue-600 py-2 text-[13px] text-white"
           data-testid="named-range-add-button"
         >
           Add range
