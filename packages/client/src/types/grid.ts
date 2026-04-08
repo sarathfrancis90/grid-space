@@ -77,6 +77,8 @@ export interface ConditionalRule {
   dataBarConfig?: DataBarConfig;
   /** For iconSet type: icon set configuration */
   iconSetConfig?: IconSetConfig;
+  /** When true, lower-priority rules are skipped if this rule matches */
+  stopIfTrue?: boolean;
 }
 
 export interface BorderStyle {
