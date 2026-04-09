@@ -12,6 +12,10 @@ const mockDeleteRowHeights = vi.fn();
 const mockDeleteColWidths = vi.fn();
 const mockSetTotalRows = vi.fn();
 const mockSetTotalCols = vi.fn();
+const mockMoveRow = vi.fn();
+const mockMoveCol = vi.fn();
+const mockSetRowHeight = vi.fn();
+const mockSetColumnWidth = vi.fn();
 
 vi.mock("../../../stores/historyStore", () => ({
   useHistoryStore: Object.assign(
@@ -59,6 +63,8 @@ vi.mock("../../../stores/gridStore", () => ({
         setTotalCols: mockSetTotalCols,
         getRowHeight: () => 21,
         getColumnWidth: () => 100,
+        setRowHeight: mockSetRowHeight,
+        setColumnWidth: mockSetColumnWidth,
       }),
     },
   ),
@@ -73,6 +79,8 @@ vi.mock("../../../stores/cellStore", () => ({
         clearValues: mockClearValues,
         deleteRows: mockDeleteRows,
         deleteCols: mockDeleteCols,
+        moveRow: mockMoveRow,
+        moveCol: mockMoveCol,
       }),
     },
   ),
@@ -248,6 +256,112 @@ describe("Edit menu items", () => {
     expect(mockSetTotalCols).toHaveBeenCalledWith(25);
   });
 
+  it("Move row up swaps selected row with the one above", async () => {
+    const { useUIStore } = await import("../../../stores/uiStore");
+    const { useCellStore } = await import("../../../stores/cellStore");
+    const { useGridStore } = await import("../../../stores/gridStore");
+    const { useSpreadsheetStore } =
+      await import("../../../stores/spreadsheetStore");
+    const { useHistoryStore } = await import("../../../stores/historyStore");
+
+    const sel = useUIStore.getState().selectedCell!;
+    const gs = useGridStore.getState();
+    const sid = useSpreadsheetStore.getState().activeSheetId;
+
+    // Simulate the Move row up action from MenuBar
+    useHistoryStore.getState().pushUndo();
+    useCellStore.getState().moveRow(sid, sel.row, sel.row - 1, gs.totalCols);
+    const h1 = gs.getRowHeight(sel.row);
+    const h2 = gs.getRowHeight(sel.row - 1);
+    gs.setRowHeight(sel.row, h2);
+    gs.setRowHeight(sel.row - 1, h1);
+    useUIStore.getState().setSelectedCell({ row: sel.row - 1, col: sel.col });
+
+    expect(mockPushUndo).toHaveBeenCalled();
+    expect(mockMoveRow).toHaveBeenCalledWith("sheet-1", 2, 1, 26);
+    expect(mockSetRowHeight).toHaveBeenCalledTimes(2);
+    expect(mockSetSelectedCell).toHaveBeenCalledWith({ row: 1, col: 2 });
+  });
+
+  it("Move row down swaps selected row with the one below", async () => {
+    const { useUIStore } = await import("../../../stores/uiStore");
+    const { useCellStore } = await import("../../../stores/cellStore");
+    const { useGridStore } = await import("../../../stores/gridStore");
+    const { useSpreadsheetStore } =
+      await import("../../../stores/spreadsheetStore");
+    const { useHistoryStore } = await import("../../../stores/historyStore");
+
+    const sel = useUIStore.getState().selectedCell!;
+    const gs = useGridStore.getState();
+    const sid = useSpreadsheetStore.getState().activeSheetId;
+
+    // Simulate the Move row down action from MenuBar
+    useHistoryStore.getState().pushUndo();
+    useCellStore.getState().moveRow(sid, sel.row, sel.row + 1, gs.totalCols);
+    const h1 = gs.getRowHeight(sel.row);
+    const h2 = gs.getRowHeight(sel.row + 1);
+    gs.setRowHeight(sel.row, h2);
+    gs.setRowHeight(sel.row + 1, h1);
+    useUIStore.getState().setSelectedCell({ row: sel.row + 1, col: sel.col });
+
+    expect(mockPushUndo).toHaveBeenCalled();
+    expect(mockMoveRow).toHaveBeenCalledWith("sheet-1", 2, 3, 26);
+    expect(mockSetSelectedCell).toHaveBeenCalledWith({ row: 3, col: 2 });
+  });
+
+  it("Move column left swaps selected column with the one to its left", async () => {
+    const { useUIStore } = await import("../../../stores/uiStore");
+    const { useCellStore } = await import("../../../stores/cellStore");
+    const { useGridStore } = await import("../../../stores/gridStore");
+    const { useSpreadsheetStore } =
+      await import("../../../stores/spreadsheetStore");
+    const { useHistoryStore } = await import("../../../stores/historyStore");
+
+    const sel = useUIStore.getState().selectedCell!;
+    const gs = useGridStore.getState();
+    const sid = useSpreadsheetStore.getState().activeSheetId;
+
+    // Simulate the Move column left action from MenuBar
+    useHistoryStore.getState().pushUndo();
+    useCellStore.getState().moveCol(sid, sel.col, sel.col - 1, gs.totalRows);
+    const w1 = gs.getColumnWidth(sel.col);
+    const w2 = gs.getColumnWidth(sel.col - 1);
+    gs.setColumnWidth(sel.col, w2);
+    gs.setColumnWidth(sel.col - 1, w1);
+    useUIStore.getState().setSelectedCell({ row: sel.row, col: sel.col - 1 });
+
+    expect(mockPushUndo).toHaveBeenCalled();
+    expect(mockMoveCol).toHaveBeenCalledWith("sheet-1", 2, 1, 100);
+    expect(mockSetColumnWidth).toHaveBeenCalledTimes(2);
+    expect(mockSetSelectedCell).toHaveBeenCalledWith({ row: 2, col: 1 });
+  });
+
+  it("Move column right swaps selected column with the one to its right", async () => {
+    const { useUIStore } = await import("../../../stores/uiStore");
+    const { useCellStore } = await import("../../../stores/cellStore");
+    const { useGridStore } = await import("../../../stores/gridStore");
+    const { useSpreadsheetStore } =
+      await import("../../../stores/spreadsheetStore");
+    const { useHistoryStore } = await import("../../../stores/historyStore");
+
+    const sel = useUIStore.getState().selectedCell!;
+    const gs = useGridStore.getState();
+    const sid = useSpreadsheetStore.getState().activeSheetId;
+
+    // Simulate the Move column right action from MenuBar
+    useHistoryStore.getState().pushUndo();
+    useCellStore.getState().moveCol(sid, sel.col, sel.col + 1, gs.totalRows);
+    const w1 = gs.getColumnWidth(sel.col);
+    const w2 = gs.getColumnWidth(sel.col + 1);
+    gs.setColumnWidth(sel.col, w2);
+    gs.setColumnWidth(sel.col + 1, w1);
+    useUIStore.getState().setSelectedCell({ row: sel.row, col: sel.col + 1 });
+
+    expect(mockPushUndo).toHaveBeenCalled();
+    expect(mockMoveCol).toHaveBeenCalledWith("sheet-1", 2, 3, 100);
+    expect(mockSetSelectedCell).toHaveBeenCalledWith({ row: 2, col: 3 });
+  });
+
   it("Edit menu has correct test IDs for all new items", () => {
     const expectedTestIds = [
       "menu-edit-paste-special",
@@ -255,6 +369,10 @@ describe("Edit menu items", () => {
       "menu-edit-delete-values",
       "menu-edit-delete-row",
       "menu-edit-delete-col",
+      "menu-edit-move-row-up",
+      "menu-edit-move-row-down",
+      "menu-edit-move-col-left",
+      "menu-edit-move-col-right",
     ];
 
     for (const testId of expectedTestIds) {
