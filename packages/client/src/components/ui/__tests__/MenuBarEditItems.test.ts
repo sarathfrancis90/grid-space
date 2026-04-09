@@ -6,12 +6,18 @@ const mockClearRange = vi.fn();
 const mockClearValues = vi.fn();
 const mockDeleteRows = vi.fn();
 const mockDeleteCols = vi.fn();
+const mockMoveRow = vi.fn();
+const mockMoveCol = vi.fn();
 const mockSetSelectedCell = vi.fn();
 const mockSetSelections = vi.fn();
 const mockDeleteRowHeights = vi.fn();
 const mockDeleteColWidths = vi.fn();
 const mockSetTotalRows = vi.fn();
 const mockSetTotalCols = vi.fn();
+const mockSetRowHeight = vi.fn();
+const mockSetColumnWidth = vi.fn();
+const mockGetRowHeight = vi.fn((row: number) => (row === 2 ? 30 : 21));
+const mockGetColumnWidth = vi.fn((col: number) => (col === 2 ? 150 : 100));
 
 vi.mock("../../../stores/historyStore", () => ({
   useHistoryStore: Object.assign(
@@ -57,8 +63,10 @@ vi.mock("../../../stores/gridStore", () => ({
         deleteColWidths: mockDeleteColWidths,
         setTotalRows: mockSetTotalRows,
         setTotalCols: mockSetTotalCols,
-        getRowHeight: () => 21,
-        getColumnWidth: () => 100,
+        getRowHeight: mockGetRowHeight,
+        getColumnWidth: mockGetColumnWidth,
+        setRowHeight: mockSetRowHeight,
+        setColumnWidth: mockSetColumnWidth,
       }),
     },
   ),
@@ -73,6 +81,8 @@ vi.mock("../../../stores/cellStore", () => ({
         clearValues: mockClearValues,
         deleteRows: mockDeleteRows,
         deleteCols: mockDeleteCols,
+        moveRow: mockMoveRow,
+        moveCol: mockMoveCol,
       }),
     },
   ),
@@ -255,10 +265,146 @@ describe("Edit menu items", () => {
       "menu-edit-delete-values",
       "menu-edit-delete-row",
       "menu-edit-delete-col",
+      "menu-edit-move-row-up",
+      "menu-edit-move-row-down",
+      "menu-edit-move-col-left",
+      "menu-edit-move-col-right",
     ];
 
     for (const testId of expectedTestIds) {
       expect(testId).toMatch(/^menu-edit-/);
     }
+  });
+
+  it("Move row up swaps row data and heights", async () => {
+    const { useUIStore } = await import("../../../stores/uiStore");
+    const { useCellStore } = await import("../../../stores/cellStore");
+    const { useGridStore } = await import("../../../stores/gridStore");
+    const { useSpreadsheetStore } =
+      await import("../../../stores/spreadsheetStore");
+    const { useHistoryStore } = await import("../../../stores/historyStore");
+
+    const sel = useUIStore.getState().selectedCell!;
+    const gs = useGridStore.getState();
+    const sid = useSpreadsheetStore.getState().activeSheetId;
+
+    // Simulate Move row up action from MenuBar
+    useHistoryStore.getState().pushUndo();
+    useCellStore.getState().moveRow(sid, sel.row, sel.row - 1, gs.totalCols);
+    const h1 = gs.getRowHeight(sel.row);
+    const h2 = gs.getRowHeight(sel.row - 1);
+    gs.setRowHeight(sel.row, h2);
+    gs.setRowHeight(sel.row - 1, h1);
+    useUIStore.getState().setSelectedCell({ row: sel.row - 1, col: sel.col });
+
+    expect(mockPushUndo).toHaveBeenCalled();
+    expect(mockMoveRow).toHaveBeenCalledWith("sheet-1", 2, 1, 26);
+    expect(mockSetRowHeight).toHaveBeenCalledWith(2, 21);
+    expect(mockSetRowHeight).toHaveBeenCalledWith(1, 30);
+    expect(mockSetSelectedCell).toHaveBeenCalledWith({ row: 1, col: 2 });
+  });
+
+  it("Move row down swaps row data and heights", async () => {
+    const { useUIStore } = await import("../../../stores/uiStore");
+    const { useCellStore } = await import("../../../stores/cellStore");
+    const { useGridStore } = await import("../../../stores/gridStore");
+    const { useSpreadsheetStore } =
+      await import("../../../stores/spreadsheetStore");
+    const { useHistoryStore } = await import("../../../stores/historyStore");
+
+    const sel = useUIStore.getState().selectedCell!;
+    const gs = useGridStore.getState();
+    const sid = useSpreadsheetStore.getState().activeSheetId;
+
+    // Simulate Move row down action from MenuBar
+    useHistoryStore.getState().pushUndo();
+    useCellStore.getState().moveRow(sid, sel.row, sel.row + 1, gs.totalCols);
+    const h1 = gs.getRowHeight(sel.row);
+    const h2 = gs.getRowHeight(sel.row + 1);
+    gs.setRowHeight(sel.row, h2);
+    gs.setRowHeight(sel.row + 1, h1);
+    useUIStore.getState().setSelectedCell({ row: sel.row + 1, col: sel.col });
+
+    expect(mockPushUndo).toHaveBeenCalled();
+    expect(mockMoveRow).toHaveBeenCalledWith("sheet-1", 2, 3, 26);
+    expect(mockSetSelectedCell).toHaveBeenCalledWith({ row: 3, col: 2 });
+  });
+
+  it("Move column left swaps column data and widths", async () => {
+    const { useUIStore } = await import("../../../stores/uiStore");
+    const { useCellStore } = await import("../../../stores/cellStore");
+    const { useGridStore } = await import("../../../stores/gridStore");
+    const { useSpreadsheetStore } =
+      await import("../../../stores/spreadsheetStore");
+    const { useHistoryStore } = await import("../../../stores/historyStore");
+
+    const sel = useUIStore.getState().selectedCell!;
+    const gs = useGridStore.getState();
+    const sid = useSpreadsheetStore.getState().activeSheetId;
+
+    // Simulate Move column left action from MenuBar
+    useHistoryStore.getState().pushUndo();
+    useCellStore.getState().moveCol(sid, sel.col, sel.col - 1, gs.totalRows);
+    const w1 = gs.getColumnWidth(sel.col);
+    const w2 = gs.getColumnWidth(sel.col - 1);
+    gs.setColumnWidth(sel.col, w2);
+    gs.setColumnWidth(sel.col - 1, w1);
+    useUIStore.getState().setSelectedCell({ row: sel.row, col: sel.col - 1 });
+
+    expect(mockPushUndo).toHaveBeenCalled();
+    expect(mockMoveCol).toHaveBeenCalledWith("sheet-1", 2, 1, 100);
+    expect(mockSetColumnWidth).toHaveBeenCalledWith(2, 100);
+    expect(mockSetColumnWidth).toHaveBeenCalledWith(1, 150);
+    expect(mockSetSelectedCell).toHaveBeenCalledWith({ row: 2, col: 1 });
+  });
+
+  it("Move column right swaps column data and widths", async () => {
+    const { useUIStore } = await import("../../../stores/uiStore");
+    const { useCellStore } = await import("../../../stores/cellStore");
+    const { useGridStore } = await import("../../../stores/gridStore");
+    const { useSpreadsheetStore } =
+      await import("../../../stores/spreadsheetStore");
+    const { useHistoryStore } = await import("../../../stores/historyStore");
+
+    const sel = useUIStore.getState().selectedCell!;
+    const gs = useGridStore.getState();
+    const sid = useSpreadsheetStore.getState().activeSheetId;
+
+    // Simulate Move column right action from MenuBar
+    useHistoryStore.getState().pushUndo();
+    useCellStore.getState().moveCol(sid, sel.col, sel.col + 1, gs.totalRows);
+    const w1 = gs.getColumnWidth(sel.col);
+    const w2 = gs.getColumnWidth(sel.col + 1);
+    gs.setColumnWidth(sel.col, w2);
+    gs.setColumnWidth(sel.col + 1, w1);
+    useUIStore.getState().setSelectedCell({ row: sel.row, col: sel.col + 1 });
+
+    expect(mockPushUndo).toHaveBeenCalled();
+    expect(mockMoveCol).toHaveBeenCalledWith("sheet-1", 2, 3, 100);
+    expect(mockSetSelectedCell).toHaveBeenCalledWith({ row: 2, col: 3 });
+  });
+
+  it("Paste special submenu has all 8 paste modes", () => {
+    const pasteSpecialModes = [
+      { label: "Values only", mode: "values" },
+      { label: "Format only", mode: "format" },
+      { label: "Formula only", mode: "formula" },
+      { label: "All except borders", mode: "allExceptBorders" },
+      { label: "Column widths only", mode: "columnWidths" },
+      { label: "Data validation only", mode: "dataValidation" },
+      { label: "Conditional formatting only", mode: "conditionalFormatting" },
+      { label: "Transposed", mode: "values" },
+    ];
+
+    expect(pasteSpecialModes).toHaveLength(8);
+    expect(pasteSpecialModes.map((m) => m.mode)).toContain("values");
+    expect(pasteSpecialModes.map((m) => m.mode)).toContain("format");
+    expect(pasteSpecialModes.map((m) => m.mode)).toContain("formula");
+    expect(pasteSpecialModes.map((m) => m.mode)).toContain("allExceptBorders");
+    expect(pasteSpecialModes.map((m) => m.mode)).toContain("columnWidths");
+    expect(pasteSpecialModes.map((m) => m.mode)).toContain("dataValidation");
+    expect(pasteSpecialModes.map((m) => m.mode)).toContain(
+      "conditionalFormatting",
+    );
   });
 });
